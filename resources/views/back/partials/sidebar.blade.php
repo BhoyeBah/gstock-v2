@@ -118,15 +118,25 @@
     </a>
 
     <hr class="sidebar-divider my-0">
-
     @if ($active_subscription)
         <li class="nav-item py-2 px-3 text-center">
-            <span class="badge badge-success text-uppercase shadow-sm">
-                <i class="fas fa-crown mr-1"></i> {{ $active_subscription->plan->name }}
+            <span class="badge badge-success text-uppercase shadow-sm d-block text-truncate px-2 py-2">
+                <i class="fas fa-crown mr-1"></i>
+
+                <!-- Sur écrans ≥ SM : nom complet -->
+                <span class="d-none d-sm-inline">
+                    {{ $active_subscription->plan->name }}
+                </span>
+
+                <!-- Sur mobile : nom raccourci -->
+                <span class="d-inline d-sm-none">
+                    {{ Str::limit($active_subscription->plan->name, 10) }}
+                </span>
             </span>
         </li>
         <hr class="sidebar-divider">
     @endif
+
 
     <!-- Dashboard -->
     @can('access_dashboard')
