@@ -4,115 +4,122 @@
     $isSupplier = in_array($type, ['fournisseur', 'fournisseurs', 'supplier', 'suppliers']);
 @endphp
 
-<table class="table table-bordered" id="invoiceLinesTable">
-    <thead class="thead-light">
-        <tr>
-            <th>Entrêpot</th>
-            <th>Produit</th>
-            <th>Quantité</th>
-            <th>Prix d'achat</th>
-            <th>Remise</th>
-
-            @if ($isSupplier)
-                <th>Date d'expiration</th>
-            @endif
-
-            <th>Total</th>
-            <th class="text-center">Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @forelse($invoiceItems as $index => $item)
+<div class="table-responsive">
+    <table class="table table-bordered" id="invoiceLinesTable">
+        <thead class="thead-light">
             <tr>
-                <td>
-                    <select name="items[{{ $index }}][warehouse_id]" class="form-control warehouseSelect" required>
-                        <option value="">Sélectionnez un entrepôt</option>
-                        @foreach ($warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}"
-                                {{ $item->warehouse_id == $warehouse->id ? 'selected' : '' }}>
-                                {{ $warehouse->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </td>
-
-                <td>
-                    <select name="items[{{ $index }}][product_id]" class="form-control productSelect" required>
-                        <option value="">Sélectionnez un produit</option>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->price }}"
-                                data-is-perishable="{{ $product->is_perishable }}"
-                                {{ $item->product_id == $product->id ? 'selected' : '' }}>
-                                {{ $product->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </td>
-
-                <td><input type="number" name="items[{{ $index }}][quantity]" class="form-control quantity"
-                        value="{{ $item->quantity }}" min="1" required></td>
-                <td><input type="number" name="items[{{ $index }}][unit_price]" class="form-control unit_price"
-                        value="{{ $item->unit_price ?? 0 }}" min="0" required></td>
-                <td><input type="number" name="items[{{ $index }}][discount]" class="form-control discount"
-                        value="{{ $item->discount ?? 0 }}" min="0"></td>
+                <th>Entrêpot</th>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Prix d'achat</th>
+                <th>Remise</th>
 
                 @if ($isSupplier)
+                    <th>Date d'expiration</th>
+                @endif
+
+                <th>Total</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @forelse($invoiceItems as $index => $item)
+                <tr>
                     <td>
-                        <input type="date" name="items[{{ $index }}][expiration_date]"
-                            class="form-control expiration_date" value="{{ $item->expiration_date ?? '' }}">
+                        <select name="items[{{ $index }}][warehouse_id]" class="form-control warehouseSelect"
+                            required>
+                            <option value="">Sélectionnez un entrepôt</option>
+                            @foreach ($warehouses as $warehouse)
+                                <option value="{{ $warehouse->id }}"
+                                    {{ $item->warehouse_id == $warehouse->id ? 'selected' : '' }}>
+                                    {{ $warehouse->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </td>
-                @endif
 
-                <td class="total_line">{{ $item->quantity * ($item->unit_price ?? 0) - ($item->discount ?? 0) }}</td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-danger removeLineBtn"><i
-                            class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td>
-                    <select name="items[0][warehouse_id]" class="form-control warehouseSelect" required>
-                        <option value="">Sélectionnez un entrepôt</option>
-                        @foreach ($warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-                        @endforeach
-                    </select>
-                </td>
-                <td>
-                    <select name="items[0][product_id]" class="form-control productSelect" required>
-                        <option value="">Sélectionnez un produit</option>
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->price }}"
-                                data-is-perishable="{{ $product->is_perishable }}">
-                                {{ $product->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </td>
+                    <td>
+                        <select name="items[{{ $index }}][product_id]" class="form-control productSelect"
+                            required>
+                            <option value="">Sélectionnez un produit</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-price="{{ $product->price }}"
+                                    data-is-perishable="{{ $product->is_perishable }}"
+                                    {{ $item->product_id == $product->id ? 'selected' : '' }}>
+                                    {{ $product->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
 
-                <td><input type="number" name="items[0][quantity]" class="form-control quantity" value="1"
-                        min="1" required></td>
-                <td><input type="number" name="items[0][unit_price]" class="form-control unit_price" value="0"
-                        min="0" required></td>
-                <td><input type="number" name="items[0][discount]" class="form-control discount" value="0"
-                        min="0"></td>
+                    <td><input type="number" name="items[{{ $index }}][quantity]" class="form-control quantity"
+                            value="{{ $item->quantity }}" min="1" required></td>
+                    <td><input type="number" name="items[{{ $index }}][unit_price]"
+                            class="form-control unit_price" value="{{ $item->unit_price ?? 0 }}" min="0"
+                            required></td>
+                    <td><input type="number" name="items[{{ $index }}][discount]" class="form-control discount"
+                            value="{{ $item->discount ?? 0 }}" min="0">
+                    </td>
 
-                @if ($isSupplier)
-                    <td><input type="date" name="items[0][expiration_date]" class="form-control expiration_date"
-                            disabled></td>
-                @endif
+                    @if ($isSupplier)
+                        <td>
+                            <input type="date" name="items[{{ $index }}][expiration_date]"
+                                class="form-control expiration_date" value="{{ $item->expiration_date ?? '' }}">
+                        </td>
+                    @endif
 
-                <td class="total_line">0</td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-danger removeLineBtn"><i
-                            class="fas fa-trash"></i></button>
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+                    <td class="total_line">
+                        {{ $item->quantity * ($item->unit_price ?? 0) - ($item->discount ?? 0) }}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger removeLineBtn"><i
+                                class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td>
+                        <select name="items[0][warehouse_id]" class="form-control warehouseSelect" required>
+                            <option value="">Sélectionnez un entrepôt</option>
+                            @foreach ($warehouses as $warehouse)
+                                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <select name="items[0][product_id]" class="form-control productSelect" required>
+                            <option value="">Sélectionnez un produit</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-price="{{ $product->price }}"
+                                    data-is-perishable="{{ $product->is_perishable }}">
+                                    {{ $product->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+
+                    <td><input type="number" name="items[0][quantity]" class="form-control quantity" value="1"
+                            min="1" required></td>
+                    <td><input type="number" name="items[0][unit_price]" class="form-control unit_price" value="0"
+                            min="0" required></td>
+                    <td><input type="number" name="items[0][discount]" class="form-control discount" value="0"
+                            min="0"></td>
+
+                    @if ($isSupplier)
+                        <td><input type="date" name="items[0][expiration_date]" class="form-control expiration_date"
+                                disabled></td>
+                    @endif
+
+                    <td class="total_line">0</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger removeLineBtn"><i
+                                class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
 <button type="button" class="btn btn-sm btn-primary mt-2" id="addLineBtn">
     <i class="fas fa-plus"></i> Ajouter une ligne

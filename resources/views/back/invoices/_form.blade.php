@@ -27,15 +27,13 @@
     <div class="modal-body">
         <div class="row mb-3">
 
-
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-md-3">
                 <label for="invoice_number" class="font-weight-bold">Numéro facture (optionnel)</label>
                 <input type="text" name="invoice_number" id="invoice_number" class="form-control"
                     value="{{ old('invoice_number', $invoice->invoice_number ?? '') }}" placeholder="Ex: FAC-2025-001">
             </div>
 
-
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-4">
                 <label for="contact_id" class="font-weight-bold text-capitalize">
                     {{ ucfirst($entityLabel) }} <span class="text-danger">*</span>
                 </label>
@@ -50,19 +48,22 @@
                 </select>
             </div>
 
-            <div class="col-md-3">
-                <label for="invoice_date" class="font-weight-bold">Date facture <span
-                        class="text-danger">*</span></label>
+            <div class="col-12 col-sm-6 col-md-3">
+                <label for="invoice_date" class="font-weight-bold">
+                    Date facture <span class="text-danger">*</span>
+                </label>
                 <input type="date" name="invoice_date" class="form-control"
                     value="{{ old('invoice_date', $invoice->invoice_date) }}" required>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-md-2">
                 <label for="due_date" class="font-weight-bold">Date d’échéance</label>
                 <input type="date" name="due_date" class="form-control"
                     value="{{ old('due_date', $invoice->due_date) }}">
             </div>
+
         </div>
+
 
         <!-- Lignes facture -->
         @include('back.invoices._lines', ['invoice' => $invoice, 'products' => $products])
