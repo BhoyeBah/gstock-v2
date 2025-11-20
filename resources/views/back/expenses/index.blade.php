@@ -502,7 +502,7 @@
                                         {{-- TODO: Ajouter un bouton "Modifier" si nécessaire --}}
                                         {{-- <button class="btn btn-sm btn-warning" title="Modifier"><i class="fas fa-edit"></i></button> --}}
 
-                                        <form action="{{ route('expenses.destroy', $expense->id) }}" method="POST"
+                                        {{-- <form action="{{ route('expenses.destroy', $expense->id) }}" method="POST"
                                             class="d-inline"
                                             onsubmit="return confirm('Confirmer la suppression de cette dépense ?')">
                                             @csrf
@@ -510,7 +510,7 @@
                                             <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
-                                        </form>
+                                        </form> --}}
                                     </td>
                                 </tr>
                             @endforeach
