@@ -51,7 +51,7 @@ return new class extends Migration
             $table->foreign('warehouse_id')->references('id')->on('warehouses')->onDelete('restrict');
             $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict');
-            $table->unique(['invoice_id', 'warehouse_id', 'product_id'], 'unique_invoice_warehouse_product');
+           
         });
     }
 

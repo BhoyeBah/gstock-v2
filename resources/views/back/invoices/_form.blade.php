@@ -57,9 +57,9 @@
             </div>
 
             <div class="col-12 col-sm-6 col-md-2">
-                <label for="due_date" class="font-weight-bold">Date d’échéance</label>
+                <label for="due_date" class="font-weight-bold">Date d’échéance <span class="text-danger">*</span></label>
                 <input type="date" name="due_date" class="form-control"
-                    value="{{ old('due_date', $invoice->due_date) }}">
+                    value="{{ old('due_date', $invoice->due_date) }}" required>
             </div>
 
         </div>
