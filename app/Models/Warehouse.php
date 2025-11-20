@@ -41,9 +41,9 @@ class Warehouse extends Model
     /**
      * Relation avec les batches par entrepôt.
      */
-
-        public function batches()
+    public function batches()
     {
         return $this->hasMany(Batch::class);
     }
+
 }

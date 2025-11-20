@@ -11,6 +11,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FrontController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -38,7 +39,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [FrontController::class, 'index'])->middleware(['auth'])->name('home');
 
 Route::get('/dashboard', function () {
-    return redirect()->route("home");
+    return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
@@ -103,14 +104,14 @@ Route::prefix('suppliers')->controller(ContactController::class)->name('supplier
     Route::post('/', 'store')->name('store')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:create_suppliers']);
     Route::get('/{contact}', 'show')->name('show')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:read_supplier']);
     Route::get('/{contact}/edit', 'edit')->name('edit')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:read_suppliers']);
-    Route::put('/{contact}', 'update')->name('update')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:read_suppliers']);;
+    Route::put('/{contact}', 'update')->name('update')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:read_suppliers']);
     Route::delete('/{contact}', 'destroy')->name('destroy')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:delete_suppliers']);
     Route::patch('/{id}', 'toggleActive')->name('toggle')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:toggle_suppliers']);
 });
 
 Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middleware(['auth'])->name('invoices.')->group(function () {
     Route::get('/', 'index')->name('index');
-    Route::get('/unpaid', 'unpaid')->name("unpaid");
+    Route::get('/unpaid', 'unpaid')->name('unpaid');
     Route::post('/', 'store')->name('store');
     Route::get('/{invoice}/edit', 'edit')->name('edit');
     Route::patch('/{invoice}/validate', 'validateInvoice')->where('invoice', '[0-9a-fA-F\-]{36}')->name('validate');
@@ -130,7 +131,22 @@ Route::middleware(['auth'])->group(function () {
 
     // Journal des rapports
     Route::get('/reports/journal', [ReportController::class, 'journal'])->name('reports.journal');
+    Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
+    Route::get('/reports/suppliers', [ReportController::class, 'suppliers'])->name('reports.suppliers');
 });
+
+Route::middleware(['auth'])->group(function () {
+
+    // Inventaires
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventories.index');
+    Route::post('/inventory', [InventoryController::class, 'store'])->name('inventories.store');
+    Route::get('/inventory/{id}', [InventoryController::class, 'show'])->name('inventories.show');
+
+    // Validation d'un item
+    Route::get('/inventory/{inventory}/print', [InventoryController::class, 'print'])->name('inventories.print');
+    Route::patch('/inventory/{id}/validate', [InventoryController::class, 'validateItem'])->name('inventories.validate');
+});
+
 
 Route::prefix('payments/{type}')->controller(PaymentController::class)->name('payments.')->group(function () {
     Route::get('/', 'index')->name('index');

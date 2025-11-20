@@ -281,15 +281,55 @@
             </a>
         </li>
     @endcan
+    <div class="sidebar-heading">Rapport</div>
 
-    @can('read_reports')
+    <li class="nav-item {{ $isRapportActive ?? false ? 'active' : '' }}">
+        <a class="nav-link {{ $isRapportActive ?? false ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+            data-target="#collapseRapport" aria-expanded="{{ $isRapportActive ?? false ? 'true' : 'false' }}"
+            aria-controls="collapseRapport">
+
+            <i class="fas fa-chart-line"></i>
+            <span>Rapports</span>
+        </a>
+
+        <div id="collapseRapport" class="collapse {{ $isRapportOpen ?? '' }}" aria-labelledby="headingRapport"
+            data-parent="#accordionSidebar">
+
+            <div class="bg-white py-2 collapse-inner rounded">
+
+                <!-- Rapport produit -->
+                <a class="collapse-item {{ request()->routeIs('rapport.produit') ? 'active' : '' }}"
+                    href="{{ route('reports.products') }}">
+                    <i class="fas fa-box-open mr-1"></i>
+                    Par produit
+                </a>
+
+                <!-- Rapport fournisseur -->
+                <a class="collapse-item {{ request()->routeIs('rapport.fournisseur') ? 'active' : '' }}"
+                    href="{{ route('reports.suppliers') }}">
+                    <i class="fas fa-truck mr-1"></i>
+                   Par fournisseur
+                </a>
+
+                <!-- Rapport financiers -->
+                <a class="collapse-item {{ request()->routeIs('rapport.financiers') ? 'active' : '' }}"
+                    href="{{ route('reports.index') }}">
+                    <i class="fas fa-file-invoice-dollar mr-1"></i>
+                    Financiers
+                </a>
+            </div>
+        </div>
+    </li>
+
+
+    {{-- @can('read_reports')
         <li class="nav-item {{ $isActive(['reports.*']) ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('reports.index') }}">
                 <i class="fas fa-chart-line"></i>
                 <span>Rapports Financiers</span>
             </a>
         </li>
-    @endcan
+    @endcan --}}
 
     {{-- @can('manage_user') --}}
     <hr class="sidebar-divider">
@@ -342,7 +382,7 @@
             <div class="bg-white py-2 collapse-inner rounded">
 
                 <!-- Inventaires -->
-                <a class="collapse-item" href="#">
+                <a class="collapse-item" href="{{ route("inventories.index") }}">
                     <i class="fas fa-clipboard-list mr-1"></i>
                     Inventaires
                 </a>
