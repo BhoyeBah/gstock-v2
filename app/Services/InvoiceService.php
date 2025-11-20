@@ -27,7 +27,7 @@ class InvoiceService
             $invoice = Invoice::create($invoiceData);
 
             $lines = $this->getFormatedInvoiceLines($data['items'], $invoice->id, $invoiceData['type'])['rows'];
-
+        
             if (! empty($lines)) {
                 DB::table('invoice_items')->insert($lines);
             }
@@ -60,37 +60,51 @@ class InvoiceService
         $total_invoice = 0;
         $type = $type == 'client' ? 'out' : 'in';
 
+        $grouped = []; // clé => ligne
+
         foreach ($items as $item) {
             if (! isset($item['expiration_date'])) {
                 $item['expiration_date'] = null;
             }
+
             $quantity = (int) $item['quantity'];
             $discount = (int) $item['discount'];
             $price = (int) $item['unit_price'];
-            $total_line = $price * $quantity - $discount;
-            $rows[] = [
-                'type' => $type,
-                'quantity' => $quantity,
-                'discount' => $discount,
-                'unit_price' => $price,
-                'total_line' => $total_line,
-                'product_id' => $item['product_id'],
-                'warehouse_id' => $item['warehouse_id'],
-                'expiration_date' => $item['expiration_date'],
-                'invoice_id' => $invoice_id,
-                'id' => (string) Str::uuid(),
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ];
-            $total_invoice += $total_line;
 
+            // clé unique pour regroupement : produit + prix
+            $key = $item['product_id'].'-'.$price;
+
+            if (isset($grouped[$key])) {
+                // Si même produit et même prix, on additionne la quantité et la remise
+                $grouped[$key]['quantity'] += $quantity;
+                $grouped[$key]['discount'] += $discount;
+                $grouped[$key]['total_line'] += ($price * $quantity - $discount);
+            } else {
+                // Nouvelle ligne
+                $grouped[$key] = [
+                    'type' => $type,
+                    'quantity' => $quantity,
+                    'discount' => $discount,
+                    'unit_price' => $price,
+                    'total_line' => $price * $quantity - $discount,
+                    'product_id' => $item['product_id'],
+                    'warehouse_id' => $item['warehouse_id'],
+                    'expiration_date' => $item['expiration_date'],
+                    'invoice_id' => $invoice_id,
+                    'id' => (string) Str::uuid(),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ];
+            }
+
+            $total_invoice += ($price * $quantity - $discount);
         }
 
+        // On retourne les lignes regroupées
         return [
-            'rows' => $rows,
+            'rows' => array_values($grouped),
             'total_invoice' => $total_invoice,
         ];
-
     }
 
     public function getTotalInvoice(array $items)
@@ -105,7 +119,6 @@ class InvoiceService
             $total_invoice += $total_line;
 
         }
-
 
         return $total_invoice;
     }
