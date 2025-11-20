@@ -4,23 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Expense;
+use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        $expenses = Expense::paginate(10);
-        $total = Expense::sum('amount');
-        $today = Expense::where('created_at', '>=', now()->startOfDay())->sum('amount');
-        $thisWeek = Expense::where('created_at', '>=', now()->startOfWeek())->sum('amount');
-        $thisMonth = Expense::where('created_at', '>=', now()->startOfMonth())->sum('amount');
+        $query = Expense::query();
+
+        // Filtrer par motif
+        if ($request->filled('search_reason')) {
+            $query->where('reason', 'like', '%'.$request->search_reason.'%');
+        }
+
+        // Filtrer par date
+        if ($request->filled('date_start')) {
+            $query->whereDate('expense_date', '>=', $request->date_start);
+        }
+        if ($request->filled('date_end')) {
+            $query->whereDate('expense_date', '<=', $request->date_end);
+        }
+
+        // Pagination
+        $expenses = $query->orderBy('expense_date', 'desc')->paginate(10);
+
+        // Totaux
+        $total = $query->sum('amount'); // total filtré
+        $today = $query->where('expense_date', '>=', now()->startOfDay())->sum('amount');
+        $thisWeek = $query->where('expense_date', '>=', now()->startOfWeek())->sum('amount');
+        $thisMonth = $query->where('expense_date', '>=', now()->startOfMonth())->sum('amount');
 
         return view('back.expenses.index', compact('expenses', 'total', 'today', 'thisWeek', 'thisMonth'));
-
     }
 
     /**
@@ -84,5 +101,27 @@ class ExpenseController extends Controller
         $expense->delete();
 
         return back()->with('success', 'Dépense supprimée avec succès.');
+    }
+
+    public function print(Request $request)
+    {
+        $query = Expense::query();
+
+        // Filtrer par motif
+        if ($request->filled('search_reason')) {
+            $query->where('reason', 'like', '%'.$request->search_reason.'%');
+        }
+
+        // Filtrer par date
+        if ($request->filled('date_start')) {
+            $query->whereDate('expense_date', '>=', $request->date_start);
+        }
+        if ($request->filled('date_end')) {
+            $query->whereDate('expense_date', '<=', $request->date_end);
+        }
+
+        $expenses = $query->orderBy('expense_date', 'desc')->get();
+
+        return view('back.expenses.print', compact('expenses'));
     }
 }

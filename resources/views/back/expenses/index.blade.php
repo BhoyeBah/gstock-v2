@@ -249,6 +249,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -259,10 +260,21 @@
             animation: fadeInUp 0.5s ease-out;
         }
 
-        .stats-card:nth-child(1) { animation-delay: 0.1s; }
-        .stats-card:nth-child(2) { animation-delay: 0.2s; }
-        .stats-card:nth-child(3) { animation-delay: 0.3s; }
-        .stats-card:nth-child(4) { animation-delay: 0.4s; }
+        .stats-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stats-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stats-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stats-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
 
         /* Input groups */
         .input-group-text {
@@ -448,11 +460,15 @@
 
     <!-- Liste des dépenses -->
     <div class="invoice-list-section">
-        <div class="card-header text-white">
+        <div class="card-header text-white d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold">
                 <i class="fas fa-list-ul mr-2"></i> Liste des dépenses
             </h6>
+            <a href="{{ route('expenses.print', request()->query()) }}" class="btn btn-primary" target="_blank">
+                Imprimer
+            </a>
         </div>
+
         <div class="card-body p-0">
             @if ($expenses->count() > 0)
                 <div class="table-responsive">
