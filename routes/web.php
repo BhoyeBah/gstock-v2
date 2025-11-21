@@ -110,17 +110,17 @@ Route::prefix('suppliers')->controller(ContactController::class)->name('supplier
 });
 
 Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middleware(['auth'])->name('invoices.')->group(function () {
-    Route::get('/', 'index')->name('index');
+    Route::get('/', 'index')->name('index')->middleware(['subscription.permission:read_invoices']);
     Route::get('/unpaid', 'unpaid')->name('unpaid');
-    Route::post('/', 'store')->name('store');
+    Route::post('/', 'store')->name('store')->middleware('subscription.permission:create_invoices');
     Route::get('/{invoice}/edit', 'edit')->name('edit');
-    Route::patch('/{invoice}/validate', 'validateInvoice')->where('invoice', '[0-9a-fA-F\-]{36}')->name('validate');
-    Route::patch('/{invoice}/pay', 'validatePay')->where('invoice', '[0-9a-fA-F\-]{36}')->name('pay');
-    Route::post('/{invoice}/return', 'returnProduct')->where('invoice', '[0-9a-fA-F\-]{36}')->name('returnProduct');
-    Route::get('/{invoice}/print', 'print')->where('invoice', '[0-9a-fA-F\-]{36}')->name('print');
-    Route::get('/{invoice}', 'show')->where('invoice', '[0-9a-fA-F\-]{36}')->name('show');
-    Route::put('/{invoice}', 'update')->name('update');
-    Route::delete('/{invoice}', 'destroy')->name('destroy');
+    Route::patch('/{invoice}/validate', 'validateInvoice')->where('invoice', '[0-9a-fA-F\-]{36}')->name('validate')->middleware(['subscription.permission:validate_invoices']);
+    Route::patch('/{invoice}/pay', 'validatePay')->where('invoice', '[0-9a-fA-F\-]{36}')->name('pay')->middleware(['subscription.permission:make_payment']);
+    Route::post('/{invoice}/return', 'returnProduct')->where('invoice', '[0-9a-fA-F\-]{36}')->name('returnProduct')->middleware(['auth']);
+    Route::get('/{invoice}/print', 'print')->where('invoice', '[0-9a-fA-F\-]{36}')->name('print')->middleware(['auth']);
+    Route::get('/{invoice}', 'show')->where('invoice', '[0-9a-fA-F\-]{36}')->name('show')->middleware(['auth']);
+    Route::put('/{invoice}', 'update')->name('update')->middleware(['auth']);
+    Route::delete('/{invoice}', 'destroy')->name('destroy')->middleware(['auth']);
 
 })->where('type', 'client|supplier');
 

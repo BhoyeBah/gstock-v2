@@ -147,13 +147,12 @@
             </a>
         </li>
     @endcan
-
-    <hr class="sidebar-divider">
-
-    <!-- Catalogue & Partenaires -->
-    <div class="sidebar-heading">Catalogue & Partenaires</div>
-
     @can('manage_categories')
+        <hr class="sidebar-divider">
+
+        <!-- Catalogue & Partenaires -->
+        <div class="sidebar-heading">Catalogue & Partenaires</div>
+
         <li class="nav-item {{ $isActive(['categories.*']) ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('categories.index') }}">
                 <i class="fas fa-th-large"></i>
@@ -187,10 +186,8 @@
                 <span>Fournisseurs</span>
             </a>
         </li>
+        <hr class="sidebar-divider">
     @endcan
-
-    <hr class="sidebar-divider">
-
     <!-- Stock & Logistique -->
     @canAny(['manage_warehouses', 'manage_inventory'])
         <div class="sidebar-heading">Stock & Logistique</div>
@@ -203,14 +200,11 @@
                 </a>
             </li>
         @endcan
-
-
     @endcanAny
 
     <!-- Transactions -->
-    <div class="sidebar-heading">Transactions</div>
-
     @canAny(['manage_invoices', 'read_payments'])
+        <div class="sidebar-heading">Transactions</div>
         <li class="nav-item {{ $isVentesActive ? 'active' : '' }}">
             <a class="nav-link {{ $isVentesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
                 data-target="#collapseVentes" aria-expanded="{{ $isVentesActive ? 'true' : 'false' }}"
@@ -221,7 +215,7 @@
             <div id="collapseVentes" class="collapse {{ $isVentesOpen }}" aria-labelledby="headingVentes"
                 data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    @can('manage_invoices')
+                    @can('manage_client_invoices')
                         <a class="collapse-item {{ request()->routeIs('invoices.index') && request('type') === 'clients' && !request()->has('status') ? 'active' : '' }}"
                             href="{{ route('invoices.index', ['type' => 'clients']) }}">
                             Factures Clients
@@ -235,7 +229,7 @@
                         </a>
                     @endcan
 
-                    @can('read_payments')
+                    @can('read_recouvrement')
                         <a class="collapse-item {{ request()->routeIs('invoices.unpaid') && request('type') === 'clients' && !request()->has('status') ? 'active' : '' }}"
                             href="{{ route('invoices.unpaid', ['type' => 'clients']) }}">
                             Récouvrements
@@ -257,7 +251,7 @@
             <div id="collapseAchats" class="collapse {{ $isAchatsOpen }}" aria-labelledby="headingAchats"
                 data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    @can('manage_invoices')
+                    @can('manage_supplier_invoices')
                         <a class="collapse-item {{ $isActive(['invoices.*']) && request('type') == 'suppliers' ? 'active' : '' }}"
                             href="{{ route('invoices.index', ['type' => 'suppliers']) }}">Factures Fournisseurs</a>
                     @endcan
@@ -269,11 +263,9 @@
             </div>
         </li>
     @endcanAny
-
-    <hr class="sidebar-divider">
-
     <!-- Finance & Rapports -->
     @can('manage_expenses')
+        <hr class="sidebar-divider">
         <li class="nav-item {{ $isActive(['expenses.*']) ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('expenses.index') }}">
                 <i class="fas fa-money-bill-wave"></i>
@@ -281,45 +273,48 @@
             </a>
         </li>
     @endcan
-    <div class="sidebar-heading">Rapport</div>
+    @can('view_report')
+        <div class="sidebar-heading">Rapport</div>
 
-    <li class="nav-item {{ $isRapportActive ?? false ? 'active' : '' }}">
-        <a class="nav-link {{ $isRapportActive ?? false ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-            data-target="#collapseRapport" aria-expanded="{{ $isRapportActive ?? false ? 'true' : 'false' }}"
-            aria-controls="collapseRapport">
+        <li class="nav-item {{ $isRapportActive ?? false ? 'active' : '' }}">
+            <a class="nav-link {{ $isRapportActive ?? false ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseRapport" aria-expanded="{{ $isRapportActive ?? false ? 'true' : 'false' }}"
+                aria-controls="collapseRapport">
 
-            <i class="fas fa-chart-line"></i>
-            <span>Rapports</span>
-        </a>
+                <i class="fas fa-chart-line"></i>
+                <span>Rapports</span>
+            </a>
 
-        <div id="collapseRapport" class="collapse {{ $isRapportOpen ?? '' }}" aria-labelledby="headingRapport"
-            data-parent="#accordionSidebar">
+            <div id="collapseRapport" class="collapse {{ $isRapportOpen ?? '' }}" aria-labelledby="headingRapport"
+                data-parent="#accordionSidebar">
 
-            <div class="bg-white py-2 collapse-inner rounded">
+                <div class="bg-white py-2 collapse-inner rounded">
 
-                <!-- Rapport produit -->
-                <a class="collapse-item {{ request()->routeIs('rapport.produit') ? 'active' : '' }}"
-                    href="{{ route('reports.products') }}">
-                    <i class="fas fa-box-open mr-1"></i>
-                    Par produit
-                </a>
+                    <!-- Rapport produit -->
+                    <a class="collapse-item {{ request()->routeIs('rapport.produit') ? 'active' : '' }}"
+                        href="{{ route('reports.products') }}">
+                        <i class="fas fa-box-open mr-1"></i>
+                        Par produit
+                    </a>
 
-                <!-- Rapport fournisseur -->
-                <a class="collapse-item {{ request()->routeIs('rapport.fournisseur') ? 'active' : '' }}"
-                    href="{{ route('reports.suppliers') }}">
-                    <i class="fas fa-truck mr-1"></i>
-                   Par fournisseur
-                </a>
+                    <!-- Rapport fournisseur -->
+                    <a class="collapse-item {{ request()->routeIs('rapport.fournisseur') ? 'active' : '' }}"
+                        href="{{ route('reports.suppliers') }}">
+                        <i class="fas fa-truck mr-1"></i>
+                        Par fournisseur
+                    </a>
 
-                <!-- Rapport financiers -->
-                <a class="collapse-item {{ request()->routeIs('rapport.financiers') ? 'active' : '' }}"
-                    href="{{ route('reports.index') }}">
-                    <i class="fas fa-file-invoice-dollar mr-1"></i>
-                    Financiers
-                </a>
+                    <!-- Rapport financiers -->
+                    <a class="collapse-item {{ request()->routeIs('rapport.financiers') ? 'active' : '' }}"
+                        href="{{ route('reports.index') }}">
+                        <i class="fas fa-file-invoice-dollar mr-1"></i>
+                        Financiers
+                    </a>
+                </div>
             </div>
-        </div>
-    </li>
+        </li>
+    @endcan
+
 
 
     {{-- @can('read_reports')
@@ -331,79 +326,80 @@
         </li>
     @endcan --}}
 
-    {{-- @can('manage_user') --}}
-    <hr class="sidebar-divider">
 
-    <!-- Gestion du Système -->
-    <div class="sidebar-heading">Gestion du Système</div>
+        <hr class="sidebar-divider">
 
-    <li class="nav-item {{ $isGestionActive ? 'active' : '' }}">
-        <a class="nav-link {{ $isGestionActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-            data-target="#collapseGestion" aria-expanded="{{ $isGestionActive ? 'true' : 'false' }}"
-            aria-controls="collapseGestion">
-            <i class="fas fa-users-cog"></i>
-            <span>Utilisateurs & Accès</span>
-        </a>
-        <div id="collapseGestion" class="collapse {{ $isGestionOpen }}" aria-labelledby="headingGestion"
-            data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                @can('manage_roles')
-                    <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
-                        href="{{ route('roles.index') }}">Rôles</a>
-                @endcan
-                @can('manage_users')
-                    <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
-                        href="{{ route('users.index') }}">Utilisateurs</a>
-                @endcan
-                @can('manage_invoices')
-                    <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
-                        href="{{ route('tenant.subscriptions.index') }}">Mes Souscriptions</a>
-                @endcan
+        <!-- Gestion du Système -->
+        <div class="sidebar-heading">Gestion du Système</div>
+
+        <li class="nav-item {{ $isGestionActive ? 'active' : '' }}">
+            <a class="nav-link {{ $isGestionActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseGestion" aria-expanded="{{ $isGestionActive ? 'true' : 'false' }}"
+                aria-controls="collapseGestion">
+                <i class="fas fa-users-cog"></i>
+                <span>Utilisateurs & Accès</span>
+            </a>
+            <div id="collapseGestion" class="collapse {{ $isGestionOpen }}" aria-labelledby="headingGestion"
+                data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    @can('manage_roles')
+                        <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
+                            href="{{ route('roles.index') }}">Rôles</a>
+                    @endcan
+                    @can('manage_users')
+                        <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
+                            href="{{ route('users.index') }}">Utilisateurs</a>
+                    @endcan
+                    @can('manage_invoices')
+                        <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
+                            href="{{ route('tenant.subscriptions.index') }}">Mes Souscriptions</a>
+                    @endcan
+                </div>
             </div>
-        </div>
-    </li>
-    {{-- @endcan --}}
+        </li>
+
+    @can('manage_stock')
+        <!-- Sidebar Stock -->
+        <div class="sidebar-heading">Stock</div>
 
 
-    <!-- Sidebar Stock -->
-    <div class="sidebar-heading">Stock</div>
+        <li class="nav-item {{ $isStockActive ?? false ? 'active' : '' }}">
+            <a class="nav-link {{ $isStockActive ?? false ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseStock" aria-expanded="{{ $isStockActive ?? false ? 'true' : 'false' }}"
+                aria-controls="collapseStock">
+                <i class="fas fa-boxes"></i>
+                <span>Stock</span>
+            </a>
 
+            <div id="collapseStock" class="collapse {{ $isStockOpen ?? '' }}" aria-labelledby="headingStock"
+                data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
 
-    <li class="nav-item {{ $isStockActive ?? false ? 'active' : '' }}">
-        <a class="nav-link {{ $isStockActive ?? false ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-            data-target="#collapseStock" aria-expanded="{{ $isStockActive ?? false ? 'true' : 'false' }}"
-            aria-controls="collapseStock">
-            <i class="fas fa-boxes"></i>
-            <span>Stock</span>
-        </a>
+                    <!-- Inventaires -->
+                    <a class="collapse-item" href="{{ route('inventories.index') }}">
+                        <i class="fas fa-clipboard-list mr-1"></i>
+                        Inventaires
+                    </a>
 
-        <div id="collapseStock" class="collapse {{ $isStockOpen ?? '' }}" aria-labelledby="headingStock"
-            data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
+                    {{-- <!-- Mouvement général -->
+                    <a class="collapse-item {{ request()->routeIs('inventory.movements') ? 'active' : '' }}"
+                        href="#">
+                        <i class="fas fa-exchange-alt mr-1"></i>
+                        Mouvement de stock
+                    </a> --}}
 
-                <!-- Inventaires -->
-                <a class="collapse-item" href="{{ route("inventories.index") }}">
-                    <i class="fas fa-clipboard-list mr-1"></i>
-                    Inventaires
-                </a>
-
-                <!-- Mouvement général -->
-                <a class="collapse-item {{ request()->routeIs('inventory.movements') ? 'active' : '' }}"
-                    href="#">
-                    <i class="fas fa-exchange-alt mr-1"></i>
-                    Mouvement de stock
-                </a>
-
-                <!-- Liste des sorties -->
-                <a class="collapse-item {{ request()->routeIs('stockouts.index') ? 'active' : '' }}"
-                    href="{{ route('stockout.index') }}">
-                    <i class="fas fa-truck-loading mr-1"></i>
-                    Sorties de stock
-                </a>
-                <hr class="sidebar-divider">
+                    <!-- Liste des sorties -->
+                    <a class="collapse-item {{ request()->routeIs('stockouts.index') ? 'active' : '' }}"
+                        href="{{ route('stockout.index') }}">
+                        <i class="fas fa-truck-loading mr-1"></i>
+                        Sorties de stock
+                    </a>
+                    <hr class="sidebar-divider">
+                </div>
             </div>
-        </div>
-    </li>
+        </li>
+    @endcan
+
 
 
 

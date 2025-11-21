@@ -249,6 +249,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -259,10 +260,21 @@
             animation: fadeInUp 0.5s ease-out;
         }
 
-        .stats-card:nth-child(1) { animation-delay: 0.1s; }
-        .stats-card:nth-child(2) { animation-delay: 0.2s; }
-        .stats-card:nth-child(3) { animation-delay: 0.3s; }
-        .stats-card:nth-child(4) { animation-delay: 0.4s; }
+        .stats-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stats-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stats-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stats-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
 
         /* Input groups */
         .input-group-text {
@@ -375,7 +387,7 @@
                                 Stock bas
                             </div>
                             <div class="h4 mb-0 font-weight-bold text-gray-800">
-                                {{ $products->filter(function($product) { return $product->stock_total <= $product->seuil_alert; })->count() }}
+                                {{ $products->filter(function ($product) {return $product->stock_total <= $product->seuil_alert;})->count() }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -419,7 +431,8 @@
                             <select name="category_id" id="category_id" class="form-control">
                                 <option value="">Toutes les catégories</option>
                                 @foreach (\App\Models\Category::all() as $category)
-                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}"
+                                        {{ request('category_id') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -436,7 +449,8 @@
                             <select name="status" id="status" class="form-control">
                                 <option value="">Tous les statuts</option>
                                 <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Actif</option>
-                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactif</option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactif
+                                </option>
                             </select>
                         </div>
                     </div>
@@ -487,7 +501,8 @@
                                         <strong class="text-dark">{{ $product->name }}</strong>
                                     </td>
                                     <td>
-                                        <a href="{{ route('categories.index') }}?search_name={{ $product->category->name ?? '' }}">
+                                        <a
+                                            href="{{ route('categories.index') }}?search_name={{ $product->category->name ?? '' }}">
                                             {{ $product->category->name ?? '-' }}
                                         </a>
                                     </td>
@@ -495,7 +510,8 @@
                                         {{ number_format($product->price, 0, ',', ' ') }} FCFA
                                     </td>
                                     <td>
-                                        <span class="badge {{ $product->stock_total > $product->seuil_alert ? 'badge-success' : 'badge-warning' }}">
+                                        <span
+                                            class="badge {{ $product->stock_total > $product->seuil_alert ? 'badge-success' : 'badge-warning' }}">
                                             {{ $product->stock_total ?? 0 }}
                                         </span>
                                     </td>
@@ -526,8 +542,8 @@
                                         </a>
 
                                         <!-- Voir -->
-                                        <a href="{{ route('products.show', $product->id) }}"
-                                            class="btn btn-sm btn-info" title="Voir">
+                                        <a href="{{ route('products.show', $product->id) }}" class="btn btn-sm btn-info"
+                                            title="Voir">
                                             <i class="fas fa-eye"></i>
                                         </a>
 
@@ -541,6 +557,7 @@
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
+
                                     </td>
                                 </tr>
                             @endforeach

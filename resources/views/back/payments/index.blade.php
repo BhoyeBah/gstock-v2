@@ -551,18 +551,21 @@
                                         </td>
                                         <td class="text-center action-buttons">
                                             {{-- Remplacement du formulaire onsubmit par une modale --}}
-                                            <button type="button" class="btn btn-sm btn-danger confirm-action-btn"
-                                                title="Supprimer" data-toggle="modal" data-target="#confirmModal"
-                                                data-action="{{ route('payments.destroy', [$type, $payment->id]) }}"
-                                                data-method="DELETE"
-                                                data-message="Confirmez-vous la suppression de ce paiement ? Cette action est irréversible et réajustera le solde de la facture."
-                                                data-btn-class="btn-danger"
-                                                data-title="<i class='fas fa-exclamation-triangle'></i> Supprimer le paiement"
-                                                @if ($payment->amount_paid == 0)
-                                                disabled
-                                @endif>
-                                <i class="fas fa-trash-alt"></i>
-                                </button>
+
+                                            @can('delete_payment')
+                                                <button type="button" class="btn btn-sm btn-danger confirm-action-btn"
+                                                    title="Supprimer" data-toggle="modal" data-target="#confirmModal"
+                                                    data-action="{{ route('payments.destroy', [$type, $payment->id]) }}"
+                                                    data-method="DELETE"
+                                                    data-message="Confirmez-vous la suppression de ce paiement ? Cette action est irréversible et réajustera le solde de la facture."
+                                                    data-btn-class="btn-danger"
+                                                    data-title="<i class='fas fa-exclamation-triangle'></i> Supprimer le paiement"
+                                                    @if ($payment->amount_paid == 0)
+                                                    disabled
+                                    @endif>
+                                    <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @endcan
                                 </td>
                                 </tr>
                 @endforeach
