@@ -203,7 +203,7 @@
     @endcanAny
 
     <!-- Transactions -->
-    @canAny(['manage_invoices', 'read_payments'])
+    @canAny(['manage_supplier_invoices','manage_client_invoices', 'read_supplier_payments','read_client_payments'])
         <div class="sidebar-heading">Transactions</div>
         <li class="nav-item {{ $isVentesActive ? 'active' : '' }}">
             <a class="nav-link {{ $isVentesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
@@ -222,7 +222,7 @@
                         </a>
                     @endcan
 
-                    @can('read_payments')
+                    @can('read_client_payments')
                         <a class="collapse-item {{ request()->routeIs('payments.index') && request('type') === 'clients' ? 'active' : '' }}"
                             href="{{ route('payments.index', ['type' => 'clients']) }}">
                             Paiements Clients
@@ -255,7 +255,7 @@
                         <a class="collapse-item {{ $isActive(['invoices.*']) && request('type') == 'suppliers' ? 'active' : '' }}"
                             href="{{ route('invoices.index', ['type' => 'suppliers']) }}">Factures Fournisseurs</a>
                     @endcan
-                    @can('read_payments')
+                    @can('read_supplier_payments')
                         <a class="collapse-item {{ $isActive(['payments.*']) && request('type') == 'suppliers' ? 'active' : '' }}"
                             href="{{ route('payments.index', ['type' => 'suppliers']) }}">Paiements Fournisseurs</a>
                     @endcan
