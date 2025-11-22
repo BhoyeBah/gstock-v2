@@ -127,7 +127,7 @@ Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middlewa
 // Route::resource('/reports', ReportController::class)->middleware(['auth'])->names('reports');
 Route::middleware(['auth'])->group(function () {
     // Index des rapports
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware(['subscription.permission:view_report']);
     // Journal des rapports
     Route::get('/reports/journal', [ReportController::class, 'journal'])->name('reports.journal');
     Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
@@ -157,7 +157,7 @@ Route::get('/expenses/print', [ExpenseController::class, 'print'])
     ->middleware(['auth'])
     ->name('expenses.print');
 
-Route::resource('expenses', ExpenseController::class)->middleware(['auth'])->names('expenses');
+Route::resource('expenses', ExpenseController::class)->middleware(['auth', 'subscription.permission:manage_expenses'])->names('expenses');
 
 Route::resource('stock/out', StockOutController::class)->middleware(['auth'])->names('stockout');
 require __DIR__.'/auth.php';

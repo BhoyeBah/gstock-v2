@@ -34,7 +34,10 @@ class InvoiceController extends Controller
     public function index(Request $request, string $type)
     {
         $this->validateType($type);
-
+        $required_permission_name = $type == "clients"? "manage_client_invoices": "manage_supplier_invoices";
+        if (!auth()->user()->can($required_permission_name)) {
+            abort(403, "Vous n'avez pas la permission d'acceder à cette fonctionnalité");
+        }
         $status_list = ['draft', 'validated', 'partial', 'paid', 'cancelled'];
 
         $status = $request->input('status');

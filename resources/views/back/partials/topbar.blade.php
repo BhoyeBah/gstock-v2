@@ -147,30 +147,24 @@
                 <div class="row">
                     <!-- Nouvelle Facture Client -->
                     <div class="col-4 text-center mb-3">
-                        @can('manage_client_invoices')
-                            <a href="{{ route('invoices.store', 'clients') }}" class="text-decoration-none">
-                                <div class="icon-circle bg-primary mx-auto mb-2"
-                                    style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-file-invoice text-white"></i>
-                                </div>
-                                <div class="small font-weight-bold text-dark">Facture Client</div>
-                            </a>
-                        @endcan
-
+                        <a href="{{ route('invoices.store', 'clients') }}" class="text-decoration-none">
+                            <div class="icon-circle bg-primary mx-auto mb-2"
+                                style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-file-invoice text-white"></i>
+                            </div>
+                            <div class="small font-weight-bold text-dark">Facture Client</div>
+                        </a>
                     </div>
 
                     <!-- Facture Fournisseur -->
                     <div class="col-4 text-center mb-3">
-                        @can('manage_supplier_invoices')
-                            <a href="{{ route('invoices.index', 'suppliers') }}" class="text-decoration-none">
-                                <div class="icon-circle bg-warning mx-auto mb-2"
-                                    style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-receipt text-white"></i>
-                                </div>
-                                <div class="small font-weight-bold text-dark">Facture Fournisseur</div>
-                            </a>
-                        @endcan
-
+                        <a href="{{ route('invoices.index', 'suppliers') }}" class="text-decoration-none">
+                            <div class="icon-circle bg-warning mx-auto mb-2"
+                                style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-receipt text-white"></i>
+                            </div>
+                            <div class="small font-weight-bold text-dark">Facture Fournisseur</div>
+                        </a>
                     </div>
 
                     <!-- Nouveau Produit -->
@@ -197,29 +191,24 @@
 
                     <!-- Nouvelle Dépense -->
                     <div class="col-4 text-center mb-3">
-                        @can('manage_expenses')
-                            <a href="{{ route('expenses.index') }}" class="text-decoration-none">
-                                <div class="icon-circle bg-danger mx-auto mb-2"
-                                    style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-money-bill-wave text-white"></i>
-                                </div>
-                                <div class="small font-weight-bold text-dark">Dépense</div>
-                            </a>
-                        @endcan
+                        <a href="{{ route('expenses.index') }}" class="text-decoration-none">
+                            <div class="icon-circle bg-danger mx-auto mb-2"
+                                style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-money-bill-wave text-white"></i>
+                            </div>
+                            <div class="small font-weight-bold text-dark">Dépense</div>
+                        </a>
                     </div>
 
                     <!-- Rapports -->
                     <div class="col-4 text-center mb-3">
-                        @can('view_report')
-                            <a href="{{ route('reports.index') }}" class="text-decoration-none">
-                                <div class="icon-circle bg-info mx-auto mb-2"
-                                    style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-chart-line text-white"></i>
-                                </div>
-                                <div class="small font-weight-bold text-dark">Rapports</div>
-                            </a>
-                        @endcan
-
+                        <a href="{{ route('reports.index') }}" class="text-decoration-none">
+                            <div class="icon-circle bg-info mx-auto mb-2"
+                                style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-chart-line text-white"></i>
+                            </div>
+                            <div class="small font-weight-bold text-dark">Rapports</div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -239,10 +228,10 @@
                     Profile
                 </a> --}}
 
-        <!-- Nav Item - User Information -->
+                <!-- Nav Item - User Information -->
         <li class="nav-item dropdown no-arrow">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ auth()->user()->name }}</span>
                 <img class="img-profile rounded-circle" src="{{ asset('assets/img/undraw_profile.svg') }}">
             </a>
