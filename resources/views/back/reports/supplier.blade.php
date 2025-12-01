@@ -41,13 +41,10 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
+            0%, 100% {
                 transform: scale(1);
                 opacity: 0.5;
             }
-
             50% {
                 transform: scale(1.1);
                 opacity: 0.8;
@@ -111,7 +108,6 @@
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
         }
 
-        /* Fix pour le select - correction du problème d'affichage */
         .search-card select.form-control {
             background-color: white !important;
             position: relative;
@@ -119,15 +115,6 @@
             appearance: auto;
             -webkit-appearance: menulist;
             -moz-appearance: menulist;
-            height: calc(1.5em + 1.5rem + 4px);
-            line-height: 1.5;
-            display: block;
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .search-card select.form-control:focus {
-            z-index: 20;
         }
 
         .btn-search {
@@ -198,21 +185,10 @@
             color: #495057;
         }
 
-        .invoice-number {
-            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
-            padding: 0.4rem 0.8rem;
-            border-radius: 8px;
-            font-weight: 700;
-            color: #667eea;
-            display: inline-block;
-        }
-
         @media print {
-
-            /* Mode paysage pour plus d'espace */
             @page {
-                size: A4 landscape;
-                margin: 0.3cm;
+                size: A4 portrait;
+                margin: 1.5cm 1cm;
             }
 
             * {
@@ -220,17 +196,14 @@
                 print-color-adjust: exact !important;
             }
 
-            html,
-            body {
+            html, body {
                 width: 100%;
                 height: 100%;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden;
+                margin: 0;
+                padding: 0;
                 background: white !important;
             }
 
-            /* IMPORTANT : on cache tout sauf la zone #print-area (même approche que ton template d'origine) */
             body * {
                 visibility: hidden;
             }
@@ -241,17 +214,12 @@
             }
 
             #print-area {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                margin: 0 !important;
-                padding: 0.3cm !important;
-                page-break-inside: avoid !important;
-                page-break-after: avoid !important;
-                transform: scale(0.95);
-                transform-origin: top left;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
                 background: white !important;
             }
 
@@ -265,57 +233,52 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 border-radius: 0 !important;
-                page-break-inside: avoid !important;
                 background: white !important;
             }
 
             .table-title {
                 color: #000 !important;
-                font-size: 0.9rem !important;
-                margin-bottom: 0.3rem !important;
+                font-size: 14pt !important;
+                font-weight: bold !important;
+                margin-bottom: 10pt !important;
                 page-break-after: avoid !important;
-                background: white !important;
+                text-align: center;
             }
 
             .table-title span {
-                font-size: 0.9rem !important;
+                display: none;
             }
 
             .table-responsive {
                 overflow: visible !important;
-                page-break-inside: avoid !important;
-                background: white !important;
             }
 
             .custom-table {
                 width: 100% !important;
-                font-size: 0.6rem !important;
-                margin: 0 !important;
                 border-collapse: collapse !important;
-                page-break-inside: avoid !important;
-                background: white !important;
+                page-break-inside: auto !important;
+                font-size: 9pt !important;
             }
 
             .custom-table thead {
+                display: table-header-group !important;
                 page-break-inside: avoid !important;
                 page-break-after: avoid !important;
-                background: white !important;
             }
 
             .custom-table thead th {
-                background: white !important;
+                background: #f0f0f0 !important;
                 color: #000 !important;
-                border: 1px solid #999 !important;
-                padding: 0.25rem 0.15rem !important;
-                font-size: 0.55rem !important;
-                font-weight: 700 !important;
-                white-space: nowrap !important;
-                line-height: 1.2 !important;
+                border: 1px solid #666 !important;
+                padding: 6pt 4pt !important;
+                font-size: 8pt !important;
+                font-weight: bold !important;
+                text-align: center !important;
+                vertical-align: middle !important;
             }
 
             .custom-table tbody {
-                page-break-inside: avoid !important;
-                background: white !important;
+                display: table-row-group !important;
             }
 
             .custom-table tbody tr {
@@ -327,61 +290,60 @@
             .custom-table tbody tr:hover {
                 transform: none !important;
                 box-shadow: none !important;
-                background: white !important;
             }
 
             .custom-table tbody td {
-                border: 1px solid #ccc !important;
-                padding: 0.25rem 0.15rem !important;
-                white-space: nowrap !important;
-                font-size: 0.55rem !important;
-                line-height: 1.2 !important;
+                border: 1px solid #999 !important;
+                padding: 5pt 4pt !important;
+                font-size: 8pt !important;
                 color: #000 !important;
                 background: white !important;
+                vertical-align: middle !important;
             }
 
-            /* Enlever tous les styles visuels pour l'impression */
-            .invoice-number,
-            .phone-badge,
-            .amount-balance,
-            .days-badge,
-            .client-name,
-            .address-text,
-            .amount-paid,
-            .due-date {
-                background: white !important;
-                padding: 0 !important;
-                border-radius: 0 !important;
-                display: inline !important;
+            .custom-table tfoot {
+                display: table-footer-group !important;
+                page-break-inside: avoid !important;
+            }
+
+            .summary-section {
+                margin-top: 15pt !important;
+                page-break-inside: avoid !important;
+                border-top: 2px solid #000 !important;
+                padding-top: 10pt !important;
+            }
+
+            .summary-section .row {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                margin: 0 !important;
+            }
+
+            .summary-section .col-md-4 {
+                flex: 0 0 33.333% !important;
+                max-width: 33.333% !important;
+                padding: 5pt !important;
+            }
+
+            .summary-section h5 {
+                font-size: 10pt !important;
+                font-weight: bold !important;
                 color: #000 !important;
-                font-weight: normal !important;
-                box-shadow: none !important;
+                margin: 0 !important;
             }
 
-            .recovery-checkbox {
-                width: 15px !important;
-                height: 15px !important;
-                -webkit-appearance: checkbox !important;
-                appearance: checkbox !important;
-            }
-
-            /* Afficher la colonne Recouvré à l'impression */
-            .recovery-column {
-                display: table-cell !important;
+            hr {
+                display: none !important;
             }
 
             strong {
-                font-weight: normal !important;
+                font-weight: bold !important;
             }
         }
 
         @media (max-width: 768px) {
             .page-header h3 {
                 font-size: 1.3rem;
-            }
-
-            .stats-container {
-                grid-template-columns: 1fr;
             }
 
             .table-responsive {
@@ -392,17 +354,14 @@
 
     <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
         <h3 class="m-0">📦 Rapport des paiements fournisseurs</h3>
-
         <button onclick="printTable()" class="btn btn-print no-print">
             🖨️ Imprimer le rapport
         </button>
     </div>
 
-    <!-- Formulaire de recherche -->
     <div class="search-card no-print">
         <form method="GET" action="">
             <div class="row g-3">
-
                 <div class="col-md-3">
                     <label>📅 Date début</label>
                     <input type="date" name="start_date" class="form-control" value="{{ old('start_date', $startDate) }}">
@@ -417,7 +376,6 @@
                     <label>🛒 Fournisseurs</label>
                     <select id="productSelect" name="supplier_id" class="form-control">
                         <option value="">-- Tous les fournisseurs --</option>
-
                         @foreach ($suppliers as $s)
                             <option value="{{ $s->id }}"
                                 {{ (string) old('supplier_id', $supplierId) === (string) $s->id ? 'selected' : '' }}>
@@ -432,13 +390,10 @@
                         <i class="fas fa-search"></i> Rechercher
                     </button>
                 </div>
-
             </div>
         </form>
     </div>
 
-
-    <!-- Zone imprimable -->
     <div id="print-area" class="main-table-card">
         <h4 class="table-title">
             <span>📋</span>
@@ -468,33 +423,12 @@
                 <tbody>
                     @forelse ($payments as $payment)
                         <tr>
-                            <!-- Date paiement -->
                             <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}</td>
-
-                            <!-- Motif -->
-                            <td>
-                                <strong>{{ $payment->payment_type }}</strong>
-                            </td>
-
-                            <!-- Numéro facture -->
-                            <td>
-                                <strong>{{ $payment->invoice->invoice_number ?? '-' }}</strong>
-                            </td>
-
-                            <!-- Montant payé -->
-                            <td>
-                                {{ number_format($payment->amount_paid, 0, ',', ' ') }} CFA
-                            </td>
-
-                            <!-- Reste à payer -->
-                            <td>
-                                {{ number_format($payment->remaining_amount, 0, ',', ' ') }} CFA
-                            </td>
-
-                            <!-- Total facture -->
-                            <td>
-                                {{ number_format($payment->invoice->total_invoice ?? 0, 0, ',', ' ') }} CFA
-                            </td>
+                            <td><strong>{{ $payment->payment_type }}</strong></td>
+                            <td><strong>{{ $payment->invoice->invoice_number ?? '-' }}</strong></td>
+                            <td>{{ number_format($payment->amount_paid, 0, ',', ' ') }} CFA</td>
+                            <td>{{ number_format($payment->remaining_amount, 0, ',', ' ') }} CFA</td>
+                            <td>{{ number_format($payment->invoice->total_invoice ?? 0, 0, ',', ' ') }} CFA</td>
                         </tr>
                     @empty
                         <tr>
@@ -504,27 +438,28 @@
                         </tr>
                     @endforelse
                 </tbody>
-
             </table>
-        </div>
 
-        <hr>
-
-        <div class="row mt-3">
-            <div class="col-md-4">
-                <h5><strong>Total débit : </strong> {{ number_format($totalPaid, 0, ',', ' ') }} CFA</h5>
-            </div>
-
-            <div class="col-md-4 text-end">
-                <h5><strong>Total crédit : </strong> {{ number_format($totalRemaining, 0, ',', ' ') }} CFA</h5>
-            </div>
-
-            <div class="col-md-4 text-end">
-                <h5><strong>Solde : </strong> {{ number_format($solde, 0, ',', ' ') }} CFA</h5>
+            <div class="no-print">
+                @if ($payments instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    {{ $payments->links() }}
+                @endif
             </div>
         </div>
 
-
+        <div class="summary-section">
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <h5><strong>Total débit : </strong> {{ number_format($totalPaid, 0, ',', ' ') }} CFA</h5>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h5><strong>Total crédit : </strong> {{ number_format($totalRemaining, 0, ',', ' ') }} CFA</h5>
+                </div>
+                <div class="col-md-4 text-end">
+                    <h5><strong>Solde : </strong> {{ number_format($solde, 0, ',', ' ') }} CFA</h5>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>

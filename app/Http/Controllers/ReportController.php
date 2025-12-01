@@ -147,21 +147,32 @@ class ReportController extends Controller
                 'invoice:id,invoice_number,total_invoice,contact_id',
                 'invoice.contact:id,fullname',
             ])
-            ->where('payment_source', 'supplier');
+            ->where('payment_source', 'supplier'); // Paiement fournisseur seulement
 
-        // FILTRE FOURNISSEUR
+        // 🔥 Filtre fournisseur
         if (! empty($supplierId)) {
-            $query->where('contact_id', $supplierId);
+            $query->whereHas('invoice', function ($q) use ($supplierId) {
+                $q->where('contact_id', $supplierId);
+            });
         }
 
-        // FILTRE DATES
+        // 🔥 Filtre dates
         if (! empty($startDate) && ! empty($endDate)) {
             $query->whereBetween('payment_date', [$startDate, $endDate]);
         }
 
-        $payments = $query->orderBy('payment_date', 'asc')->get();
-        $totalPaid = $payments->sum('amount_paid');
-        $totalRemaining = $payments->sum('remaining_amount');
+        // Résultats paginés (10 par page)
+        if (! empty($supplierId)) {
+            $payments = $query->orderBy('payment_date', 'asc')->get();
+        } else {
+            $payments = $query->orderBy('payment_date', 'asc')->paginate(10);
+        }
+
+        $totalsQuery = clone $query;
+        $totals = $totalsQuery->get();
+
+        $totalPaid = $totals->sum('amount_paid');
+        $totalRemaining = $totals->sum('remaining_amount');
         $solde = $totalRemaining - $totalPaid;
 
         return view('back.reports.supplier', compact(
