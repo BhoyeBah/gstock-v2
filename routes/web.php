@@ -125,8 +125,8 @@ Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middlewa
 })->where('type', 'client|supplier');
 
 // Route::resource('/reports', ReportController::class)->middleware(['auth'])->names('reports');
-Route::middleware(['auth'])->group(function () {
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware(['subscription.permission:view_report']);
+Route::middleware(['auth', 'subscription.permission:manage_reports'])->group(function () {
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/journal', [ReportController::class, 'journal'])->name('reports.journal');
     Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
     Route::get('/reports/suppliers', [ReportController::class, 'suppliers'])->name('reports.suppliers');
@@ -144,12 +144,12 @@ Route::middleware(['auth', 'subscription.permission:manage_inventories'])->group
 });
 
 
-Route::prefix('payments/{type}')->controller(PaymentController::class)->name('payments.')->group(function () {
+Route::prefix('payments/{type}')->controller(PaymentController::class)->middleware(['auth', 'subscription.permission:manage_payments'])->name('payments.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
     Route::delete('/{payment}', 'destroy')->name('destroy');
     Route::get('/{payment}', 'show')->where('payment', '[0-9a-fA-F\-]{36}')->name('show');
-})->where('type', 'client|supplier')->middleware(['auth', 'subscription.permission:manage_payments']);
+})->where('type', 'client|supplier');
 
 Route::get('/expenses/print', [ExpenseController::class, 'print'])
     ->middleware(['auth'])
