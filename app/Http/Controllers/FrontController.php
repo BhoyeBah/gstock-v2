@@ -20,6 +20,8 @@ class FrontController extends Controller
             [$start, $end] = match ($period) {
                 'day' => [Carbon::today(), Carbon::today()],
                 'week' => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
+                'year' => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
+                'lastMonth' => [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()],
                 default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
             };
 
@@ -48,7 +50,7 @@ class FrontController extends Controller
                 ->where('tenant_id', $tenant->id)
                 ->count();
 
-            $nbEntrepots = DB::table("warehouses")
+            $nbEntrepots = DB::table('warehouses')
                 ->where('tenant_id', $tenant->id)
                 ->count();
 
@@ -82,8 +84,9 @@ class FrontController extends Controller
                 ->whereBetween('expense_date', [$start, $end])
                 ->sum('amount');
 
-            // Bénéfice net filtré par tenant si Batch a tenant_id
-            $benefice = Batch::where('tenant_id', $tenant->id)->sum('benefit');
+            $benefice = Batch::where('tenant_id', $tenant->id)
+                ->whereBetween('created_at', [$start, $end])
+                ->sum('benefit');
 
             return [
                 'start' => $start,

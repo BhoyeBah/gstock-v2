@@ -18,9 +18,11 @@
                         <label class="mb-0 mr-2 text-muted small">Période :</label>
                         <select name="period" class="custom-select custom-select-sm shadow-sm" style="width: 160px;"
                             onchange="this.form.submit()">
+                            <option value="lastMonth" {{ $period == 'lastMonth' ? 'selected' : '' }}>Mois précedent</option>
                             <option value="day" {{ $period == 'day' ? 'selected' : '' }}>Aujourd'hui</option>
                             <option value="week" {{ $period == 'week' ? 'selected' : '' }}>Cette semaine</option>
                             <option value="month" {{ $period == 'month' ? 'selected' : '' }}>Ce mois-ci</option>
+                            <option value="year" {{ $period == 'year' ? 'selected' : '' }}>Cette année</option>
                         </select>
                     </form>
                 </div>
