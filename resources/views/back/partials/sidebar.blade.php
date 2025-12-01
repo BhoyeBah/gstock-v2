@@ -350,7 +350,7 @@
                         <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
                             href="{{ route('users.index') }}">Utilisateurs</a>
                     @endcan
-                    @can('manage_invoices')
+                    @can('view_subscriptions')
                         <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
                             href="{{ route('tenant.subscriptions.index') }}">Mes Souscriptions</a>
                     @endcan
