@@ -149,7 +149,7 @@ Route::prefix('payments/{type}')->controller(PaymentController::class)->name('pa
     Route::post('/', 'store')->name('store');
     Route::delete('/{payment}', 'destroy')->name('destroy');
     Route::get('/{payment}', 'show')->where('payment', '[0-9a-fA-F\-]{36}')->name('show');
-})->where('type', 'client|supplier')->middleware(['subscription.permission:manage_payments']);
+})->where('type', 'client|supplier')->middleware(['auth', 'subscription.permission:manage_payments']);
 
 Route::get('/expenses/print', [ExpenseController::class, 'print'])
     ->middleware(['auth'])
