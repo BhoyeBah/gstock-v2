@@ -1,18 +1,17 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
 
 use App\Http\Requests\ContactRequest;
 use App\Models\Contact;
-use App\Models\Invoice;
+use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-   public function index(Request $request, string $type)
+    public function index(Request $request, string $type)
     {
         // 1. Valider que le type est bien 'clients' ou 'fournisseurs'
         $this->validateType($type);
@@ -30,13 +29,12 @@ class ContactController extends Controller
         $query = Contact::type($contactModelType)
             ->withSum('invoices as balance_total', 'balance'); // Calcule le solde pour chaque contact
 
-
         // 4. Appliquer les filtres de recherche et de statut s'ils existent dans la requête
         if ($request->filled('search')) {
             $searchTerm = $request->input('search');
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('fullname', 'like', "%{$searchTerm}%")
-                  ->orWhere('phone_number', 'like', "%{$searchTerm}%");
+                    ->orWhere('phone_number', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -51,7 +49,6 @@ class ContactController extends Controller
         // Très important : ajouter les paramètres de la requête à la pagination
         // pour que les filtres persistent lors du changement de page.
         $contacts->appends($request->query());
-
 
         // 6. Préparer les données pour la vue
         $contactType = $type === 'clients' ? 'Clients' : 'Fournisseurs';
@@ -106,7 +103,6 @@ class ContactController extends Controller
 
         $contact = Contact::with(['invoices.payments'])
             ->findOrFail($contact->id);
-
 
         return view('back.contacts.show', compact('contact', 'type'));
     }

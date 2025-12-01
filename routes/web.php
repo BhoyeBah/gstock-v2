@@ -126,9 +126,7 @@ Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middlewa
 
 // Route::resource('/reports', ReportController::class)->middleware(['auth'])->names('reports');
 Route::middleware(['auth'])->group(function () {
-    // Index des rapports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index')->middleware(['subscription.permission:view_report']);
-    // Journal des rapports
     Route::get('/reports/journal', [ReportController::class, 'journal'])->name('reports.journal');
     Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
     Route::get('/reports/suppliers', [ReportController::class, 'suppliers'])->name('reports.suppliers');
