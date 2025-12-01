@@ -132,7 +132,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/suppliers', [ReportController::class, 'suppliers'])->name('reports.suppliers');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'subscription.permission:manage_inventories'])->group(function () {
     // Inventaires
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventories.index');
     Route::post('/inventory', [InventoryController::class, 'store'])->name('inventories.store');
@@ -149,7 +149,7 @@ Route::prefix('payments/{type}')->controller(PaymentController::class)->name('pa
     Route::post('/', 'store')->name('store');
     Route::delete('/{payment}', 'destroy')->name('destroy');
     Route::get('/{payment}', 'show')->where('payment', '[0-9a-fA-F\-]{36}')->name('show');
-})->where('type', 'client|supplier');
+})->where('type', 'client|supplier')->middleware(['subscription.permission:manage_payments']);
 
 Route::get('/expenses/print', [ExpenseController::class, 'print'])
     ->middleware(['auth'])
@@ -157,5 +157,5 @@ Route::get('/expenses/print', [ExpenseController::class, 'print'])
 
 Route::resource('expenses', ExpenseController::class)->middleware(['auth', 'subscription.permission:manage_expenses'])->names('expenses');
 
-Route::resource('stock/out', StockOutController::class)->middleware(['auth'])->names('stockout');
+Route::resource('stock/out', StockOutController::class)->middleware(['auth', 'subscription.permission:manage_stock_out'])->names('stockout');
 require __DIR__.'/auth.php';
