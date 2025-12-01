@@ -54,7 +54,7 @@ Route::middleware(['auth', 'subscription.permission:manage_roles'])->resource('/
 Route::middleware(['auth', 'subscription.permission:manage_users'])->resource('/users', UserController::class);
 Route::patch('/users/{id}/toggle', [UserController::class, 'toggle'])->middleware(['auth', 'subscription.permission:manage_users'])->name('users.toggle');
 
-Route::middleware(['auth', 'subscription.permission:manage_invoices'])->prefix('tenant')->name('tenant.')->group(function () {
+Route::middleware(['auth', 'subscription.permission:view_subscriptions'])->prefix('tenant')->name('tenant.')->group(function () {
     Route::get('/subscriptions', [TenantSubscriptionController::class, 'index'])->name('subscriptions.index');
     Route::get('/subscriptions/{subscription}', [TenantSubscriptionController::class, 'show'])->name('subscriptions.show');
     Route::get('/subscriptions/{subscription}/pdf', [TenantSubscriptionController::class, 'pdf'])->name('subscriptions.pdf');
