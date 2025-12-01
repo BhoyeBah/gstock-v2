@@ -109,7 +109,7 @@ Route::prefix('suppliers')->controller(ContactController::class)->name('supplier
     Route::patch('/{id}', 'toggleActive')->name('toggle')->defaults('type', 'suppliers')->middleware(['auth', 'subscription.permission:toggle_suppliers']);
 });
 
-Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middleware(['auth', 'manage_invoices'])->name('invoices.')->group(function () {
+Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middleware(['auth', 'subscription.permission:manage_invoices'])->name('invoices.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/unpaid', 'unpaid')->name('unpaid');
     Route::post('/', 'store')->name('store')->middleware('subscription.permission:create_invoices');
