@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Batch;
 use App\Models\Contact;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Product;
@@ -13,35 +14,54 @@ use Illuminate\Http\Request;
 class ReportController extends Controller
 {
     //
-
     public function index(Request $request)
     {
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $type = $request->input('type');
 
-        // ✅ Base Query optimisée
+        $tenantId = auth()->user()->tenant_id;
+
+        // Base Query optimisée
         $baseQuery = Invoice::query()
+            ->where('tenant_id', $tenantId)
             ->when($type, fn ($q) => $q->where('type', $type))
             ->when($dateFrom, fn ($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
             ->when($dateTo, fn ($q) => $q->whereDate('invoice_date', '<=', $dateTo));
 
-        // ✅ Statistiques globales (1 seule requête SQL)
+        // Statistiques globales (1 seule requête SQL)
         $stats = $baseQuery->clone()->selectRaw("
-            SUM(total_invoice) AS total_factures,
-            SUM(total_invoice - balance) AS total_paye,
-            SUM(balance) AS total_attente,
-            SUM(CASE WHEN status = 'cancelled' THEN total_invoice ELSE 0 END) AS total_annule
-        ")->first();
+        SUM(total_invoice) AS total_factures,
+        SUM(total_invoice - balance) AS total_paye,
+        SUM(balance) AS total_attente,
+        SUM(CASE WHEN status = 'cancelled' THEN total_invoice ELSE 0 END) AS total_annule,
+        COUNT(*) AS nb_ventes
+    ")->first();
 
-        // ✅ Graphique (évolution par date)
+        // Bénéfices
+        $benefice = Batch::where('tenant_id', $tenantId)
+            ->when($dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo, fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
+            ->sum('benefit');
+
+        // Dépenses
+        $depenses = Expense::where('tenant_id', $tenantId)
+            ->when($dateFrom, fn ($q) => $q->whereDate('expense_date', '>=', $dateFrom))
+            ->when($dateTo, fn ($q) => $q->whereDate('expense_date', '<=', $dateTo))
+            ->sum('amount');
+
+        // Ajouter bénéfices et dépenses aux stats
+        $stats->benefice = $benefice;
+        $stats->depenses = $depenses;
+
+        // Graphique (évolution par date)
         $chartData = $baseQuery->clone()
             ->selectRaw('DATE(invoice_date) as date, SUM(total_invoice) as total')
             ->groupBy('date')
             ->orderBy('date', 'ASC')
             ->get();
 
-        // ✅ Liste détaillée des factures
+        // Liste détaillée des factures
         $invoicesList = $baseQuery->clone()
             ->with('contact') // relation contact = client / fournisseur
             ->orderBy('invoice_date', 'DESC')

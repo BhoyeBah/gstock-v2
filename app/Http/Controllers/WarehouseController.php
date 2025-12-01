@@ -65,7 +65,7 @@ class WarehouseController extends Controller
         })
             ->with(['product', 'invoice.contact', 'batch'])
             ->latest()
-            ->paginate(10);
+            ->paginate(20);
 
         return view('back.warehouses.show', compact('warehouse', 'batches', 'movements'));
     }
