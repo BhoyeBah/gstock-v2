@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Batch;
+use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -75,7 +77,7 @@ class ReportController extends Controller
             });
         }
 
-        if(empty($startDate) && empty($endDate)){
+        if (empty($startDate) && empty($endDate)) {
             $batchesQuery->limit(10);
         }
 
@@ -87,13 +89,13 @@ class ReportController extends Controller
         $batches = $batchesQuery->get();
 
         // Charger tous les produits pour le select
-        $products = Product::where('is_active', true)->orderBy('name','asc')->get();
+        $products = Product::where('is_active', true)->orderBy('name', 'asc')->get();
 
         // Construire les lignes du rapport
         $reportData = $batches->map(function ($batch) {
             $quantityIn = (int) ($batch->quantity ?? 0);
             $remaining = (int) ($batch->remaining ?? 0);
-            $qtySold = max(0, $quantityIn - $remaining); 
+            $qtySold = max(0, $quantityIn - $remaining);
 
             $unitPrice = (int) ($batch->unit_price ?? 0);
             $totalSale = $qtySold * $unitPrice;
@@ -130,8 +132,47 @@ class ReportController extends Controller
         ));
     }
 
-    public function suppliers()
+    public function suppliers(Request $request)
     {
-        return view('back.reports.supplier');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $supplierId = $request->input('supplier_id');
+
+        // Liste des fournisseurs
+        $suppliers = Contact::where('type', 'supplier')->get();
+
+        // Base Query
+        $query = Payment::query()
+            ->with([
+                'invoice:id,invoice_number,total_invoice,contact_id',
+                'invoice.contact:id,fullname',
+            ])
+            ->where('payment_source', 'supplier');
+
+        // FILTRE FOURNISSEUR
+        if (! empty($supplierId)) {
+            $query->where('contact_id', $supplierId);
+        }
+
+        // FILTRE DATES
+        if (! empty($startDate) && ! empty($endDate)) {
+            $query->whereBetween('payment_date', [$startDate, $endDate]);
+        }
+
+        $payments = $query->orderBy('payment_date', 'asc')->get();
+        $totalPaid = $payments->sum('amount_paid');
+        $totalRemaining = $payments->sum('remaining_amount');
+        $solde = $totalRemaining - $totalPaid;
+
+        return view('back.reports.supplier', compact(
+            'payments',
+            'suppliers',
+            'supplierId',
+            'startDate',
+            'endDate',
+            'totalPaid',
+            'totalRemaining',
+            'solde'
+        ));
     }
 }
