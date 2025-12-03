@@ -188,12 +188,21 @@ class ReportController extends Controller
             $payments = $query->orderBy('payment_date', 'asc')->paginate(10);
         }
 
-        $totalsQuery = clone $query;
-        $totals = $totalsQuery->get();
-
+        // $totalsQuery = clone $query;
+        // $totals = $totalsQuery->get();
+        $totals = (clone $query)->get();
+        // ✅ TOTAL PAYÉ
         $totalPaid = $totals->sum('amount_paid');
-        $totalRemaining = $totals->sum('remaining_amount');
-        $solde = $totalRemaining - $totalPaid;
+        // ✅ TOTAL DES FACTURES UNIQUES
+        $totalInvoices = $totals
+            ->unique('invoice_id')
+            ->sum(fn ($p) => $p->invoice->total_invoice ?? 0);
+
+        $solde = $totalInvoices - $totalPaid;
+ $totalRemaining = $totals->sum('remaining_amount');
+        // $totalPaid = $totals->sum('amount_paid');
+        // $totalRemaining = $totals->sum('remaining_amount');
+        // $solde = $totalRemaining;
 
         return view('back.reports.supplier', compact(
             'payments',
