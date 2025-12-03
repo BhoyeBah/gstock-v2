@@ -453,7 +453,7 @@
                     <h5><strong>Total débit : </strong> {{ number_format($totalPaid, 0, ',', ' ') }} CFA</h5>
                 </div>
                 <div class="col-md-4 text-center">
-                    <h5><strong>Total crédit : </strong> {{ number_format($totalRemaining, 0, ',', ' ') }} CFA</h5>
+                    <h5><strong>Total crédit : </strong> {{ number_format($totalPaid + $solde, 0, ',', ' ')   }} CFA</h5>
                 </div>
                 <div class="col-md-4 text-end">
                     <h5><strong>Solde : </strong> {{ number_format($solde, 0, ',', ' ') }} CFA</h5>

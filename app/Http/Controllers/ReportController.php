@@ -199,10 +199,6 @@ class ReportController extends Controller
             ->sum(fn ($p) => $p->invoice->total_invoice ?? 0);
 
         $solde = $totalInvoices - $totalPaid;
- $totalRemaining = $totals->sum('remaining_amount');
-        // $totalPaid = $totals->sum('amount_paid');
-        // $totalRemaining = $totals->sum('remaining_amount');
-        // $solde = $totalRemaining;
 
         return view('back.reports.supplier', compact(
             'payments',
@@ -211,7 +207,6 @@ class ReportController extends Controller
             'startDate',
             'endDate',
             'totalPaid',
-            'totalRemaining',
             'solde'
         ));
     }
