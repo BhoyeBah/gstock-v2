@@ -34,8 +34,8 @@ class InvoiceController extends Controller
     public function index(Request $request, string $type)
     {
         $this->validateType($type);
-        $required_permission_name = $type == "clients"? "manage_client_invoices": "manage_supplier_invoices";
-        if (!auth()->user()->can($required_permission_name)) {
+        $required_permission_name = $type == 'clients' ? 'manage_client_invoices' : 'manage_supplier_invoices';
+        if (! auth()->user()->can($required_permission_name)) {
             abort(403, "Vous n'avez pas la permission d'acceder à cette fonctionnalité");
         }
         $status_list = ['draft', 'validated', 'partial', 'paid', 'cancelled'];
@@ -354,6 +354,11 @@ class InvoiceController extends Controller
             })
             ->get();
 
+
+        $totalMontant = $invoices->sum('total_invoice');
+        $totalReste = $invoices->sum('balance');
+        $totalPaye = $totalMontant - $totalReste;
+
         // $invoices->each(function ($invoice) {
         //     $invoice->balance = $invoice->total_amount - $invoice->total_paid;
         //     $invoice->days_overdue = Carbon::now()->diffInDays(Carbon::parse($invoice->due_date), false);
@@ -361,7 +366,7 @@ class InvoiceController extends Controller
 
         // dd($invoices);
 
-        return view('back.invoices.unpaid', compact('invoices'));
+        return view('back.invoices.unpaid', compact('invoices', 'totalMontant', 'totalPaye', 'totalReste'));
     }
 
     protected function validateType(string $type): void

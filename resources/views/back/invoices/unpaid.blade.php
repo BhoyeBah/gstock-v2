@@ -620,6 +620,15 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot>
+                        <tr style="font-weight: 700;">
+                            <td colspan="4" class="text-end" style="padding: 1rem;">TOTAL</td>
+                            <td><strong>{{ number_format($totalMontant, 0, ',', ' ') }} FCFA</strong></td>
+                            <td><strong>{{ number_format($totalPaye, 0, ',', ' ') }} FCFA</strong></td>
+                            <td><strong>{{ number_format($totalReste, 0, ',', ' ') }} FCFA</strong></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
     </div>
