@@ -452,6 +452,7 @@
                 <thead>
                     <tr>
                         <th>Entrepôt</th>
+                        <th>Numéro Facture</th>
                         <th>Produit</th>
                         <th>Qté Vendue</th>
                         <th>Prix Unitaire</th>
@@ -464,6 +465,12 @@
                     @forelse ($reportData as $row)
                         <tr>
                             <td>{{ $row['warehouse_name'] }}</td>
+                            <td>
+                                <a href="{{ route("invoices.show",['clients', $row['invoice_id']]) }}">
+
+                                {{ $row['invoice_number'] }}
+                                </a>
+                            </td>
                             <td>{{ $row['product_name'] }}</td>
                             <td>{{ $row['qty_sold'] }}</td>
                             <td>{{ number_format($row['unit_price'],0,',',' ') }} FCFA</td>

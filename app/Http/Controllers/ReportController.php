@@ -87,7 +87,7 @@ public function products(Request $request)
         ->where('type', 'out');
 
     $itemsQuery->with([
-        'invoice:id,status,type,invoice_date',
+        'invoice:id,status,type,invoice_date,invoice_number',
         'product:id,name',
         'warehouse:id,name',
     ]);
