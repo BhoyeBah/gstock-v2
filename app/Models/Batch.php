@@ -25,7 +25,7 @@ class Batch extends Model
     ];
 
     protected $casts = [
-        'expiry_date' => 'datetime',
+        'expiration_date' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

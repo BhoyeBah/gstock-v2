@@ -210,7 +210,7 @@
 
             /* Mode paysage pour plus d'espace */
             @page {
-                size: A4 landscape;
+                size: A4 portrait;
                 margin: 0.3cm;
             }
 
@@ -453,9 +453,7 @@
                     <tr>
                         <th>Entrepôt</th>
                         <th>Produit</th>
-                        <th>Qté Entrée</th>
                         <th>Qté Vendue</th>
-                        <th>Reste</th>
                         <th>Prix Unitaire</th>
                         <th>Total Vente</th>
                         <th>Date</th>
@@ -467,9 +465,7 @@
                         <tr>
                             <td>{{ $row['warehouse_name'] }}</td>
                             <td>{{ $row['product_name'] }}</td>
-                            <td>{{ $row['quantity_in'] }}</td>
                             <td>{{ $row['qty_sold'] }}</td>
-                            <td>{{ $row['remaining'] }}</td>
                             <td>{{ number_format($row['unit_price'],0,',',' ') }} FCFA</td>
                             <td><strong>{{ number_format($row['total_sale'],0,',',' ') }} FCFA</strong></td>
                             <td>{{ $row['date'] }}</td>

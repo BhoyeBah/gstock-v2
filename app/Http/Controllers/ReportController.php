@@ -6,6 +6,7 @@ use App\Models\Batch;
 use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\Product;
 use Carbon\Carbon;
@@ -75,82 +76,102 @@ class ReportController extends Controller
         return view('back.reports.journal');
     }
 
-    public function products(Request $request)
-    {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $productId = $request->input('product_id');
+public function products(Request $request)
+{
+    // 1. Récupération et préparation des inputs
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date');
+    $productId = $request->input('product_id');
 
-        // Charger relations utiles
-        $batchesQuery = Batch::with(['product', 'warehouse', 'invoice']);
+    $itemsQuery = InvoiceItem::query()
+        ->where('type', 'out');
 
-        // Filtrer par date de la facture si fourni
-        if ($startDate) {
-            $batchesQuery->whereHas('invoice', function ($q) use ($startDate) {
-                $q->whereDate('created_at', '>=', $startDate);
-            });
-        }
+    $itemsQuery->with([
+        'invoice:id,status,type,invoice_date',
+        'product:id,name',
+        'warehouse:id,name',
+    ]);
 
-        if ($endDate) {
-            $batchesQuery->whereHas('invoice', function ($q) use ($endDate) {
-                $q->whereDate('created_at', '<=', $endDate);
-            });
-        }
+    // Factures valides
+    $itemsQuery->whereHas('invoice', function ($q) {
+        $q->where('type', 'client')
+          ->whereNotIn('status', ['draft', 'cancelled']);
+    });
 
-        if (empty($startDate) && empty($endDate)) {
-            $batchesQuery->limit(10);
-        }
-
-        // Filtrer par produit si sélectionné
-        if ($productId) {
-            $batchesQuery->where('product_id', $productId);
-        }
-
-        $batches = $batchesQuery->get();
-
-        // Charger tous les produits pour le select
-        $products = Product::where('is_active', true)->orderBy('name', 'asc')->get();
-
-        // Construire les lignes du rapport
-        $reportData = $batches->map(function ($batch) {
-            $quantityIn = (int) ($batch->quantity ?? 0);
-            $remaining = (int) ($batch->remaining ?? 0);
-            $qtySold = max(0, $quantityIn - $remaining);
-
-            $unitPrice = (int) ($batch->unit_price ?? 0);
-            $totalSale = $qtySold * $unitPrice;
-
-            return [
-                'batch_id' => $batch->id,
-                'warehouse_name' => optional($batch->warehouse)->name ?? 'N/A',
-                'product_name' => optional($batch->product)->name ?? 'N/A',
-                'quantity_in' => $quantityIn,
-                'remaining' => $remaining,
-                'qty_sold' => $qtySold,
-                'unit_price' => $unitPrice,
-                'total_sale' => $totalSale,
-                'date' => optional($batch->invoice)->created_at
-                            ? Carbon::parse($batch->invoice->created_at)->format('d/m/Y')
-                            : ($batch->created_at ? Carbon::parse($batch->created_at)->format('d/m/Y') : 'N/A'),
-            ];
-        })
-            ->filter(fn ($row) => $row['qty_sold'] > 0)
-            ->values();
-
-        // Totaux
-        $totalRevenue = $reportData->sum('total_sale');
-        $totalQtySold = $reportData->sum('qty_sold');
-
-        return view('back.reports.product', compact(
-            'reportData',
-            'totalRevenue',
-            'totalQtySold',
-            'startDate',
-            'endDate',
-            'products',
-            'productId' // important pour garder le select actif
-        ));
+    if ($productId) {
+        $itemsQuery->where('product_id', $productId);
     }
+
+    if ($startDate) {
+        $start = Carbon::parse($startDate)->startOfDay();
+        $itemsQuery->where('created_at', '>=', $start);
+    }
+
+    if ($endDate) {
+        $end = Carbon::parse($endDate)->endOfDay();
+        $itemsQuery->where('created_at', '<=', $end);
+    }
+
+    if (empty($startDate) && empty($endDate) && empty($productId)) {
+        $itemsQuery->limit(50);
+    }
+
+    $invoiceItems = $itemsQuery->get();
+
+    // 👉 Récupère les quantities IN pour chaque produit
+    $quantityInByProduct = InvoiceItem::where('type', 'in')
+        ->selectRaw('product_id, SUM(quantity) as total_in')
+        ->groupBy('product_id')
+        ->pluck('total_in', 'product_id');
+
+    // 👉 On passe $quantityInByProduct dans le map()
+    $reportData = $invoiceItems->map(function ($item) use ($quantityInByProduct) {
+
+        $qtySold = (int) $item->quantity;
+        $unitPrice = (int) $item->unit_price;
+        $totalSale = (int) $item->total_line;
+
+        // IMPORTANT : récupérer le total IN
+        $quantityIn = (int) ($quantityInByProduct[$item->product_id] ?? 0);
+
+        $remaining = $quantityIn - $qtySold;
+
+        $invoiceDate = optional($item->invoice)->invoice_date
+            ? Carbon::parse($item->invoice->invoice_date)->format('d/m/Y')
+            : optional($item->created_at)->format('d/m/Y');
+
+        return [
+            'item_id'       => $item->id,
+            'invoice_id'    => optional($item->invoice)->id,
+            'invoice_number'=> optional($item->invoice)->invoice_number ?? 'N/A',
+            'warehouse_name'=> optional($item->warehouse)->name ?? 'N/A',
+            'product_name'  => optional($item->product)->name ?? 'N/A',
+            'qty_sold'      => $qtySold,
+            'quantity_in'   => $quantityIn,
+            'remaining'     => $remaining,
+            'unit_price'    => $unitPrice,
+            'total_sale'    => $totalSale,
+            'date'          => $invoiceDate ?? 'N/A',
+        ];
+    })->values();
+
+    $totalRevenue = $reportData->sum('total_sale');
+    $totalQtySold = $reportData->sum('qty_sold');
+
+    $products = Product::where('is_active', true)
+        ->orderBy('name', 'asc')
+        ->get();
+
+    return view('back.reports.product', compact(
+        'reportData',
+        'totalRevenue',
+        'totalQtySold',
+        'startDate',
+        'endDate',
+        'products',
+        'productId'
+    ));
+}
 
     public function suppliers(Request $request)
     {
