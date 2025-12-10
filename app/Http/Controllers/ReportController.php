@@ -78,7 +78,7 @@ class ReportController extends Controller
 
     public function products(Request $request)
     {
-        // 1. Récupération et préparation des inputs
+       
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $productId = $request->input('product_id');
@@ -118,20 +118,20 @@ class ReportController extends Controller
 
         $invoiceItems = $itemsQuery->get();
 
-        // 👉 Récupère les quantities IN pour chaque produit
+
         $quantityInByProduct = InvoiceItem::where('type', 'in')
             ->selectRaw('product_id, SUM(quantity) as total_in')
             ->groupBy('product_id')
             ->pluck('total_in', 'product_id');
 
-        // 👉 On passe $quantityInByProduct dans le map()
+
         $reportData = $invoiceItems->map(function ($item) use ($quantityInByProduct) {
 
             $qtySold = (int) $item->quantity;
             $unitPrice = (int) $item->unit_price;
             $totalSale = (int) $item->total_line;
 
-            // IMPORTANT : récupérer le total IN
+
             $quantityIn = (int) ($quantityInByProduct[$item->product_id] ?? 0);
 
             $remaining = $quantityIn - $qtySold;
