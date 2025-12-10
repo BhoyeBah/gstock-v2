@@ -297,11 +297,17 @@
                         Par produit
                     </a>
 
+                    <a class="collapse-item {{ request()->routeIs('rapport.fournisseurs') ? 'active' : '' }}"
+                        href="{{ route('reports.reportSuppliers') }}">
+                        <i class="fas fa-users mr-1"></i>
+                        Par fournisseur
+                    </a>
+
                     <!-- Rapport fournisseur -->
                     <a class="collapse-item {{ request()->routeIs('rapport.fournisseur') ? 'active' : '' }}"
                         href="{{ route('reports.suppliers') }}">
                         <i class="fas fa-truck mr-1"></i>
-                        Par fournisseur
+                        Paiement fournisseur
                     </a>
 
                     <!-- Rapport financiers -->

@@ -130,6 +130,7 @@ Route::middleware(['auth', 'subscription.permission:manage_reports'])->group(fun
     Route::get('/reports/journal', [ReportController::class, 'journal'])->name('reports.journal');
     Route::get('/reports/products', [ReportController::class, 'products'])->name('reports.products');
     Route::get('/reports/suppliers', [ReportController::class, 'suppliers'])->name('reports.suppliers');
+    Route::get('/reports/reportSuppliers', [ReportController::class, 'reportSuppliers'])->name('reports.reportSuppliers');
 });
 
 Route::middleware(['auth', 'subscription.permission:manage_inventories'])->group(function () {
