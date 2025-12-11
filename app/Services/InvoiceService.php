@@ -27,7 +27,7 @@ class InvoiceService
             $invoice = Invoice::create($invoiceData);
 
             $lines = $this->getFormatedInvoiceLines($data['items'], $invoice->id, $invoiceData['type'])['rows'];
-        
+
             if (! empty($lines)) {
                 DB::table('invoice_items')->insert($lines);
             }
@@ -281,7 +281,8 @@ class InvoiceService
                 ->first();
 
             if ($batchRecord) {
-                $benef = $quantityToRemove * $unitPrice - $quantityToRemove * $batchRecord->unit_price;
+                $profit = ($unitPrice - $batch->unit_price) * $used;
+                $benef = $used * $unitPrice - $used * $batchRecord->unit_price;
                 $newBenef = $batchRecord->benefit + $benef;
                 DB::table('batches')
                     ->where('id', $batch->id)
@@ -292,14 +293,16 @@ class InvoiceService
                     ]);
             }
 
+
             $movement = DB::table('inventory_movements')->insert([
                 'id' => (string) Str::uuid(),
                 'invoice_item_id' => $invoiceItem->id,
                 'invoice_id' => $invoiceId,
                 'batch_id' => $batch->id,
                 'product_id' => $productId,
+                'profit' => $profit,
                 'quantity' => $used,
-                'reason' => 'vente', // ou 'sale' selon ta convention
+                'reason' => 'vente',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);

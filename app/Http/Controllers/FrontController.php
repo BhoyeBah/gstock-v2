@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Batch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,11 +17,11 @@ class FrontController extends Controller
         $key = "dashboard_stats_{$tenant->id}_{$period}";
         $stats = Cache::remember($key, 30, function () use ($period, $tenant) {
             [$start, $end] = match ($period) {
-                'day' => [Carbon::today(), Carbon::today()],
-                'week' => [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()],
-                'year' => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
+                'day' => [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
+                'week' => [Carbon::now()->startOfWeek()->startOfDay(), Carbon::now()->endOfWeek()->endOfDay()],
+                'year' => [Carbon::now()->startOfYear()->startOfDay(), Carbon::now()->endOfYear()->endOfDay()],
                 'lastMonth' => [Carbon::now()->subMonth()->startOfMonth(), Carbon::now()->subMonth()->endOfMonth()],
-                default => [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()],
+                default => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfMonth()->endOfDay()],
             };
 
             // Statistiques globales sur factures
@@ -84,9 +83,12 @@ class FrontController extends Controller
                 ->whereBetween('expense_date', [$start, $end])
                 ->sum('amount');
 
-            $benefice = Batch::where('tenant_id', $tenant->id)
-                ->whereBetween('created_at', [$start, $end])
-                ->sum('benefit');
+            $benefice = DB::table('inventory_movements as im')
+                ->join('invoices as i', 'im.invoice_id', '=', 'i.id')
+                ->where('i.tenant_id', $tenant->id)
+                ->where('im.reason', 'vente')
+                ->whereBetween('im.created_at', [$start, $end])
+                ->sum('im.profit');
 
             return [
                 'start' => $start,
