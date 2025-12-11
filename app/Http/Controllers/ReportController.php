@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Batch;
 use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -11,6 +10,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -39,32 +39,34 @@ class ReportController extends Controller
         COUNT(*) AS nb_ventes
     ")->first();
 
-        // Bénéfices
-        $benefice = Batch::where('tenant_id', $tenantId)
-            ->when($dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
-            ->when($dateTo, fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
-            ->sum('benefit');
-
         // Dépenses
         $depenses = Expense::where('tenant_id', $tenantId)
             ->when($dateFrom, fn ($q) => $q->whereDate('expense_date', '>=', $dateFrom))
             ->when($dateTo, fn ($q) => $q->whereDate('expense_date', '<=', $dateTo))
             ->sum('amount');
 
-        // Ajouter bénéfices et dépenses aux stats
+        $benefice = DB::table('inventory_movements as im')
+            ->join('invoices as i', 'im.invoice_id', '=', 'i.id')
+            ->where('i.tenant_id', $tenantId)
+            ->where('im.reason', 'vente')
+            ->when($dateFrom, fn ($q) => $q->whereDate('im.created_at', '>=', $dateFrom))
+            ->when($dateTo, fn ($q) => $q->whereDate('im.created_at', '<=', $dateTo))
+            ->sum('im.profit');
+
+        $beneficeNet = $benefice - $depenses;
         $stats->benefice = $benefice;
         $stats->depenses = $depenses;
+        $stats->benefice_net = $beneficeNet;
 
-        // Graphique (évolution par date)
         $chartData = $baseQuery->clone()
             ->selectRaw('DATE(invoice_date) as date, SUM(total_invoice) as total')
             ->groupBy('date')
             ->orderBy('date', 'ASC')
             ->get();
 
-        // Liste détaillée des factures
+
         $invoicesList = $baseQuery->clone()
-            ->with('contact') // relation contact = client / fournisseur
+            ->with('contact')
             ->orderBy('invoice_date', 'DESC')
             ->paginate(10);
 
@@ -78,7 +80,7 @@ class ReportController extends Controller
 
     public function products(Request $request)
     {
-       
+
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $productId = $request->input('product_id');
@@ -118,19 +120,16 @@ class ReportController extends Controller
 
         $invoiceItems = $itemsQuery->get();
 
-
         $quantityInByProduct = InvoiceItem::where('type', 'in')
             ->selectRaw('product_id, SUM(quantity) as total_in')
             ->groupBy('product_id')
             ->pluck('total_in', 'product_id');
-
 
         $reportData = $invoiceItems->map(function ($item) use ($quantityInByProduct) {
 
             $qtySold = (int) $item->quantity;
             $unitPrice = (int) $item->unit_price;
             $totalSale = (int) $item->total_line;
-
 
             $quantityIn = (int) ($quantityInByProduct[$item->product_id] ?? 0);
 

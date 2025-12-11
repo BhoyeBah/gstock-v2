@@ -40,8 +40,15 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
         }
 
         .page-header-modern h1 {
@@ -138,11 +145,25 @@
             background: var(--card-gradient);
         }
 
-        .stat-card.primary::before { background: var(--primary-gradient); }
-        .stat-card.success::before { background: var(--success-gradient); }
-        .stat-card.warning::before { background: var(--warning-gradient); }
-        .stat-card.danger::before { background: var(--danger-gradient); }
-        .stat-card.info::before { background: var(--info-gradient); }
+        .stat-card.primary::before {
+            background: var(--primary-gradient);
+        }
+
+        .stat-card.success::before {
+            background: var(--success-gradient);
+        }
+
+        .stat-card.warning::before {
+            background: var(--warning-gradient);
+        }
+
+        .stat-card.danger::before {
+            background: var(--danger-gradient);
+        }
+
+        .stat-card.info::before {
+            background: var(--info-gradient);
+        }
 
         .stat-icon {
             width: 56px;
@@ -157,11 +178,25 @@
             color: white;
         }
 
-        .stat-card.primary .stat-icon { background: var(--primary-gradient); }
-        .stat-card.success .stat-icon { background: var(--success-gradient); }
-        .stat-card.warning .stat-icon { background: var(--warning-gradient); }
-        .stat-card.danger .stat-icon { background: var(--danger-gradient); }
-        .stat-card.info .stat-icon { background: var(--info-gradient); }
+        .stat-card.primary .stat-icon {
+            background: var(--primary-gradient);
+        }
+
+        .stat-card.success .stat-icon {
+            background: var(--success-gradient);
+        }
+
+        .stat-card.warning .stat-icon {
+            background: var(--warning-gradient);
+        }
+
+        .stat-card.danger .stat-icon {
+            background: var(--danger-gradient);
+        }
+
+        .stat-card.info .stat-icon {
+            background: var(--info-gradient);
+        }
 
         .stat-label {
             font-size: 0.8rem;
@@ -394,12 +429,33 @@
     <div class="stats-grid">
         @php
             $statsConfig = [
-                ['title' => 'Total Factures', 'value' => $stats->total_factures, 'icon' => 'fa-file-invoice', 'color' => 'primary'],
-                ['title' => 'Total Payé', 'value' => $stats->total_paye, 'icon' => 'fa-check-circle', 'color' => 'success'],
+                [
+                    'title' => 'Total Factures',
+                    'value' => $stats->total_factures,
+                    'icon' => 'fa-file-invoice',
+                    'color' => 'primary',
+                ],
+                [
+                    'title' => 'Total Payé',
+                    'value' => $stats->total_paye,
+                    'icon' => 'fa-check-circle',
+                    'color' => 'success',
+                ],
                 ['title' => 'En Attente', 'value' => $stats->total_attente, 'icon' => 'fa-clock', 'color' => 'warning'],
-                ['title' => 'Annulées', 'value' => $stats->total_annule, 'icon' => 'fa-times-circle', 'color' => 'danger'],
+                [
+                    'title' => 'Annulées',
+                    'value' => $stats->total_annule,
+                    'icon' => 'fa-times-circle',
+                    'color' => 'danger',
+                ],
                 ['title' => 'Bénéfices', 'value' => $stats->benefice, 'icon' => 'fa-coins', 'color' => 'success'],
-                ['title' => 'Dépenses', 'value' => $stats->depenses, 'icon' => 'fa-money-bill-wave', 'color' => 'info'],
+                ['title' => 'Dépenses', 'value' => $stats->depenses, 'icon' => 'fa-money-bill-wave', 'color' => 'danger'],
+                [
+                    'title' => 'Bénéfices net',
+                    'value' => $stats->benefice_net,
+                    'icon' => 'fa-wallet',
+                    'color' => 'success',
+                ],
             ];
         @endphp
 
@@ -542,8 +598,13 @@
                         intersect: false,
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
                         padding: 12,
-                        titleFont: { size: 14, weight: 'bold' },
-                        bodyFont: { size: 13 },
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
                         borderColor: '#667eea',
                         borderWidth: 1
                     },
@@ -551,7 +612,10 @@
                         display: true,
                         position: 'top',
                         labels: {
-                            font: { size: 12, weight: '600' },
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
                             padding: 15,
                             usePointStyle: true
                         }
@@ -568,7 +632,9 @@
                             callback: function(value) {
                                 return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
                             },
-                            font: { size: 11 }
+                            font: {
+                                size: 11
+                            }
                         }
                     },
                     x: {
@@ -577,7 +643,9 @@
                             drawBorder: false
                         },
                         ticks: {
-                            font: { size: 11 }
+                            font: {
+                                size: 11
+                            }
                         }
                     }
                 },
