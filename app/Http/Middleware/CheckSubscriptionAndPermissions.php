@@ -39,6 +39,7 @@ class CheckSubscriptionAndPermissions
         // 2. Vérifier si le tenant a un abonnement actif
         $subscription = $user->tenant->subscriptions()
             ->where('is_active', true)
+            ->where('ends_at', '>=', now())
             ->latest()
             ->first();
 
@@ -47,7 +48,6 @@ class CheckSubscriptionAndPermissions
                 return abort(403, 'Votre entreprise n’a pas d’abonnement actif.');
             }
         }
-
         // 3. Vérifier que le plan contient la permission requise (si spécifiée)
         if ($requiredPermission) {
             if(!$user->is_platform_user()){
@@ -57,7 +57,7 @@ class CheckSubscriptionAndPermissions
                     return abort(403, 'Votre abonnement ne vous permet pas d’accéder à cette fonctionnalité.');
                 }
             }
-            
+
 
             // 4. Vérifier que l'utilisateur a lui-même la permission
             if (!$user->can($requiredPermission)) {
