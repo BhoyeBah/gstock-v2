@@ -43,50 +43,6 @@
     @can('access_dashboard')
         <div class="container-fluid">
 
-            <!-- En-tête avec période -->
-            {{-- <div class="row mb-4">
-                <div class="col-lg-8">
-                    <h1 class="h3 mb-2 text-gray-800 font-weight-bold">
-                        <i class="fas fa-tachometer-alt text-primary"></i> Tableau de bord
-                    </h1>
-                    <p class="text-muted mb-0">Vue d'ensemble de votre activité</p>
-                </div>
-                <div class="col-lg-4 text-lg-right">
-                    <form method="GET" class="d-inline-flex align-items-center">
-                        <label class="mb-0 mr-2 text-muted small">Période :</label>
-                        <select name="period" class="custom-select custom-select-sm shadow-sm" style="width: 160px;"
-                            onchange="this.form.submit()">
-                            <option value="lastMonth" {{ $period == 'lastMonth' ? 'selected' : '' }}>Mois précedent</option>
-                            <option value="day" {{ $period == 'day' ? 'selected' : '' }}>Aujourd'hui</option>
-                            <option value="week" {{ $period == 'week' ? 'selected' : '' }}>Cette semaine</option>
-                            <option value="month" {{ $period == 'month' ? 'selected' : '' }}>Ce mois-ci</option>
-                            <option value="year" {{ $period == 'year' ? 'selected' : '' }}>Cette année</option>
-                        </select>
-                    </form>
-
-                    <div class="d-none d-lg-block border-left mx-3" style="height: 30px;"></div>
-
-                    <form method="GET" class="d-flex flex-wrap align-items-center">
-                        <label class="mb-0 mr-2 text-muted small font-weight-bold">Dates (Du/Au) :</label>
-
-                        <input type="date" name="start_date"
-                            class="form-control form-control-sm shadow-sm mb-2 mb-lg-0 mr-lg-1" style="width: 135px;"
-                            value="{{ request('start_date') }}">
-
-                        <input type="date" name="end_date"
-                            class="form-control form-control-sm shadow-sm mb-2 mb-lg-0 mr-lg-2" style="width: 135px;"
-                            value="{{ request('end_date') }}">
-
-                        <button type="submit" class="btn btn-primary btn-sm shadow-sm">
-                            <i class="fas fa-search"></i>
-                        </button>
-
-                        @if (request('period'))
-                            <input type="hidden" name="period" value="{{ request('period') }}">
-                        @endif
-                    </form>
-                </div>
-            </div> --}}
 
             <!-- En-tête avec période -->
             <div class="row mb-4">

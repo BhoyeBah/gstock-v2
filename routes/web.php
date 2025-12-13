@@ -36,11 +36,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [FrontController::class, 'index'])->middleware(['auth'])->name('home');
+Route::get('/dashboard', [FrontController::class, 'index'])->middleware(['auth'])->name('home');
 
-Route::get('/dashboard', function () {
-    return redirect()->route('home');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/', function () {
+    return view("front.index");
+});
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::resource('/permissions', PermissionController::class)->middleware('subscription.permission:manage_permissions');
