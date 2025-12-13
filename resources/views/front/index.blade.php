@@ -988,9 +988,9 @@
                         <button class="btn btn-primary js-open-modal">
                             Commencer maintenant <i class="fas fa-arrow-right"></i>
                         </button>
-                        <a href="#fonctionnalites" class="btn btn-white">
+                        {{-- <a href="#fonctionnalites" class="btn btn-white">
                             <i class="fas fa-play"></i> Démo Vidéo
-                        </a>
+                        </a> --}}
                     </div>
                     <div class="hero-trust">
                         <span><i class="fas fa-check-circle" style="color: var(--secondary);"></i> 30 jours
