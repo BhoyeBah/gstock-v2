@@ -4,7 +4,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>@yield('title', 'NG GESTION')</title>
+    <title>@yield('title', 'DYMO-STOCK')</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{asset('assets/vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
@@ -16,3 +16,6 @@
     <link href="{{ asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
     <link href="{{ asset('assets/css/footer.css')}}" rel="stylesheet">
     <!-- Tailwind Play CDN (v4) -->
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset("assets/img/logo/favicon.png") }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset("assets/img/logo/favicon.png") }}">

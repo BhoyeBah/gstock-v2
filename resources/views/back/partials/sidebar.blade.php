@@ -76,10 +76,6 @@
         color: #e0e0e0;
     }
 
-    .sidebar .sidebar-brand-icon {
-        color: #f9f7a7 !important;
-    }
-
     .sidebar .sidebar-brand-text {
         color: #ffffff;
     }
@@ -105,17 +101,56 @@
         background-color: #f0f0f0;
         font-weight: 600;
     }
+
+    /* ===== BRAND SIDEBAR PERSONNALISÉ ===== */
+    .sidebar-brand-custom {
+        background: #ffffff !important;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* Logo */
+    .sidebar-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+    }
+
+
+    .sidebar-brand-custom .sidebar-brand-text {
+        color: #667eea !important;
+        /* bleu */
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: 0.5px;
+    }
+
+
+    /* Sidebar réduite */
+    .sidebar.toggled .sidebar-brand-custom .sidebar-brand-text {
+        display: none;
+    }
+
+    .sidebar.toggled .sidebar-logo {
+        width: 32px;
+        height: 32px;
+    }
 </style>
 
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url('/dashboard') }}">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-rocket"></i>
+    <a class="sidebar-brand d-flex align-items-center justify-content-center sidebar-brand-custom"
+        href="{{ url('/dashboard') }}">
+
+        <div class="sidebar-brand-icon">
+            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK" class="sidebar-logo">
         </div>
-        <div class="sidebar-brand-text mx-3">DYMO STOCK</div>
+
+        <div class="sidebar-brand-text mx-2">
+            DYMO-STOCK
+        </div>
     </a>
+
 
     <hr class="sidebar-divider my-0">
     @if ($active_subscription)

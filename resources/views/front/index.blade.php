@@ -24,18 +24,18 @@
     <meta name="author" content="Dymo Technologies">
     <meta name="robots" content="index, follow">
     <!-- Remplacez par votre vrai domaine -->
-    <link rel="canonical" href="https://www.dymo-stock.com/">
+    <link rel="canonical" href="https://gstock.dymotechnologie.com/">
 
     <!-- ==============================================
          OPEN GRAPH (Facebook, LinkedIn, WhatsApp)
          ============================================== -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.dymo-stock.com/">
+    <meta property="og:url" content="https://gstock.dymotechnologie.com/">
     <meta property="og:title" content="DYMO-STOCK | Pilotez votre entreprise avec précision">
     <meta property="og:description"
         content="Découvrez la solution de gestion tout-en-un : Stocks, Ventes, Achats et Finances. Simplifiez votre quotidien dès aujourd'hui.">
     <!-- Image de partage (idéalement 1200x630px) -->
-    <meta property="og:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
+    <meta property="og:image" content="{{ asset("assets/img/logo/logo.png") }}">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:site_name" content="DYMO-STOCK">
 
@@ -43,11 +43,11 @@
          TWITTER CARD (X)
          ============================================== -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://www.dymo-stock.com/">
+    <meta name="twitter:url" content="https://gstock.dymotechnologie.com/">
     <meta name="twitter:title" content="DYMO-STOCK | La Gestion Cloud Intelligente">
     <meta name="twitter:description"
         content="Logiciel de gestion de stock et facturation pour les PME. Testez gratuitement notre solution cloud sécurisée.">
-    <meta name="twitter:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
+    <meta name="twitter:image" content="{{ asset("assets/img/logo/logo.png") }}">
 
     <!-- ==============================================
          ICONES & THEME MOBILE
@@ -55,9 +55,9 @@
     <!-- Couleur de la barre d'adresse sur mobile (Chrome/Safari) -->
     <meta name="theme-color" content="#4F46E5">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset("assets/img/logo/favicon.png") }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset("assets/img/logo/favicon.png") }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/{{ asset("assets/img/logo/favicon.png") }}">
 
 
     <style>
@@ -936,8 +936,11 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <a href="/" class="logo">
-                    <i class="fas fa-cube fa-lg"></i>
+                <!-- Brand -->
+                <a class="logo" href="/">
+                    <div class="sidebar-brand-icon">
+                        <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK" class="sidebar-logo">
+                    </div>
                     <span>DYMO-STOCK</span>
                 </a>
 
@@ -1253,10 +1256,15 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col-brand">
-                    <a href="#" class="logo" style="margin-bottom: 1rem; display: inline-block;">
-                        <i class="fas fa-cube"></i> DYMO-STOCK
+                    <a class="logo" href="/">
+                        <div class="sidebar-brand-icon">
+                            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK"
+                                class="logo">
+                        </div>
+                        <span>DYMO-STOCK</span>
                     </a>
-                    <p style="color: var(--gray); font-size: 0.9rem; max-width: 300px;">
+
+                    <p style="color: var(--gray); font-size: 0.9rem; max-width: 300px; margin-top: 5px;">
                         La solution SaaS de référence pour la gestion commerciale en Afrique de l'Ouest.
                     </p>
                 </div>
