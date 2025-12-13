@@ -13,6 +13,49 @@
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
+
+<!-- ==============================================
+         SEO STANDARD
+         ============================================== -->
+    <meta name="description" content="Gérez vos stocks multi-dépôts, factures et comptabilité avec DYMO-STOCK. La solution SaaS cloud complète pour les PME en Afrique de l'Ouest. Essai gratuit sans engagement.">
+    <meta name="keywords" content="gestion de stock, logiciel facturation, SaaS Sénégal, ERP PME, gestion commerciale cloud, multi-entrepôts, DYMO-STOCK">
+    <meta name="author" content="Dymo Technologies">
+    <meta name="robots" content="index, follow">
+    <!-- Remplacez par votre vrai domaine -->
+    <link rel="canonical" href="https://www.dymo-stock.com/">
+
+    <!-- ==============================================
+         OPEN GRAPH (Facebook, LinkedIn, WhatsApp)
+         ============================================== -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.dymo-stock.com/">
+    <meta property="og:title" content="DYMO-STOCK | Pilotez votre entreprise avec précision">
+    <meta property="og:description" content="Découvrez la solution de gestion tout-en-un : Stocks, Ventes, Achats et Finances. Simplifiez votre quotidien dès aujourd'hui.">
+    <!-- Image de partage (idéalement 1200x630px) -->
+    <meta property="og:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="DYMO-STOCK">
+
+    <!-- ==============================================
+         TWITTER CARD (X)
+         ============================================== -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://www.dymo-stock.com/">
+    <meta name="twitter:title" content="DYMO-STOCK | La Gestion Cloud Intelligente">
+    <meta name="twitter:description" content="Logiciel de gestion de stock et facturation pour les PME. Testez gratuitement notre solution cloud sécurisée.">
+    <meta name="twitter:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
+
+    <!-- ==============================================
+         ICONES & THEME MOBILE
+         ============================================== -->
+    <!-- Couleur de la barre d'adresse sur mobile (Chrome/Safari) -->
+    <meta name="theme-color" content="#4F46E5">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+
+
     <style>
         /* --- RESET & VARIABLES --- */
         :root {
