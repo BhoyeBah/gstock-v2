@@ -9,7 +9,8 @@
         <thead class="thead-light">
             <tr>
                 <th>Entrêpot</th>
-                <th>Produit</th>
+                {{-- <th>Produit</th> --}}
+                 <th style="min-width: 250px;">Produit</th>
                 <th>Quantité</th>
                 <th>Prix d'achat</th>
                 <th>Remise</th>
