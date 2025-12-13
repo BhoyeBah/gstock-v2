@@ -203,7 +203,7 @@
     @endcanAny
 
     <!-- Transactions -->
-    @canAny(['manage_supplier_invoices','manage_client_invoices', 'read_supplier_payments','read_client_payments'])
+    @canAny(['manage_supplier_invoices', 'manage_client_invoices', 'read_supplier_payments', 'read_client_payments'])
         <div class="sidebar-heading">Transactions</div>
         <li class="nav-item {{ $isVentesActive ? 'active' : '' }}">
             <a class="nav-link {{ $isVentesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
@@ -333,36 +333,36 @@
     @endcan --}}
 
 
-        <hr class="sidebar-divider">
+    <hr class="sidebar-divider">
 
-        <!-- Gestion du Système -->
-        <div class="sidebar-heading">Gestion du Système</div>
+    <!-- Gestion du Système -->
+    <div class="sidebar-heading">Gestion du Système</div>
 
-        <li class="nav-item {{ $isGestionActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isGestionActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapseGestion" aria-expanded="{{ $isGestionActive ? 'true' : 'false' }}"
-                aria-controls="collapseGestion">
-                <i class="fas fa-users-cog"></i>
-                <span>Utilisateurs & Accès</span>
-            </a>
-            <div id="collapseGestion" class="collapse {{ $isGestionOpen }}" aria-labelledby="headingGestion"
-                data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @can('manage_roles')
-                        <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
-                            href="{{ route('roles.index') }}">Rôles</a>
-                    @endcan
-                    @can('manage_users')
-                        <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
-                            href="{{ route('users.index') }}">Utilisateurs</a>
-                    @endcan
-                    @can('view_subscriptions')
-                        <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
-                            href="{{ route('tenant.subscriptions.index') }}">Mes Souscriptions</a>
-                    @endcan
-                </div>
+    <li class="nav-item {{ $isGestionActive ? 'active' : '' }}">
+        <a class="nav-link {{ $isGestionActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+            data-target="#collapseGestion" aria-expanded="{{ $isGestionActive ? 'true' : 'false' }}"
+            aria-controls="collapseGestion">
+            <i class="fas fa-users-cog"></i>
+            <span>Utilisateurs & Accès</span>
+        </a>
+        <div id="collapseGestion" class="collapse {{ $isGestionOpen }}" aria-labelledby="headingGestion"
+            data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                @can('manage_roles')
+                    <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
+                        href="{{ route('roles.index') }}">Rôles</a>
+                @endcan
+                @can('manage_users')
+                    <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
+                        href="{{ route('users.index') }}">Utilisateurs</a>
+                @endcan
+                @can('view_subscriptions')
+                    <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
+                        href="{{ route('tenant.subscriptions.index') }}">Mes Souscriptions</a>
+                @endcan
             </div>
-        </li>
+        </div>
+    </li>
 
     @can('manage_stock')
         <!-- Sidebar Stock -->
@@ -457,3 +457,12 @@
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
 </ul>
+
+
+<noscript>
+    <style>
+        body {
+            display: none;
+        }
+    </style>
+</noscript>

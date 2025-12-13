@@ -14,11 +14,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
 
-<!-- ==============================================
+    <!-- ==============================================
          SEO STANDARD
          ============================================== -->
-    <meta name="description" content="Gérez vos stocks multi-dépôts, factures et comptabilité avec DYMO-STOCK. La solution SaaS cloud complète pour les PME en Afrique de l'Ouest. Essai gratuit sans engagement.">
-    <meta name="keywords" content="gestion de stock, logiciel facturation, SaaS Sénégal, ERP PME, gestion commerciale cloud, multi-entrepôts, DYMO-STOCK">
+    <meta name="description"
+        content="Gérez vos stocks multi-dépôts, factures et comptabilité avec DYMO-STOCK. La solution SaaS cloud complète pour les PME en Afrique de l'Ouest. Essai gratuit sans engagement.">
+    <meta name="keywords"
+        content="gestion de stock, logiciel facturation, SaaS Sénégal, ERP PME, gestion commerciale cloud, multi-entrepôts, DYMO-STOCK">
     <meta name="author" content="Dymo Technologies">
     <meta name="robots" content="index, follow">
     <!-- Remplacez par votre vrai domaine -->
@@ -30,7 +32,8 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.dymo-stock.com/">
     <meta property="og:title" content="DYMO-STOCK | Pilotez votre entreprise avec précision">
-    <meta property="og:description" content="Découvrez la solution de gestion tout-en-un : Stocks, Ventes, Achats et Finances. Simplifiez votre quotidien dès aujourd'hui.">
+    <meta property="og:description"
+        content="Découvrez la solution de gestion tout-en-un : Stocks, Ventes, Achats et Finances. Simplifiez votre quotidien dès aujourd'hui.">
     <!-- Image de partage (idéalement 1200x630px) -->
     <meta property="og:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
     <meta property="og:locale" content="fr_FR">
@@ -42,7 +45,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://www.dymo-stock.com/">
     <meta name="twitter:title" content="DYMO-STOCK | La Gestion Cloud Intelligente">
-    <meta name="twitter:description" content="Logiciel de gestion de stock et facturation pour les PME. Testez gratuitement notre solution cloud sécurisée.">
+    <meta name="twitter:description"
+        content="Logiciel de gestion de stock et facturation pour les PME. Testez gratuitement notre solution cloud sécurisée.">
     <meta name="twitter:image" content="https://www.dymo-stock.com/assets/img/og-image-social.jpg">
 
     <!-- ==============================================
@@ -1008,7 +1012,8 @@
                             <div class="stat-card">
                                 <div style="font-size: 0.8rem; color: var(--gray); margin-bottom: 0.5rem;">Revenus
                                     (Mois)</div>
-                                <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">4.2M FCFA</div>
+                                <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">4.2M FCFA
+                                </div>
                                 <div style="font-size: 0.75rem; color: var(--secondary); margin-top: 0.2rem;"><i
                                         class="fas fa-arrow-up"></i> +12%</div>
                             </div>
@@ -1028,13 +1033,15 @@
                             </div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-size: 0.85rem;">
-                                <div><i class="fas fa-file-invoice" style="color: var(--gray); margin-right: 8px;"></i>
+                                <div><i class="fas fa-file-invoice"
+                                        style="color: var(--gray); margin-right: 8px;"></i>
                                     #001</div>
                                 <span class="badge badge-green">Payée</span>
                             </div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
-                                <div><i class="fas fa-file-invoice" style="color: var(--gray); margin-right: 8px;"></i>
+                                <div><i class="fas fa-file-invoice"
+                                        style="color: var(--gray); margin-right: 8px;"></i>
                                     #002</div>
                                 <span class="badge badge-purple">Validée</span>
                             </div>
@@ -1396,8 +1403,21 @@
                     closeModal();
                 }
             });
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+
         });
     </script>
+
+    <noscript>
+        <style>
+            body {
+                display: none;
+            }
+        </style>
+    </noscript>
+
 </body>
 
 </html>
