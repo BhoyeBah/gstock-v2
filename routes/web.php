@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/dashboard', [FrontController::class, 'index'])->middleware(['auth'])->name('home');
+Route::get('/dashboard', [FrontController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
 Route::get('/', function () {
     return view("front.index");
