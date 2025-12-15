@@ -35,7 +35,7 @@
     <meta property="og:description"
         content="Découvrez la solution de gestion tout-en-un : Stocks, Ventes, Achats et Finances. Simplifiez votre quotidien dès aujourd'hui.">
     <!-- Image de partage (idéalement 1200x630px) -->
-    <meta property="og:image" content="{{ asset("assets/img/logo/logo.png") }}">
+    <meta property="og:image" content="{{ asset('assets/img/logo/logo.png') }}">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:site_name" content="DYMO-STOCK">
 
@@ -47,7 +47,7 @@
     <meta name="twitter:title" content="DYMO-STOCK | La Gestion Cloud Intelligente">
     <meta name="twitter:description"
         content="Logiciel de gestion de stock et facturation pour les PME. Testez gratuitement notre solution cloud sécurisée.">
-    <meta name="twitter:image" content="{{ asset("assets/img/logo/logo.png") }}">
+    <meta name="twitter:image" content="{{ asset('assets/img/logo/logo.png') }}">
 
     <!-- ==============================================
          ICONES & THEME MOBILE
@@ -55,9 +55,9 @@
     <!-- Couleur de la barre d'adresse sur mobile (Chrome/Safari) -->
     <meta name="theme-color" content="#4F46E5">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset("assets/img/logo/favicon.png") }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset("assets/img/logo/favicon.png") }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/{{ asset("assets/img/logo/favicon.png") }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/logo/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset('assets/img/logo/favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/{{ asset('assets/img/logo/favicon.png') }}">
 
 
     <style>
@@ -116,6 +116,67 @@
             max-width: 100%;
             height: auto;
             display: block;
+        }
+
+        .pricing-toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(28px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
         }
 
         /* --- ANIMATIONS --- */
@@ -765,6 +826,20 @@
             transform: translate(-50%, -50%);
         }
 
+        /* Country selector */
+        .country-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .country-selector select {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
         @media (min-width: 1024px) {
             .cta-section {
                 padding: 6rem 0;
@@ -1168,27 +1243,38 @@
     <!-- Pricing -->
     <section class="pricing" id="pricing">
         <div class="container">
-            <div class="section-header reveal">
+            <div class="section-header reveal active">
                 <h2>Tarifs Transparents</h2>
                 <p>Choisissez le plan adapté à la taille de votre entreprise.</p>
             </div>
 
-            <!-- Toggle (Visual Only) -->
-            <div style="display: flex; justify-content: center; gap: 1rem; align-items: center; margin-bottom: 2rem;">
-                <span style="font-weight: 600; color: var(--gray);">Mensuel</span>
-                <div
-                    style="width: 50px; height: 26px; background: var(--primary); border-radius: 20px; position: relative;">
-                    <div
-                        style="width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 3px; right: 3px;">
-                    </div>
+            <!-- Toggle Switch Fonctionnel -->
+
+            <div class="pricing-toggle-container">
+                <span class="toggle-label">Mensuel</span>
+                <label class="switch">
+                    <input type="checkbox" id="pricingToggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">Annuel <span class="badge badge-green">-25%</span></span>
+                <div class="country-selector">
+                    <label for="countrySelect">Choisissez votre pays :</label>
+                    <select id="countrySelect">
+                        <option value="uemoa" data-currency="FCFA">UEMOA (FCFA)</option>
+                        <option value="gn" data-currency="GNF">Guinée (GNF)</option>
+                    </select>
                 </div>
-                <span style="font-weight: 600;">Annuel <span class="badge badge-green">-20%</span></span>
             </div>
 
-            <div class="pricing-cards reveal">
+            <div class="pricing-cards reveal active">
+                <!-- Card Starter -->
                 <div class="price-card">
                     <h3>Starter</h3>
-                    <div class="price-val">15k <span style="font-size: 1rem; color: var(--gray);">FCFA</span></div>
+                    <!-- data-base-price = Prix mensuel sans réduction -->
+                    <div class="price-val" data-base-price="15">
+                        <span class="amount">15</span>k
+                        <span style="font-size: 1rem; color: var(--gray);" class="currency">FCFA</span>
+                    </div>
                     <p class="price-period">Par mois</p>
                     <ul class="check-list" style="text-align: left; margin: 2rem 0;">
                         <li><i class="fas fa-check"></i> 1 Entrepôt</li>
@@ -1196,16 +1282,19 @@
                         <li><i class="fas fa-check"></i> Facturation illimitée</li>
                         <li><i class="fas fa-check"></i> Support Email</li>
                     </ul>
-                    <a href="#" class="btn btn-white" style="width: 100%;">Choisir Starter</a>
+                    <a href="#" class="btn btn-white js-open-modal" style="width: 100%;">Choisir Starter</a>
                 </div>
 
+                <!-- Card Business (Populaire par défaut) -->
                 <div class="price-card popular">
                     <div
                         style="position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
                         POPULAIRE</div>
                     <h3>Business</h3>
-                    <div class="price-val" style="color: var(--primary);">25k <span
-                            style="font-size: 1rem; color: var(--gray);">FCFA</span></div>
+                    <div class="price-val" data-base-price="25" style="color: var(--primary);">
+                        <span class="amount">25</span>k
+                        <span style="font-size: 1rem; color: var(--gray);" class="currency">FCFA</span>
+                    </div>
                     <p class="price-period">Par mois</p>
                     <ul class="check-list" style="text-align: left; margin: 2rem 0;">
                         <li><i class="fas fa-check"></i> Multi-Entrepôts (3)</li>
@@ -1217,6 +1306,7 @@
                     <button class="btn btn-primary js-open-modal" style="width: 100%;">Essayer Business</button>
                 </div>
 
+                <!-- Card Entreprise (Pas de changement de prix car sur devis) -->
                 <div class="price-card">
                     <h3>Entreprise</h3>
                     <div class="price-val">Sur devis</div>
@@ -1258,8 +1348,7 @@
                 <div class="footer-col-brand">
                     <a class="logo" href="/">
                         <div class="sidebar-brand-icon">
-                            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK"
-                                class="logo">
+                            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK" class="logo">
                         </div>
                         <span>DYMO-STOCK</span>
                     </a>
@@ -1286,11 +1375,27 @@
                 </div>
                 <div>
                     <h4 style="margin-bottom: 1rem;">Légal</h4>
-                    <ul style="color: var(--gray); font-size: 0.9rem;">
+                    <ul style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1rem;">
                         <li><a href="#">Confidentialité</a></li>
                         <li><a href="#">Conditions</a></li>
                     </ul>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <a href="https://www.facebook.com/profile.php?id=61584711315209" target="_blank"
+                            style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+                   background: #1877F2; color: white; padding: 0.5rem 1rem; border-radius: 9999px;
+                   font-weight: 600; text-decoration: none; transition: transform 0.2s;">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a href="https://wa.me/221788364007?text=Je%20veux%20profiter%20de%20votre%20offre%20gratuite"
+                            target="_blank"
+                            style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+                   background: #25D366; color: white; padding: 0.5rem 1rem; border-radius: 9999px;
+                   font-weight: 600; text-decoration: none; transition: transform 0.2s;">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                    </div>
                 </div>
+
             </div>
             <div
                 style="text-align: center; border-top: 1px solid #F1F5F9; padding-top: 2rem; color: var(--gray); font-size: 0.9rem;">
@@ -1325,6 +1430,56 @@
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+            const toggle = document.getElementById('pricingToggle');
+            const countrySelect = document.getElementById('countrySelect');
+            const priceCards = document.querySelectorAll('.price-card');
+
+            const pricesByCountry = {
+                uemoa: {
+                    starter: 15,
+                    business: 25
+                },
+                gn: {
+                    starter: 255,
+                    business: 425
+                }
+            };
+
+            function updatePrices() {
+                const isAnnual = toggle.checked;
+                const country = countrySelect.value;
+
+                priceCards.forEach(card => {
+                    const plan = card.querySelector('h3').textContent.toLowerCase();
+                    const priceVal = card.querySelector('.price-val .amount');
+                    const currencySpan = card.querySelector('.price-val .currency');
+
+                    if (!priceVal) return;
+
+                    let basePrice;
+                    if (plan.includes('starter')) basePrice = pricesByCountry[country].starter;
+                    else if (plan.includes('business')) basePrice = pricesByCountry[country].business;
+                    else return;
+
+                    let finalPrice = isAnnual ? Math.round(basePrice * 12 * 0.75) : basePrice;
+                    priceVal.textContent = finalPrice;
+                    currencySpan.textContent = countrySelect.selectedOptions[0].dataset.currency;
+
+                    // Effet visuel
+                    priceVal.style.transform = "scale(1.2)";
+                    setTimeout(() => priceVal.style.transform = "scale(1)", 200);
+                });
+
+                document.body.classList.toggle('pricing-annual', isAnnual);
+            }
+
+            toggle.addEventListener('change', updatePrices);
+            countrySelect.addEventListener('change', updatePrices);
+
+            // Initialisation
+            updatePrices();
+
             // --- DYNAMIC YEAR ---
             document.getElementById('year').textContent = new Date().getFullYear();
 
