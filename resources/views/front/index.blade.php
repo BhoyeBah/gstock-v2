@@ -1113,14 +1113,14 @@
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-size: 0.85rem;">
                                 <div><i class="fas fa-file-invoice"
                                         style="color: var(--gray); margin-right: 8px;"></i>
-                                    #001</div>
+                                    #INV-2024-001</div>
                                 <span class="badge badge-green">Payée</span>
                             </div>
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
                                 <div><i class="fas fa-file-invoice"
                                         style="color: var(--gray); margin-right: 8px;"></i>
-                                    #002</div>
+                                    #INV-2024-001</div>
                                 <span class="badge badge-purple">Validée</span>
                             </div>
                         </div>
@@ -1447,34 +1447,34 @@
             };
 
             function updatePrices() {
-    const isAnnual = toggle.checked;
-    const country = countrySelect.value;
+                const isAnnual = toggle.checked;
+                const country = countrySelect.value;
 
-    priceCards.forEach(card => {
-        const plan = card.querySelector('h3').textContent.toLowerCase();
-        const priceVal = card.querySelector('.price-val .amount');
-        const currencySpan = card.querySelector('.price-val .currency');
+                priceCards.forEach(card => {
+                    const plan = card.querySelector('h3').textContent.toLowerCase();
+                    const priceVal = card.querySelector('.price-val .amount');
+                    const currencySpan = card.querySelector('.price-val .currency');
 
-        if (!priceVal) return;
+                    if (!priceVal) return;
 
-        let basePrice;
-        if (plan.includes('starter')) basePrice = pricesByCountry[country].starter;
-        else if (plan.includes('business')) basePrice = pricesByCountry[country].business;
-        else return;
+                    let basePrice;
+                    if (plan.includes('starter')) basePrice = pricesByCountry[country].starter;
+                    else if (plan.includes('business')) basePrice = pricesByCountry[country].business;
+                    else return;
 
-        // Applique juste la réduction de 25 %
-        let finalPrice = isAnnual ? Math.round(basePrice * 0.75) : basePrice;
+                    // Applique juste la réduction de 25 %
+                    let finalPrice = isAnnual ? Math.round(basePrice * 0.75) : basePrice;
 
-        priceVal.textContent = finalPrice;
-        currencySpan.textContent = countrySelect.selectedOptions[0].dataset.currency;
+                    priceVal.textContent = finalPrice;
+                    currencySpan.textContent = countrySelect.selectedOptions[0].dataset.currency;
 
-        // Effet visuel
-        priceVal.style.transform = "scale(1.2)";
-        setTimeout(() => priceVal.style.transform = "scale(1)", 200);
-    });
+                    // Effet visuel
+                    priceVal.style.transform = "scale(1.2)";
+                    setTimeout(() => priceVal.style.transform = "scale(1)", 200);
+                });
 
-    document.body.classList.toggle('pricing-annual', isAnnual);
-}
+                document.body.classList.toggle('pricing-annual', isAnnual);
+            }
 
             toggle.addEventListener('change', updatePrices);
             countrySelect.addEventListener('change', updatePrices);
