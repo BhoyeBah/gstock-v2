@@ -1447,32 +1447,34 @@
             };
 
             function updatePrices() {
-                const isAnnual = toggle.checked;
-                const country = countrySelect.value;
+    const isAnnual = toggle.checked;
+    const country = countrySelect.value;
 
-                priceCards.forEach(card => {
-                    const plan = card.querySelector('h3').textContent.toLowerCase();
-                    const priceVal = card.querySelector('.price-val .amount');
-                    const currencySpan = card.querySelector('.price-val .currency');
+    priceCards.forEach(card => {
+        const plan = card.querySelector('h3').textContent.toLowerCase();
+        const priceVal = card.querySelector('.price-val .amount');
+        const currencySpan = card.querySelector('.price-val .currency');
 
-                    if (!priceVal) return;
+        if (!priceVal) return;
 
-                    let basePrice;
-                    if (plan.includes('starter')) basePrice = pricesByCountry[country].starter;
-                    else if (plan.includes('business')) basePrice = pricesByCountry[country].business;
-                    else return;
+        let basePrice;
+        if (plan.includes('starter')) basePrice = pricesByCountry[country].starter;
+        else if (plan.includes('business')) basePrice = pricesByCountry[country].business;
+        else return;
 
-                    let finalPrice = isAnnual ? Math.round(basePrice * 12 * 0.75) : basePrice;
-                    priceVal.textContent = finalPrice;
-                    currencySpan.textContent = countrySelect.selectedOptions[0].dataset.currency;
+        // Applique juste la réduction de 25 %
+        let finalPrice = isAnnual ? Math.round(basePrice * 0.75) : basePrice;
 
-                    // Effet visuel
-                    priceVal.style.transform = "scale(1.2)";
-                    setTimeout(() => priceVal.style.transform = "scale(1)", 200);
-                });
+        priceVal.textContent = finalPrice;
+        currencySpan.textContent = countrySelect.selectedOptions[0].dataset.currency;
 
-                document.body.classList.toggle('pricing-annual', isAnnual);
-            }
+        // Effet visuel
+        priceVal.style.transform = "scale(1.2)";
+        setTimeout(() => priceVal.style.transform = "scale(1)", 200);
+    });
+
+    document.body.classList.toggle('pricing-annual', isAnnual);
+}
 
             toggle.addEventListener('change', updatePrices);
             countrySelect.addEventListener('change', updatePrices);
