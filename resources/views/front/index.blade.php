@@ -1087,7 +1087,7 @@
         <div class="container">
             <div class="hero-grid">
                 <div class="hero-content reveal active">
-                    <span class="badge badge-purple" style="margin-bottom: 1.5rem;">Version 2.0 Disponible</span>
+                    {{-- <span class="badge badge-purple" style="margin-bottom: 1.5rem;">Version 2.0 Disponible</span> --}}
                     <h1>Pilotez votre entreprise avec <span style="color: var(--primary);">précision</span>.</h1>
                     <p>La solution SaaS complète pour la gestion de stocks multi-dépôts, la facturation et la
                         comptabilité. Conçu pour les PME modernes.</p>
