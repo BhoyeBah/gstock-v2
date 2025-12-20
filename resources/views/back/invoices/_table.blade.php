@@ -198,24 +198,26 @@
                                         </form>
                                     @endif
                                     <!-- Bouton Supprimer -->
-                                    <form action="{{ route('invoices.forceDestroy', [$type, $invoice->id]) }}"
-                                        method="POST" class="d-inline"
-                                        onsubmit="return confirm('Confirmer la suppression de cette facture ?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Annuler">
-                                            <i class="fas fa-skull"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('invoices.cancel', [$type, $invoice->id]) }}"
-                                        method="POST" class="d-inline"
-                                        onsubmit="return confirm('Confirmer la suppression de cette facture ?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Annuler">
-                                            <i class="fas fa-times-circle"></i>
-                                        </button>
-                                    </form>
+                                    @can('force_delete_invoice')
+                                        <form action="{{ route('invoices.forceDestroy', [$type, $invoice->id]) }}"
+                                            method="POST" class="d-inline"
+                                            onsubmit="return confirm('Confirmer la suppression de cette facture ?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Annuler">
+                                                <i class="fas fa-skull"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('invoices.cancel', [$type, $invoice->id]) }}"
+                                            method="POST" class="d-inline"
+                                            onsubmit="return confirm('Confirmer la suppression de cette facture ?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Annuler">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
 
                             </tr>
