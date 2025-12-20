@@ -27,7 +27,9 @@ class ContactController extends Controller
 
         // 3. Construire la requête de base pour la liste des contacts
         $query = Contact::type($contactModelType)
-            ->withSum('invoices as balance_total', 'balance'); // Calcule le solde pour chaque contact
+            ->withSum(['invoices as balance_total' => function ($q) {
+                $q->where('status', '!=', 'cancelled');
+            }], 'balance');
 
         // 4. Appliquer les filtres de recherche et de statut s'ils existent dans la requête
         if ($request->filled('search')) {

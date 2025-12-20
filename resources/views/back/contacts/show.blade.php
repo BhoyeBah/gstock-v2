@@ -2,16 +2,16 @@
 
 @section('content')
     @php
-        // Les calculs sont plus efficaces s'ils sont faits dans le contrôleur,
-// mais pour garder la logique ici comme dans votre exemple :
-$invoices = $contact->invoices()->latest()->paginate(10); // Paginer pour de meilleures performances
+        $statsInvoices = $contact->invoices()->where('status', '!=', 'cancelled');
 
-// Stats globales (sur toutes les factures, pas seulement la page actuelle)
-$statsInvoices = $contact->invoices(); // Nouvelle requête pour les stats
-$total_invoices = (clone $statsInvoices)->count();
-$total_invoice_amount = (clone $statsInvoices)->sum('total_invoice');
-$total_balance = (clone $statsInvoices)->sum('balance');
+        // Stats globales (toutes factures non annulées)
+        $total_invoices = (clone $statsInvoices)->count();
+        $total_invoice_amount = (clone $statsInvoices)->sum('total_invoice');
+        $total_balance = (clone $statsInvoices)->sum('balance');
         $total_paid = $total_invoice_amount - $total_balance;
+
+        // Pour paginer la liste des factures
+        $invoices = $statsInvoices->latest()->paginate(10);
     @endphp
 
     @push('styles')

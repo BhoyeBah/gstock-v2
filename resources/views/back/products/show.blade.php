@@ -675,7 +675,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($product->batches as $lot)
+                            @forelse ($product->batches->where('quantity', '>', 0) as $lot)
                                 <tr>
                                     <td>
                                         <a href="{{ route('warehouses.show', $lot->warehouse->id) }}">

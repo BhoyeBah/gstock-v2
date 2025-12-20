@@ -354,7 +354,6 @@ class InvoiceController extends Controller
             })
             ->get();
 
-
         $totalMontant = $invoices->sum('total_invoice');
         $totalReste = $invoices->sum('balance');
         $totalPaye = $totalMontant - $totalReste;
@@ -382,5 +381,101 @@ class InvoiceController extends Controller
             abort(403, "Vous n'êtes pas autorisé à effectuer cette opération.");
         }
 
+    }
+
+    public function forceDestroy(string $type, Invoice $invoice)
+    {
+        $current_user = auth()->user();
+        $error_message = "Vous n'avez pas le droit de supprimer cette facture";
+
+        // Vérification type
+        if ($invoice->type.'s' !== $type) {
+            abort(403, $error_message);
+        }
+
+        // Vérification tenant
+        if ($current_user->tenant_id !== $invoice->tenant_id) {
+            abort(403, $error_message);
+        }
+
+        DB::transaction(function () use ($invoice) {
+            InventoryMovement::where('invoice_id', $invoice->id)->delete();
+            // Supprime tous les batches liés à la facture
+            Batch::where('invoice_id', $invoice->id)->delete();
+
+            // Supprime les items liés à la facture
+            InvoiceItem::where('invoice_id', $invoice->id)->delete();
+            Payment::where('invoice_id', $invoice->id)->delete();
+
+            // Supprime la facture elle-même
+            $invoice->forceDelete();
+        });
+
+        return back()->with('success', 'Facture et ses données liées supprimées avec succès');
+    }
+
+    public function cancel(string $type, Invoice $invoice)
+    {
+        $current_user = auth()->user();
+        $error_message = "Vous n'avez pas le droit de supprimer cette facture";
+
+        if ($invoice->type.'s' !== $type) {
+            abort(403, $error_message);
+        }
+
+        if ($current_user->tenant_id !== $invoice->tenant_id) {
+            abort(403, $error_message);
+        }
+
+        try {
+            DB::transaction(function () use ($invoice) {
+
+                // 1️⃣ VALIDATION MÉTIER (AUCUNE ÉCRITURE)
+                foreach ($invoice->items as $item) {
+
+                    $batch = Batch::where('product_id', $item->product_id)
+                        ->where('unit_price', $item->unit_price)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $batch) {
+                        abort(422, "Batch introuvable pour le produit {$item->product->name}");
+                    }
+
+                    if ($batch->remaining < $item->quantity) {
+                        abort(
+                            422,
+                            "Impossible d’annuler la facture : le stock du produit {$item->product->name} a déjà été consommé."
+                        );
+                    }
+                }
+
+                // 2️⃣ EXÉCUTION (APRÈS VALIDATION COMPLÈTE)
+                foreach ($invoice->items as $item) {
+
+                    $batch = Batch::where('product_id', $item->product_id)
+                        ->where('unit_price', $item->unit_price)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $batch->quantity -= $item->quantity;
+                    $batch->remaining -= $item->quantity;
+                    $batch->save();
+                }
+
+                // 3️⃣ Nettoyage logique
+                InventoryMovement::where('invoice_id', $invoice->id)->delete();
+                Payment::where('invoice_id', $invoice->id)->delete();
+
+                // 4️⃣ Annulation logique
+                $invoice->status = 'cancelled';
+                $invoice->save();
+            });
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Facture annulée et stock corrigé avec succès');
     }
 }

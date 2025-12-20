@@ -121,6 +121,8 @@ Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middlewa
     Route::get('/{invoice}', 'show')->where('invoice', '[0-9a-fA-F\-]{36}')->name('show');
     Route::put('/{invoice}', 'update')->name('update');
     Route::delete('/{invoice}', 'destroy')->name('destroy');
+    Route::delete('/{invoice}/cancel', 'cancel')->name("cancel");
+    Route::delete('/{invoice}/force', 'forceDestroy')->name("forceDestroy");
 
 })->where('type', 'client|supplier');
 

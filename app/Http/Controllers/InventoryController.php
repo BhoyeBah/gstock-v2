@@ -16,7 +16,9 @@ class InventoryController extends Controller
     //
     public function index()
     {
+
         $warehouses = Warehouse::with('batches')->get();
+
         $inventories = Inventory::withCount([
             'items as validated_count' => function ($query) {
                 $query->where('validated', true);
@@ -36,6 +38,10 @@ class InventoryController extends Controller
 
         if ($existingInventory) {
             return back()->with('error', 'Cet entrepot a deja un inventaire non cloturé.');
+        }
+        // Si aucun batch, on ne crée pas l'inventaire
+        if ($batches->isEmpty()) {
+            return back()->with('error', 'Aucun produit disponible pour générer un inventaire.');
         }
         try {
 
@@ -123,7 +129,8 @@ class InventoryController extends Controller
         return back()->with('success', "Inventaire du produit ($productName) validé avec succès.");
     }
 
-    public function print(Inventory $inventory) {
-       return view("back.inventories.print", compact("inventory"));
+    public function print(Inventory $inventory)
+    {
+        return view('back.inventories.print', compact('inventory'));
     }
 }
