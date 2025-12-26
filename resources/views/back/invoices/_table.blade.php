@@ -265,16 +265,25 @@
                                                         max="{{ $invoice->balance }}" required>
                                                 </div>
 
-                                                <!-- Type de paiement -->
+                                                <!-- Sélection du wallet -->
                                                 <div class="form-group">
-                                                    <label for="payment_type_{{ $invoice->id }}">
-                                                        <i class="fas fa-credit-card text-primary mr-1"></i>
-                                                        Type de paiement <span class="text-danger">*</span>
+                                                    <label for="wallet_id_{{ $invoice->id }}">
+                                                        <i class="fas fa-wallet text-primary mr-1"></i>
+                                                        Choisir le wallet
                                                     </label>
-                                                    <input type="text" class="form-control"
-                                                        id="payment_type_{{ $invoice->id }}" name="payment_type"
-                                                        placeholder="Ex : Espèces, Virement, Chèque" required>
+                                                    <select class="form-control" id="wallet_id_{{ $invoice->id }}"
+                                                        name="wallet_id" required>
+                                                        <option value="">-- Sélectionnez un wallet --</option>
+                                                        @foreach ($wallets as $wallet)
+                                                            <option value="{{ $wallet->id }}">
+                                                                {{ $wallet->name ?? 'Wallet ' . $wallet->id }}
+                                                                ({{ number_format($wallet->current_balance, 0, ',', ' ') }}
+                                                                FCFA)
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
+
 
                                                 <!-- Date du paiement -->
                                                 <div class="form-group mb-0">

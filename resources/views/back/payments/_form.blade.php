@@ -1,4 +1,4 @@
-<!-- resources/views/payments/create.blade.php -->
+{{-- <!-- resources/views/payments/create.blade.php -->
 
 @extends('back.layouts.admin')
 
@@ -62,4 +62,4 @@
         </div>
     </div>
 </div>
-@endsection
+@endsection --}}

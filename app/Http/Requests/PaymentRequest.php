@@ -26,7 +26,6 @@ class PaymentRequest extends FormRequest
             'invoice_id' => ['required', 'uuid', 'exists:invoices,id'],
             'amount_paid' => ['required', 'integer', 'min:0'],
             'payment_date' => ['required', 'date'],
-            'payment_type' => ['required', 'string', 'max:100'],
         ];
     }
 
@@ -42,7 +41,6 @@ class PaymentRequest extends FormRequest
             'tenant_id.exists' => 'Le locataire sélectionné est invalide.',
             'amount_paid.required' => 'Le montant payé est obligatoire.',
             'payment_date.required' => 'La date du paiement est obligatoire.',
-            'payment_type.required' => 'Le type de paiement est obligatoire.',
         ];
     }
 }

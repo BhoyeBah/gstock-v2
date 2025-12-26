@@ -11,7 +11,7 @@ class Expense extends Model
 {
     use HasFactory, HasTenant, HasUuid;
 
-    protected $fillable = ['reason', 'amount', 'expense_date'];
+    protected $fillable = ['reason', 'amount','wallet_id', 'expense_date'];
 
     protected $casts = [
         'expense_date' => 'datetime',

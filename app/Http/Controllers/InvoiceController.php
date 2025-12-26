@@ -13,6 +13,8 @@ use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReturnProduct;
+use App\Models\Wallet;
+use App\Models\walletTransaction;
 use App\Models\Warehouse;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
@@ -72,8 +74,9 @@ class InvoiceController extends Controller
 
         $warehouses = Warehouse::orderBy('name', 'ASC')->get();
         $allInvoices = Invoice::where('type', rtrim($type, 's'))->get();
+        $wallets = Wallet::orderBy('name')->get();
 
-        return view('back.invoices.index', compact('invoices', 'invoiceType', 'type', 'products', 'contacts', 'warehouses', 'allInvoices'));
+        return view('back.invoices.index', compact('invoices', 'wallets', 'invoiceType', 'type', 'products', 'contacts', 'warehouses', 'allInvoices'));
 
     }
 
@@ -209,6 +212,7 @@ class InvoiceController extends Controller
 
     public function validatePay(PaymentRequest $request, string $type, Invoice $invoice)
     {
+
         $this->validateType($type);
         $this->checkAuthorization($invoice, $type);
         $amount_paid = (int) $request->input('amount_paid');
@@ -220,7 +224,34 @@ class InvoiceController extends Controller
         try {
             // code...
             DB::beginTransaction();
+            $wallet = Wallet::where('id', $request->wallet_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($wallet->current_balance < $amount_paid && $type !== 'clients') {
+                return back()->with('error', 'Solde insuffisant dans le wallet '.$wallet->name);
+            }
+            $beforeBalance =$wallet->current_balance;
+
+            if ($type == 'clients') {
+                $wallet->increment('current_balance', $amount_paid);
+            } else {
+                $wallet->decrement('current_balance', $amount_paid);
+            }
+
+            walletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => $invoice->type === 'client' ? 'in' : 'out',
+                'amount' => $amount_paid,
+                'balance_before' => $beforeBalance,
+                'balance_after' => $wallet->current_balance,
+                'source_type' => $wallet->name,
+                'source_id' => $invoice->id,
+                'note' => 'Paiement '.($invoice->type === 'client' ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
+            ]);
+
             $invoice->balance -= $amount_paid;
+
             if ($invoice->balance > 0) {
                 $invoice->status = 'partial';
 
@@ -230,18 +261,18 @@ class InvoiceController extends Controller
             $invoice->save();
 
             Payment::create([
+                'wallet_id' => $wallet->id,
                 'invoice_id' => $invoice->id,
                 'tenant_id' => $invoice->tenant_id,
                 'contact_id' => $invoice->contact_id,
                 'amount_paid' => $amount_paid,
                 'remaining_amount' => $invoice->balance,
                 'payment_date' => now(),
-                'payment_type' => $request->input('payment_type'),
+                'payment_type' => $wallet->name,
                 'payment_source' => $invoice->type,
             ]);
 
             DB::commit();
-
         } catch (\Exception $e) {
             DB::rollBack();
             // throw $th;

@@ -38,6 +38,23 @@
             @enderror
         </div>
 
+        <div class="form-group">
+            <label for="wallet_id">Wallet <span class="text-danger">*</span></label>
+            <select name="wallet_id" id="wallet_id" class="form-control @error('wallet_id') is-invalid @enderror"
+                required>
+
+                <option value="">-- Sélectionner un wallet --</option>
+
+                @foreach ($wallets as $wallet)
+                    <option value="{{ $wallet->id }}">{{ $wallet->name }} ({{ $wallet->type }})</option>
+                @endforeach
+            </select>
+
+            @error('wallet_id')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
+        </div>
+
         <!-- Date de la dépense -->
         <div class="form-group">
             <label for="expense_date">Date de la dépense <span class="text-danger">*</span></label>

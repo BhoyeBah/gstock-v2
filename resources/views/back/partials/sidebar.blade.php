@@ -181,6 +181,12 @@
                 <span>Dashboard</span>
             </a>
         </li>
+        <li class="nav-item {{ $isActive(['wallets', 'wallets']) ? 'active' : '' }}">
+            <a class="nav-link" href="{{ url('/wallets') }}">
+                <i class="fas fa-money-bill-alt"></i>
+                <span>Wallets</span>
+            </a>
+        </li>
     @endcan
     @can('manage_categories')
         <hr class="sidebar-divider">

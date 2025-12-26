@@ -22,7 +22,9 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockOutController;
 use App\Http\Controllers\Tenant\SubscriptionController as TenantSubscriptionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WalletController;
 use App\Http\Controllers\WarehouseController;
+use App\Models\Wallet;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,7 +41,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/dashboard', [FrontController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
 Route::get('/', function () {
-    return view("front.index");
+    return view('front.index');
 });
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
@@ -121,8 +123,8 @@ Route::prefix('invoices/{type}')->controller(InvoiceController::class)->middlewa
     Route::get('/{invoice}', 'show')->where('invoice', '[0-9a-fA-F\-]{36}')->name('show');
     Route::put('/{invoice}', 'update')->name('update');
     Route::delete('/{invoice}', 'destroy')->name('destroy');
-    Route::delete('/{invoice}/cancel', 'cancel')->name("cancel");
-    Route::delete('/{invoice}/force', 'forceDestroy')->name("forceDestroy");
+    Route::delete('/{invoice}/cancel', 'cancel')->name('cancel');
+    Route::delete('/{invoice}/force', 'forceDestroy')->name('forceDestroy');
 
 })->where('type', 'client|supplier');
 
@@ -146,7 +148,6 @@ Route::middleware(['auth', 'subscription.permission:manage_inventories'])->group
     Route::patch('/inventory/{id}/validate', [InventoryController::class, 'validateItem'])->name('inventories.validate');
 });
 
-
 Route::prefix('payments/{type}')->controller(PaymentController::class)->middleware(['auth', 'subscription.permission:manage_payments'])->name('payments.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
@@ -161,4 +162,11 @@ Route::get('/expenses/print', [ExpenseController::class, 'print'])
 Route::resource('expenses', ExpenseController::class)->middleware(['auth', 'subscription.permission:manage_expenses'])->names('expenses');
 
 Route::resource('stock/out', StockOutController::class)->middleware(['auth', 'subscription.permission:manage_stock_out'])->names('stockout');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/wallets', [WalletController::class, 'index'])->name('wallet.index');
+    Route::post('/wallets', [WalletController::class, 'store'])->name('wallet.store');
+    Route::post('/wallets/transfert', [WalletController::class, 'transfert'])->name('wallet.transfert');
+});
+
 require __DIR__.'/auth.php';

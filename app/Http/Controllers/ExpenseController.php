@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Expense;
+use App\Models\Wallet;
+use App\Models\walletTransaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
@@ -30,6 +33,7 @@ class ExpenseController extends Controller
 
         // Pagination
         $expenses = $query->orderBy('expense_date', 'desc')->paginate(10);
+        $wallets = Wallet::all();
 
         // Totaux
         $total = $query->sum('amount'); // total filtré
@@ -37,7 +41,7 @@ class ExpenseController extends Controller
         $thisWeek = $query->where('expense_date', '>=', now()->startOfWeek())->sum('amount');
         $thisMonth = $query->where('expense_date', '>=', now()->startOfMonth())->sum('amount');
 
-        return view('back.expenses.index', compact('expenses', 'total', 'today', 'thisWeek', 'thisMonth'));
+        return view('back.expenses.index', compact('expenses', 'wallets', 'total', 'today', 'thisWeek', 'thisMonth'));
     }
 
     /**
@@ -54,11 +58,40 @@ class ExpenseController extends Controller
     public function store(ExpenseRequest $request)
     {
         //
-        $expense = Expense::create([
-            'reason' => $request->reason,
-            'amount' => $request->amount,
-            'expense_date' => $request->expense_date,
-        ]);
+        $wallet = Wallet::where('id', $request->wallet_id)
+            ->lockForUpdate()
+            ->firstOrFail();
+        $amount = (int) $request->amount;
+        if ($wallet->current_balance < $amount) {
+            return back()->withErrors([
+                'amount' => 'Solde insuffisant',
+            ]);
+        }
+
+        $beforeBalance = $wallet->current_balance;
+
+        DB::transaction(function () use ($wallet, $beforeBalance, $amount, $request) {
+
+            $wallet->decrement('current_balance', $amount);
+
+            $expense = Expense::create([
+                'wallet_id' => $wallet->id,
+                'reason' => $request->reason,
+                'amount' => $request->amount,
+                'expense_date' => $request->expense_date,
+            ]);
+
+            walletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'type' => 'out',
+                'amount' => $amount,
+                'balance_before' => $beforeBalance,
+                'balance_after' => $wallet->current_balance,
+                'source_type' => $wallet->name,
+                'source_id' => $expense->id,
+                'note' => 'Dépenese '.$request->reason,
+            ]);
+        });
 
         return back()->with('success', 'Dépense enrégistrée avec success');
     }

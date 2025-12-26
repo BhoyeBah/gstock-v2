@@ -496,7 +496,7 @@
                                     </td>
                                     <td>
                                         <i class="fas fa-calendar-alt text-muted mr-1"></i>
-                                        {{ $expense->expense_date ? $expense->expense_date->format('d/m/Y H:i') : '-' }}
+                                        {{ $expense->expense_date ? $expense->expense_date->format('d/m/Y') : '-' }}
                                     </td>
                                     <td class="text-center action-buttons">
                                         {{-- TODO: Ajouter un bouton "Modifier" si nécessaire --}}

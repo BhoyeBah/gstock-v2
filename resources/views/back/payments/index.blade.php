@@ -703,12 +703,30 @@
                                 <i class="fas fa-credit-card mr-1"></i>Méthode de paiement
                             </label>
 
+                            <select class="form-control" id="wallet_id_{{ $invoice->id }}" name="wallet_id" required>
+                                <option value="">-- Sélectionnez un wallet --</option>
+
+                                @foreach ($wallets as $wallet)
+                                    <option value="{{ $wallet->id }}">
+                                        {{ $wallet->name }} ({{ number_format($wallet->current_balance, 0, ',', ' ') }}
+                                        FCFA)
+                                    </option>
+                                @endforeach
+                                
+                            </select>
+                        </div>
+
+                        {{-- <div class="form-group">
+                            <label for="payment_type" class="font-weight-semibold" style="color:#4a5568;">
+                                <i class="fas fa-credit-card mr-1"></i>Méthode de paiement
+                            </label>
+
                             <input type="text" name="payment_type" id="payment_type"
                                 class="form-control form-control-lg shadow-sm" style="border-radius:10px;"
                                 placeholder="Ex: Espèces, Wave, Chèque..." required>
 
                             <small class="form-text text-muted">Tapez la méthode utilisée</small>
-                        </div>
+                        </div> --}}
 
                     </div>
 
