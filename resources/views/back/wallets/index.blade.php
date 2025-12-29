@@ -102,7 +102,7 @@
         /* Wallet Cards */
         .wallet-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -110,7 +110,7 @@
         .wallet-card {
             background: white;
             border-radius: 20px;
-            padding: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
             position: relative;
             overflow: hidden;
@@ -221,6 +221,13 @@
             font-weight: 700;
             color: #1f2937;
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .amount-display {
+            display: flex;
             align-items: baseline;
             gap: 0.5rem;
         }
@@ -229,6 +236,29 @@
             font-size: 1rem;
             color: #6b7280;
             font-weight: 600;
+        }
+
+        .balance-toggle {
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 0;
+            transition: all 0.3s ease;
+            color: #9ca3af;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            margin-left: 0.5rem;
+        }
+
+        .balance-toggle:hover {
+            color: #6b7280;
+            transform: scale(1.1);
+        }
+
+        .balance-hidden {
+            font-family: monospace;
+            letter-spacing: 0.2rem;
         }
 
         /* History Table */
@@ -552,9 +582,15 @@
                         </div>
                         <div class="wallet-balance">
                             <div class="wallet-balance-label">Solde disponible</div>
-                            <div class="wallet-balance-amount">
-                                {{ number_format($wallet->current_balance ?? 0, 0, ',', ' ') }}
-                                <small>FCFA</small>
+                            <div class="wallet-balance-amount balance-value">
+                                <div class="amount-display">
+                                    <span
+                                        class="amount-text">{{ number_format($wallet->current_balance ?? 0, 0, ',', ' ') }}</span>
+                                    <small>FCFA</small>
+                                </div>
+                                <button type="button" class="balance-toggle" onclick="toggleBalance(this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -813,6 +849,27 @@
         </div>
     </div>
     <script>
+        // Fonction pour basculer l'affichage du solde
+        function toggleBalance(button) {
+            const balanceContainer = button.closest('.wallet-balance');
+            const amountText = balanceContainer.querySelector('.amount-text');
+            const icon = button.querySelector('i');
+
+            if (amountText.classList.contains('balance-hidden')) {
+                // Afficher le solde
+                amountText.textContent = amountText.getAttribute('data-original');
+                amountText.classList.remove('balance-hidden');
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                // Masquer le solde
+                amountText.setAttribute('data-original', amountText.textContent);
+                amountText.textContent = '••••••';
+                amountText.classList.add('balance-hidden');
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
         // Validation pour empêcher le transfert vers le même wallet
         document.addEventListener('DOMContentLoaded', function() {
             const transferForm = document.getElementById('transferForm');
