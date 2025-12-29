@@ -848,6 +848,7 @@
             </div>
         </div>
     </div>
+    
     <script>
         // Fonction pour basculer l'affichage du solde
         function toggleBalance(button) {
