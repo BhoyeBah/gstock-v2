@@ -232,6 +232,30 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Solde wallet -->
+                {{-- <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100 hover-lift">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="icon-circle bg-gradient-warning">
+                                    <i class="fas fa-coins text-white"></i>
+                                </div>
+                                <span class="badge badge-warning badge-pill">
+                                    <i class="fas fa-arrow-down"></i>
+                                </span>
+                            </div>
+                            <h6 class="text-muted text-uppercase font-weight-bold small mb-2">Solde </h6>
+                            <h3 class="font-weight-bold text-dark mb-0">
+                                {{ number_format($stats['depenses'], 0, ',', ' ') }} <small class="text-muted">FCFA</small>
+                            </h3>
+                            <p class="text-muted small mb-0 mt-2">
+                                <i class="fas fa-receipt mr-1"></i>
+                                Frais d'exploitation
+                            </p>
+                        </div>
+                    </div>
+                </div> --}}
             </div>
 
             <!-- Graphiques et Balances -->

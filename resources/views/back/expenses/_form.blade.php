@@ -46,7 +46,7 @@
                 <option value="">-- Sélectionner un wallet --</option>
 
                 @foreach ($wallets as $wallet)
-                    <option value="{{ $wallet->id }}">{{ $wallet->name }} ({{ $wallet->type }})</option>
+                    <option value="{{ $wallet->id }}">{{ $wallet->name }} ({{ $wallet->current_balance }})</option>
                 @endforeach
             </select>
 
