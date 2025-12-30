@@ -15,6 +15,25 @@
         'bank' => 'fas fa-university',
         'other' => 'fas fa-wallet',
     ];
+
+    function maskIdentifier($identifier)
+    {
+        if (empty($identifier) || $identifier === 'N/A') {
+            return 'N/A';
+        }
+
+        $length = strlen($identifier);
+
+        if ($length <= 2) {
+            return $identifier;
+        }
+
+        // Garder les 2 derniers caractères et remplacer le reste par des points
+        $lastTwo = substr($identifier, -2);
+        $masked = str_repeat('*', $length - 2) . $lastTwo;
+
+        return $masked;
+    }
 @endphp
 
 @section('content')
@@ -577,7 +596,8 @@
                             </div>
                             <div class="wallet-info">
                                 <h5 title="{{ $wallet->name }}">{{ $wallet->name }}</h5>
-                                <small title="{{ $wallet->identifier }}">{{ $wallet->identifier ?? 'N/A' }}</small>
+                                <small
+                                    title="{{ $wallet->identifier }}">{{ maskIdentifier($wallet->identifier ?? 'N/A') }}</small>
                             </div>
                         </div>
                         <div class="wallet-balance">
@@ -631,52 +651,36 @@
                     ->sortByDesc('created_at');
             @endphp
 
-            @if ($allTransactions->count() > 0)
+
+            @if ($transactions->count() > 0)
                 <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Wallet</th>
-                            <th>Description</th>
-                            <th class="text-end">Montant</th>
-                            <th class="text-center">Statut</th>
-                        </tr>
-                    </thead>
                     <tbody>
-                        @foreach ($allTransactions as $tx)
+                        @foreach ($transactions as $tx)
                             <tr>
-                                <td style="white-space: nowrap;">
-                                    {{ $tx->created_at->format('d M Y') }}<br>
-                                    <small class="text-muted">{{ $tx->created_at->format('H:i') }}</small>
-                                </td>
+                                <td>{{ $tx->created_at->format('d M Y H:i') }}</td>
+
                                 <td>
                                     @if ($tx->type === 'in')
-                                        <span class="badge-modern success">
-                                            <i class="fas fa-arrow-down"></i> Reçu
-                                        </span>
-                                    @elseif($tx->type === 'out')
-                                        <span class="badge-modern danger">
-                                            <i class="fas fa-arrow-up"></i> Envoyé
-                                        </span>
+                                        <span class="badge-modern success">Reçu</span>
                                     @else
-                                        <span class="badge-modern warning">
-                                            <i class="fas fa-exchange-alt"></i> {{ ucfirst($tx->type) }}
-                                        </span>
+                                        <span class="badge-modern danger">Envoyé</span>
                                     @endif
                                 </td>
+
                                 <td>
                                     <div class="wallet-indicator">
-                                        <div class="wallet-dot {{ $tx->wallet_data->type ?? 'other' }}"></div>
-                                        {{ $tx->wallet_data->name ?? 'N/A' }}
+                                        <div class="wallet-dot {{ $tx->wallet->type }}"></div>
+                                        {{ $tx->wallet->name }}
                                     </div>
                                 </td>
+
                                 <td>{{ $tx->note ?? 'Aucune description' }}</td>
-                                <td class="text-end"
-                                    style="white-space: nowrap; font-weight: 700; color: {{ $tx->type === 'in' ? '#065f46' : '#991b1b' }}">
-                                    {{ $tx->type === 'in' ? '+' : '-' }}{{ number_format($tx->amount ?? 0, 0, ',', ' ') }}
-                                    FCFA
+
+                                <td class="text-end">
+                                    {{ $tx->type === 'in' ? '+' : '-' }}
+                                    {{ number_format($tx->amount, 0, ',', ' ') }} FCFA
                                 </td>
+
                                 <td class="text-center">
                                     <span class="status-badge validated">Validé</span>
                                 </td>
@@ -684,6 +688,11 @@
                         @endforeach
                     </tbody>
                 </table>
+
+                <!-- PAGINATION -->
+                <div class="mt-3">
+                    {{ $transactions->links() }}
+                </div>
             @else
                 <div class="empty-state">
                     <i class="fas fa-history"></i>
@@ -756,7 +765,8 @@
                                 Annuler
                             </button>
                             <button type="submit" class="btn btn-submit">
-                                <i class="fas fa-check mr-2"></i>Créer le wallet
+                                <i class="fas fa-check mr-2"></i>
+                                Créer le wallet
                             </button>
                         </div>
                     </form>
@@ -848,7 +858,6 @@
             </div>
         </div>
     </div>
-    
     <script>
         // Fonction pour basculer l'affichage du solde
         function toggleBalance(button) {

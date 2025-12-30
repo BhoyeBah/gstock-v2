@@ -15,11 +15,13 @@ class WalletController extends Controller
      */
     public function index()
     {
-        //
-        $wallets = Wallet::with(['transactions' => function ($query) {
-            $query->orderBy('created_at', 'desc')->limit(10);
-        }])->get();
-        return view('back.wallets.index', compact('wallets'));
+
+        $wallets = Wallet::all();
+        $transactions = walletTransaction::with('wallet')
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('back.wallets.index', compact('wallets', 'transactions'));
 
     }
 
