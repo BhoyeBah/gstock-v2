@@ -163,7 +163,7 @@ Route::resource('expenses', ExpenseController::class)->middleware(['auth', 'subs
 
 Route::resource('stock/out', StockOutController::class)->middleware(['auth', 'subscription.permission:manage_stock_out'])->names('stockout');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'subscription.permission:manage_wallets'])->group(function () {
     Route::get('/wallets', [WalletController::class, 'index'])->name('wallet.index');
     Route::post('/wallets', [WalletController::class, 'store'])->name('wallet.store');
     Route::post('/wallets/transfert', [WalletController::class, 'transfert'])->name('wallet.transfert');
