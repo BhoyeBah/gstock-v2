@@ -477,9 +477,10 @@
                             <tr>
                                 <th width="50">#</th>
                                 <th>Motif</th>
+                                <th>Wallet</th>
                                 <th class="text-right">Montant (FCFA)</th>
                                 <th>Date dépense</th>
-                                <th class="text-center" width="150">Actions</th>
+                                {{-- <th class="text-center" width="150">Actions</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -491,6 +492,10 @@
                                     <td>
                                         <strong class="text-dark">{{ $expense->reason }}</strong>
                                     </td>
+                                    <td>
+                                        <strong class="text-dark">{{ $expense->wallet->name ?? '-' }}</strong>
+                                    </td>
+
                                     <td class="text-right font-weight-bold text-danger">
                                         {{ number_format($expense->amount, 0, ',', ' ') }} FCFA
                                     </td>

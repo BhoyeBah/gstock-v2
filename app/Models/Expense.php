@@ -11,7 +11,7 @@ class Expense extends Model
 {
     use HasFactory, HasTenant, HasUuid;
 
-    protected $fillable = ['reason', 'amount','wallet_id', 'expense_date'];
+    protected $fillable = ['reason', 'amount', 'wallet_id', 'expense_date'];
 
     protected $casts = [
         'expense_date' => 'datetime',
@@ -20,5 +20,10 @@ class Expense extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class, 'tenant_id');
+    }
+
+    public function wallet()
+    {
+        return $this->belongsTo(Wallet::class, 'wallet_id');
     }
 }
