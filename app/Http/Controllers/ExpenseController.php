@@ -89,7 +89,7 @@ class ExpenseController extends Controller
                 'balance_after' => $wallet->current_balance,
                 'source_type' => $wallet->name,
                 'source_id' => $expense->id,
-                'note' => 'Dépenese '.$request->reason,
+                'note' => 'Dépense '.$request->reason,
             ]);
         });
 
