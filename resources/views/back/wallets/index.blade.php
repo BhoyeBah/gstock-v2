@@ -669,8 +669,8 @@
 
                                 <td>
                                     <div class="wallet-indicator">
-                                        <div class="wallet-dot {{ $tx->wallet->type }}"></div>
-                                        {{ $tx->wallet->name }}
+                                        <div class="wallet-dot {{ $tx->wallet->type ?? "other"}}"></div>
+                                        {{ $tx->wallet->name ?? "tenant" }}
                                     </div>
                                 </td>
 
@@ -858,7 +858,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         // Fonction pour basculer l'affichage du solde
         function toggleBalance(button) {
