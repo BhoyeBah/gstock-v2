@@ -712,7 +712,7 @@
                                         FCFA)
                                     </option>
                                 @endforeach
-                                
+
                             </select>
                         </div>
 

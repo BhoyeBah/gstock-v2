@@ -18,6 +18,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockOutController;
 use App\Http\Controllers\Tenant\SubscriptionController as TenantSubscriptionController;
@@ -169,4 +170,5 @@ Route::middleware(['auth', 'subscription.permission:manage_wallets'])->group(fun
     Route::post('/wallets/transfert', [WalletController::class, 'transfert'])->name('wallet.transfert');
 });
 
+Route::resource("/sales",SaleController::class)->middleware(['auth'])->names("sales");
 require __DIR__.'/auth.php';

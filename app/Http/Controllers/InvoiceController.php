@@ -231,7 +231,7 @@ class InvoiceController extends Controller
             if ($wallet->current_balance < $amount_paid && $type !== 'clients') {
                 return back()->with('error', 'Solde insuffisant dans le wallet '.$wallet->name);
             }
-            $beforeBalance =$wallet->current_balance;
+            $beforeBalance = $wallet->current_balance;
 
             if ($type == 'clients') {
                 $wallet->increment('current_balance', $amount_paid);
@@ -284,76 +284,128 @@ class InvoiceController extends Controller
 
     }
 
-    public function returnProduct(string $type, ReturnRequestProduct $request)
-    {
+public function returnProduct(string $type, ReturnRequestProduct $request)
+{
+    $validated = $request->validated();
+    $invoiceItem = InvoiceItem::with('invoice')->findOrFail($validated['invoice_item_id']);
+    $invoice = $invoiceItem->invoice;
 
-        $validated = $request->validated();
-        $invoiceItem = InvoiceItem::with('invoice')->find($validated['invoice_item_id']);
-        $invoice = $invoiceItem->invoice;
+    $quantity = (int) $request->input('quantity');
+    $unitPrice = (int) $invoiceItem->unit_price;
+    $amountToReturn = $quantity * $unitPrice;
 
-        $batch = InventoryMovement::where('invoice_item_id', $invoiceItem->id)->first()->batch;
+    // Tous les batches du produit (FIFO)
+    $batches = Batch::where('product_id', $invoiceItem->product_id)
+        ->orderBy('created_at')
+        ->lockForUpdate()
+        ->get();
 
-        $quantityToReturn = (int) $request->input('quantity');
+    if ($batches->isEmpty()) {
+        return back()->with('error', 'Aucun lot trouvé pour ce produit.');
+    }
 
-        // $quantityToReturn = $type === 'clients' ? $quantityToReturn : -1 * $quantityToReturn;
+    try {
+        DB::beginTransaction();
 
-        $purchasePrice = (int) $invoiceItem->unit_price;
-        $balanceToReturn = $quantityToReturn * $purchasePrice;
+        /*
+        |--------------------------------------------------------------------------
+        | RETOUR CLIENT → ON AJOUTE AU STOCK
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'client') {
 
-        try {
-            DB::beginTransaction();
+            // On ajoute dans le batch le plus récent
+            $batch = $batches->last();
+            $batch->remaining += $quantity;
+            $batch->save();
 
-            // Mise à jour de Batch
-            if ($type == 'supplier') {
-                $batch->quantity -= $quantityToReturn;
-                $batch->remaining -= $quantityToReturn;
-            } else {
-                $batch->remaining += $quantityToReturn;
+            $movement = InventoryMovement::create([
+                'invoice_item_id' => $invoiceItem->id,
+                'invoice_id' => $invoice->id,
+                'batch_id' => $batch->id,
+                'product_id' => $invoiceItem->product_id,
+                'quantity' => $quantity,
+                'reason' => 'Retour client',
+            ]);
+
+            ReturnProduct::create([
+                'invoice_item_id' => $invoiceItem->id,
+                'inventory_movement_id' => $movement->id,
+                'quantity' => $quantity,
+                'motif' => $request->input('motif'),
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETOUR FOURNISSEUR → ON RETIRE DU STOCK (FIFO)
+        |--------------------------------------------------------------------------
+        */
+        if ($type === 'supplier') {
+
+            $totalStock = $batches->sum('remaining');
+
+            if ($quantity > $totalStock) {
+                DB::rollBack();
+                return back()->with(
+                    'error',
+                    "Quantité supérieure au stock disponible ($totalStock)"
+                );
             }
 
-            $invoice->balance -= $balanceToReturn;
-            $invoice->total_invoice -= $balanceToReturn;
-            // dd($batch->quantity, $batch->remaining);
-            if ($batch->quantity >= $batch->remaining && $batch->remaining >= 0 && $invoice->balance >= 0) {
+            $remainingToProcess = $quantity;
 
-                $inventoryMovement = InventoryMovement::create([
+            foreach ($batches as $batch) {
+                if ($remainingToProcess <= 0) break;
+                if ($batch->remaining <= 0) continue;
+
+                $deduct = min($batch->remaining, $remainingToProcess);
+
+                $batch->remaining -= $deduct;
+                $batch->quantity -= $deduct;
+                $batch->save();
+
+                $movement = InventoryMovement::create([
                     'invoice_item_id' => $invoiceItem->id,
                     'invoice_id' => $invoice->id,
                     'batch_id' => $batch->id,
                     'product_id' => $invoiceItem->product_id,
-                    'quantity' => $quantityToReturn,
-                    'reason' => 'Retour produit',
+                    'quantity' => $deduct,
+                    'reason' => 'Retour fournisseur',
                 ]);
 
                 ReturnProduct::create([
                     'invoice_item_id' => $invoiceItem->id,
-                    'inventory_movement_id' => $inventoryMovement->id,
-                    'quantity' => $quantityToReturn,
+                    'inventory_movement_id' => $movement->id,
+                    'quantity' => $deduct,
                     'motif' => $request->input('motif'),
                 ]);
 
-                if ($invoice->balance == 0) {
-                    $invoice->status = 'paid';
-                }
-
-                $invoice->save();
-                $batch->save();
-
-                DB::commit();
-
-                return back()->with('success', 'Rétour enrégistrée avec success');
+                $remainingToProcess -= $deduct;
             }
-
-            return back()->with('error', 'Impossible de faire un rétour sur ce produit');
-
-        } catch (\Exception $e) {
-            throw $e;
-
-            return back()->with('error', 'Impossible de faire un rétour sur ce produit');
-
         }
 
+        // Mise à jour facture
+        $invoice->balance -= $amountToReturn;
+        $invoice->total_invoice -= $amountToReturn;
+
+        if ($invoice->balance <= 0) {
+            $invoice->status = 'paid';
+        }
+
+        $invoice->save();
+
+        DB::commit();
+
+        return back()->with('success', 'Retour enregistré avec succès');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Erreur lors du retour : ' . $e->getMessage());
     }
+}
+
+
 
     // Printf
     public function print(string $type, Invoice $invoice, Request $request)
