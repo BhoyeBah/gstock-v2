@@ -703,12 +703,17 @@
                                 <i class="fas fa-credit-card mr-1"></i>Méthode de paiement
                             </label>
 
-                            <select class="form-control" id="wallet_id_{{ $invoice->id }}" name="wallet_id" required>
+                            {{-- <select class="form-control" id="wallet_id_{{ $invoice->id }}" name="wallet_id" required> --}}
+
+                            <select class="form-control" id="{{ $invoice->id ? 'wallet_id_' . $invoice->id : '' }}"
+                                name="wallet_id" required>
                                 <option value="">-- Sélectionnez un wallet --</option>
+
 
                                 @foreach ($wallets as $wallet)
                                     <option value="{{ $wallet->id }}">
-                                        {{ $wallet->name }} ({{ number_format($wallet->current_balance, 0, ',', ' ') }}
+                                        {{ $wallet->name }}
+                                        ({{ number_format($wallet->current_balance, 0, ',', ' ') }}
                                         FCFA)
                                     </option>
                                 @endforeach
