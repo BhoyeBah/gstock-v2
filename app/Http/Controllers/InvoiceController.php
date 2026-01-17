@@ -284,85 +284,39 @@ class InvoiceController extends Controller
 
     }
 
-public function returnProduct(string $type, ReturnRequestProduct $request)
-{
-    $validated = $request->validated();
-    $invoiceItem = InvoiceItem::with('invoice')->findOrFail($validated['invoice_item_id']);
-    $invoice = $invoiceItem->invoice;
+    public function returnProduct(string $type, ReturnRequestProduct $request)
+    {
+        $validated = $request->validated();
+        $invoiceItem = InvoiceItem::with('invoice')->findOrFail($validated['invoice_item_id']);
+        $invoice = $invoiceItem->invoice;
 
-    $quantity = (int) $request->input('quantity');
-    $unitPrice = (int) $invoiceItem->unit_price;
-    $amountToReturn = $quantity * $unitPrice;
+        $quantity = (int) $request->input('quantity');
+        $unitPrice = (int) $invoiceItem->unit_price;
+        $amountToReturn = $quantity * $unitPrice;
 
-    // Tous les batches du produit (FIFO)
-    $batches = Batch::where('product_id', $invoiceItem->product_id)
-        ->orderBy('created_at')
-        ->lockForUpdate()
-        ->get();
+        // Tous les batches du produit (FIFO)
+        $batches = Batch::where('product_id', $invoiceItem->product_id)
+            ->orderBy('created_at')
+            ->lockForUpdate()
+            ->get();
 
-    if ($batches->isEmpty()) {
-        return back()->with('error', 'Aucun lot trouvé pour ce produit.');
-    }
-
-    try {
-        DB::beginTransaction();
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETOUR CLIENT → ON AJOUTE AU STOCK
-        |--------------------------------------------------------------------------
-        */
-        if ($type === 'client') {
-
-            // On ajoute dans le batch le plus récent
-            $batch = $batches->last();
-            $batch->remaining += $quantity;
-            $batch->save();
-
-            $movement = InventoryMovement::create([
-                'invoice_item_id' => $invoiceItem->id,
-                'invoice_id' => $invoice->id,
-                'batch_id' => $batch->id,
-                'product_id' => $invoiceItem->product_id,
-                'quantity' => $quantity,
-                'reason' => 'Retour client',
-            ]);
-
-            ReturnProduct::create([
-                'invoice_item_id' => $invoiceItem->id,
-                'inventory_movement_id' => $movement->id,
-                'quantity' => $quantity,
-                'motif' => $request->input('motif'),
-            ]);
+        if ($batches->isEmpty()) {
+            return back()->with('error', 'Aucun lot trouvé pour ce produit.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | RETOUR FOURNISSEUR → ON RETIRE DU STOCK (FIFO)
-        |--------------------------------------------------------------------------
-        */
-        if ($type === 'supplier') {
+        try {
+            DB::beginTransaction();
 
-            $totalStock = $batches->sum('remaining');
+            /*
+            |--------------------------------------------------------------------------
+            | RETOUR CLIENT → ON AJOUTE AU STOCK
+            |--------------------------------------------------------------------------
+            */
+            if ($type === 'client') {
 
-            if ($quantity > $totalStock) {
-                DB::rollBack();
-                return back()->with(
-                    'error',
-                    "Quantité supérieure au stock disponible ($totalStock)"
-                );
-            }
-
-            $remainingToProcess = $quantity;
-
-            foreach ($batches as $batch) {
-                if ($remainingToProcess <= 0) break;
-                if ($batch->remaining <= 0) continue;
-
-                $deduct = min($batch->remaining, $remainingToProcess);
-
-                $batch->remaining -= $deduct;
-                $batch->quantity -= $deduct;
+                // On ajoute dans le batch le plus récent
+                $batch = $batches->last();
+                $batch->remaining += $quantity;
                 $batch->save();
 
                 $movement = InventoryMovement::create([
@@ -370,42 +324,92 @@ public function returnProduct(string $type, ReturnRequestProduct $request)
                     'invoice_id' => $invoice->id,
                     'batch_id' => $batch->id,
                     'product_id' => $invoiceItem->product_id,
-                    'quantity' => $deduct,
-                    'reason' => 'Retour fournisseur',
+                    'quantity' => $quantity,
+                    'reason' => 'Retour client',
                 ]);
 
                 ReturnProduct::create([
                     'invoice_item_id' => $invoiceItem->id,
                     'inventory_movement_id' => $movement->id,
-                    'quantity' => $deduct,
+                    'quantity' => $quantity,
                     'motif' => $request->input('motif'),
                 ]);
-
-                $remainingToProcess -= $deduct;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | RETOUR FOURNISSEUR → ON RETIRE DU STOCK (FIFO)
+            |--------------------------------------------------------------------------
+            */
+            if ($type === 'supplier') {
+
+                $totalStock = $batches->sum('remaining');
+
+                if ($quantity > $totalStock) {
+                    DB::rollBack();
+
+                    return back()->with(
+                        'error',
+                        "Quantité supérieure au stock disponible ($totalStock)"
+                    );
+                }
+
+                $remainingToProcess = $quantity;
+
+                foreach ($batches as $batch) {
+                    if ($remainingToProcess <= 0) {
+                        break;
+                    }
+                    if ($batch->remaining <= 0) {
+                        continue;
+                    }
+
+                    $deduct = min($batch->remaining, $remainingToProcess);
+
+                    $batch->remaining -= $deduct;
+                    $batch->quantity -= $deduct;
+                    $batch->save();
+
+                    $movement = InventoryMovement::create([
+                        'invoice_item_id' => $invoiceItem->id,
+                        'invoice_id' => $invoice->id,
+                        'batch_id' => $batch->id,
+                        'product_id' => $invoiceItem->product_id,
+                        'quantity' => $deduct,
+                        'reason' => 'Retour fournisseur',
+                    ]);
+
+                    ReturnProduct::create([
+                        'invoice_item_id' => $invoiceItem->id,
+                        'inventory_movement_id' => $movement->id,
+                        'quantity' => $deduct,
+                        'motif' => $request->input('motif'),
+                    ]);
+
+                    $remainingToProcess -= $deduct;
+                }
+            }
+
+            // Mise à jour facture
+            $invoice->balance -= $amountToReturn;
+            $invoice->total_invoice -= $amountToReturn;
+
+            if ($invoice->balance <= 0) {
+                $invoice->status = 'paid';
+            }
+
+            $invoice->save();
+
+            DB::commit();
+
+            return back()->with('success', 'Retour enregistré avec succès');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Erreur lors du retour : '.$e->getMessage());
         }
-
-        // Mise à jour facture
-        $invoice->balance -= $amountToReturn;
-        $invoice->total_invoice -= $amountToReturn;
-
-        if ($invoice->balance <= 0) {
-            $invoice->status = 'paid';
-        }
-
-        $invoice->save();
-
-        DB::commit();
-
-        return back()->with('success', 'Retour enregistré avec succès');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Erreur lors du retour : ' . $e->getMessage());
     }
-}
-
-
 
     // Printf
     public function print(string $type, Invoice $invoice, Request $request)

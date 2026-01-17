@@ -15,14 +15,14 @@ class WalletController extends Controller
      */
     public function index()
     {
+        $wallets = Wallet::all(); // scope tenant appliqué
 
-        $wallets = Wallet::all();
-        $transactions = walletTransaction::with('wallet')
+        $transactions = WalletTransaction::with('wallet')
+            ->whereHas('wallet') 
             ->orderByDesc('created_at')
             ->paginate(10);
 
         return view('back.wallets.index', compact('wallets', 'transactions'));
-
     }
 
     /**

@@ -169,6 +169,9 @@ Route::middleware(['auth', 'subscription.permission:manage_wallets'])->group(fun
     Route::post('/wallets', [WalletController::class, 'store'])->name('wallet.store');
     Route::post('/wallets/transfert', [WalletController::class, 'transfert'])->name('wallet.transfert');
 });
+Route::middleware(['auth'])->group(function() {
+     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    //  Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+});
 
-Route::resource("/sales",SaleController::class)->middleware(['auth'])->names("sales");
 require __DIR__.'/auth.php';

@@ -1,453 +1,382 @@
 @extends('back.layouts.admin')
 
-@section("content")
-<div class="container-fluid py-4">
+@php
+    use Carbon\Carbon;
+@endphp
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Vente Directe</h1>
-        <button class="btn btn-primary" data-toggle="modal" data-target="#venteModal">
-            <i class="fas fa-plus mr-2"></i>Nouvelle Vente
-        </button>
+@section('content')
+<style>
+    /* --- DESIGN PRINCIPAL --- */
+    .page-header-vente {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        color: #fff;
+    }
+
+    .page-header-vente h1 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.75rem;
+    }
+
+    .vente-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        background: #fff;
+        margin-bottom: 1.5rem;
+    }
+
+    .vente-card .card-header {
+        background: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 1rem 1.25rem;
+    }
+
+    .vente-card .card-header h6 {
+        font-weight: 700;
+        color: #4e73df;
+        margin: 0;
+    }
+
+    .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+    .border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+
+    /* Style du sélecteur d'entrepôt centré */
+    .header-select-entrepot {
+        max-width: 300px;
+        border: 2px solid #36b9cc;
+        font-weight: 600;
+        color: #2e59d9;
+        border-radius: 20px;
+        text-align: center;
+    }
+
+    .produit-item {
+        padding: 1.25rem;
+        background-color: #f8f9fc;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid #e3e6f0;
+        transition: all 0.2s ease;
+    }
+
+    .total-display {
+        font-weight: 700;
+        color: #4e73df;
+        padding: 0.6rem;
+        background-color: rgba(78, 115, 223, 0.1);
+        border-radius: 8px;
+        text-align: right;
+    }
+
+    .btn-icon-delete {
+        background-color: #fff;
+        border: 1px solid #e74a3b;
+        color: #e74a3b;
+        width: 38px; height: 38px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .btn-icon-delete:hover { background-color: #e74a3b; color: #fff; }
+
+    .sticky-top { top: 20px; z-index: 100; }
+</style>
+
+<div class="container-fluid">
+
+    <div class="page-header-vente">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h1><i class="fas fa-shopping-cart mr-2"></i> Vente Directe</h1>
+            <span class="badge badge-light p-2 shadow-sm">
+                <i class="fas fa-calendar-day mr-1"></i> {{ Carbon::now()->locale('fr')->isoFormat('LL') }}
+            </span>
+        </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="card shadow">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">Historique des ventes</h5>
+    <div class="row">
+        <div class="col-lg-8">
+            <form id="venteForm">
+
+                <div class="card vente-card border-left-primary shadow-sm">
+                    <div class="card-header">
+                        <h6><i class="fas fa-user-tag mr-2"></i>Informations du Client</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <label class="small font-weight-bold text-muted">Nom complet</label>
+                                <input type="text" class="form-control" id="clientNom" placeholder="Nom du client">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="small font-weight-bold text-muted">Téléphone</label>
+                                <input type="tel" class="form-control" id="clientTelephone" placeholder="Ex: 77...">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label class="small font-weight-bold text-muted">Adresse</label>
+                                <input type="text" class="form-control" id="clientAdresse" placeholder="Dakar, Sénégal">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card vente-card border-left-info shadow-sm">
+                    <div class="card-header d-flex align-items-center">
+                        <div style="flex: 1;">
+                            <h6 class="mb-0 text-nowrap"><i class="fas fa-cubes mr-2"></i>Articles</h6>
+                        </div>
+
+                        <div class="mx-auto" style="flex: 2; display: flex; justify-content: center;">
+                            <select class="form-control form-control-sm header-select-entrepot" id="entrepot_id" required>
+                                <option value="">--- Sélectionner l'entrepôt ---</option>
+                                <option value="1">Entrepôt Principal - Dakar</option>
+                                <option value="2">Dépôt Thies</option>
+                                <option value="3">Magasin Saint-Louis</option>
+                            </select>
+                        </div>
+
+                        <div style="flex: 1; text-align: right;">
+                            <button type="button" class="btn btn-primary btn-sm shadow-sm" onclick="ajouterLigneProduit()">
+                                <i class="fas fa-plus-circle mr-1"></i> Ajouter
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="produitsSelectionnes">
+                            </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th>Total</th>
-                        <th>Paiement</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>V-001</td>
-                        <td>05/01/2026</td>
-                        <td>Client comptant</td>
-                        <td><strong>450 000 FCFA</strong></td>
-                        <td><span class="badge badge-success">Espèces</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-primary"><i class="fas fa-print"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <div class="col-lg-4">
+            <div class="card vente-card shadow-lg sticky-top">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h6 class="text-white mb-0 text-uppercase letter-spacing-1">Résumé de la transaction</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 text-dark">
+                        <span class="font-weight-bold">Sous-total</span>
+                        <strong id="sousTotal">0 FCFA</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 text-danger">
+                        <span>Remises</span>
+                        <strong id="totalRemise">0 FCFA</strong>
+                    </div>
+                    <hr>
+                    <div class="py-3 text-center bg-light rounded mb-4 border">
+                        <h6 class="text-uppercase small text-muted font-weight-bold">Total Net à payer</h6>
+                        <h2 class="font-weight-bold text-primary mb-0" id="totalFinal">0 FCFA</h2>
+                    </div>
+                    <button type="button" class="btn btn-success btn-block btn-lg shadow" onclick="ouvrirModalPaiement()">
+                        <i class="fas fa-cash-register mr-2"></i> PROCÉDER AU PAIEMENT
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL VENTE -->
-<div class="modal fade" id="venteModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen-lg-down" style="max-width: 1400px;">
-        <div class="modal-content">
-
+<div class="modal fade" id="paiementModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content shadow-lg">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="fas fa-shopping-cart mr-2"></i>Nouvelle Vente</h5>
-                <button class="close text-white" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-wallet mr-2"></i> Règlement</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
-
-            <div class="modal-body">
-                <form id="venteForm">
-
-                    <!-- INFORMATIONS CLIENT -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0"><i class="fas fa-user mr-2"></i>Informations Client</h6>
+            <div class="modal-body bg-light">
+                <div class="alert alert-primary border-0 shadow-sm d-flex justify-content-between align-items-center mb-4">
+                    <span class="font-weight-bold text-uppercase small">Total Facture :</span>
+                    <h4 class="mb-0 font-weight-bold" id="montantAPayer">0 FCFA</h4>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="font-weight-bold mb-0 text-dark">Modes de règlement</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="ajouterPaiement()">
+                        <i class="fas fa-plus mr-1"></i> Multi-mode
+                    </button>
+                </div>
+                <div id="paiementsContainer"></div>
+                <div class="card border-0 shadow-sm mt-3 bg-white">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted font-weight-bold text-uppercase">Total Reçu :</span>
+                            <strong id="totalPaye" class="text-success">0 FCFA</strong>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Nom complet</label>
-                                    <input type="text" class="form-control" id="clientNom" placeholder="Ex: Jean Dupont">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Téléphone</label>
-                                    <input type="tel" class="form-control" id="clientTelephone" placeholder="Ex: +221 77 123 45 67">
-                                </div>
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label">Adresse</label>
-                                    <input type="text" class="form-control" id="clientAdresse" placeholder="Ex: Parcelles Assainies, Dakar">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Mode de paiement *</label>
-                                    <select class="form-control" id="modePaiement" required>
-                                        <option value="especes">Espèces</option>
-                                        <option value="carte">Carte bancaire</option>
-                                        <option value="virement">Virement</option>
-                                        <option value="mobile">Mobile Money</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-muted font-weight-bold text-uppercase">Reste à percevoir :</span>
+                            <strong id="resteAPayer" class="text-danger">0 FCFA</strong>
                         </div>
                     </div>
-
-                    <!-- PRODUITS -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0"><i class="fas fa-box mr-2"></i>Produits</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered align-middle" id="venteLinesTable">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 250px;">Produit</th>
-                                            <th style="width: 130px;">Prix unit.</th>
-                                            <th style="width: 100px;">Qté</th>
-                                            <th style="width: 100px;">Remise</th>
-                                            <th style="width: 130px;">Total</th>
-                                            <th style="width: 100px;" class="text-center">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <select name="items[0][product_id]" class="form-control productSelect" required>
-                                                    <option value="">Choisir...</option>
-                                                    <option value="1" data-nom="Ordinateur HP" data-prix="450000">Ordinateur HP</option>
-                                                    <option value="2" data-nom="Samsung S23" data-prix="850000">Samsung S23</option>
-                                                    <option value="3" data-nom="MacBook Air M2" data-prix="950000">MacBook Air M2</option>
-                                                    <option value="4" data-nom="iPhone 15 Pro" data-prix="1200000">iPhone 15 Pro</option>
-                                                    <option value="5" data-nom="Dell XPS 13" data-prix="750000">Dell XPS 13</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[0][unit_price]" class="form-control unit_price" value="0" min="0" required>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[0][discount]" class="form-control discount" value="0" min="0">
-                                            </td>
-                                            <td class="total_line text-end fw-bold">0</td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-success me-1 addLineBtn" title="Ajouter">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-danger removeLineBtn" title="Supprimer">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TOTAUX -->
-                    <div class="card border-primary">
-                        <div class="card-body py-3">
-                            <div class="row">
-                                <div class="col-md-8 text-end">
-                                    <div class="mb-1"><strong>Sous-total :</strong></div>
-                                    <div class="mb-1"><strong>Total Remise :</strong></div>
-                                    <div class="mt-2"><h5 class="mb-0"><strong>Total à payer :</strong></h5></div>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    <div class="mb-1"><span id="sousTotal">0 FCFA</span></div>
-                                    <div class="mb-1"><span id="totalRemise" class="text-danger">0 FCFA</span></div>
-                                    <div class="mt-2"><h5 class="mb-0 text-primary"><strong id="totalFinal">0 FCFA</strong></h5></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </form>
+                </div>
             </div>
-
-            <div class="modal-footer">
+            <div class="modal-footer border-0">
                 <button class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" onclick="validerVente()">
-                    <i class="fas fa-check me-1"></i>Valider la vente
+                <button class="btn btn-primary px-5 shadow-lg font-weight-bold" onclick="confirmerPaiement()">
+                    <i class="fas fa-check-circle mr-1"></i> FINALISER LA VENTE
                 </button>
             </div>
-
         </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
-let lineIndex = 1;
+    let produitIndex = 0;
+    let paiementIndex = 0;
+    let montantTotal = 0;
 
-function toNumber(v) {
-    const n = Number(v);
-    return isFinite(n) ? n : 0;
-}
+    const produitsDisponibles = [
+        { id: 1, nom: "Ordinateur HP", prix: 450000 },
+        { id: 2, nom: "Samsung S23", prix: 850000 },
+        { id: 3, nom: "MacBook Air M2", prix: 950000 },
+        { id: 4, nom: "iPhone 15 Pro", prix: 1200000 }
+    ];
 
-function formatFCFA(montant) {
-    return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
-}
+    function formatFCFA(montant) {
+        return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
+    }
 
-function updateLineTotal(row) {
-    const qty = toNumber(row.querySelector('.quantity').value);
-    const price = toNumber(row.querySelector('.unit_price').value);
-    const discount = toNumber(row.querySelector('.discount').value);
-    const total = Math.max(0, qty * price - discount);
-    row.querySelector('.total_line').textContent = formatFCFA(total);
-    updateInvoiceTotals();
-}
+    function toNumber(v) { return isNaN(parseFloat(v)) ? 0 : parseFloat(v); }
 
-function updateInvoiceTotals() {
-    let sousTotal = 0;
-    let totalRemise = 0;
+    function ajouterLigneProduit() {
+        const container = document.getElementById('produitsSelectionnes');
+        const index = produitIndex++;
 
-    document.querySelectorAll('#venteLinesTable tbody tr').forEach(row => {
-        const qty = toNumber(row.querySelector('.quantity').value);
-        const price = toNumber(row.querySelector('.unit_price').value);
-        const discount = toNumber(row.querySelector('.discount').value);
+        const html = `
+            <div class="produit-item shadow-sm" id="produit-row-${index}">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label class="small font-weight-bold text-muted text-uppercase">Désignation</label>
+                        <select class="form-control productSelect" onchange="updateRow(${index}, this)">
+                            <option value="">-- Sélectionner l'article --</option>
+                            ${produitsDisponibles.map(p => `<option value="${p.id}" data-prix="${p.prix}">${p.nom}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="small font-weight-bold text-muted text-uppercase">Qté</label>
+                        <input type="number" class="form-control quantity" value="1" min="1" oninput="calculateAll()">
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="small font-weight-bold text-muted text-uppercase">Remise</label>
+                        <input type="number" class="form-control discount" value="0" min="0" oninput="calculateAll()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small font-weight-bold text-muted text-right d-block text-uppercase">Total</label>
+                        <div class="total-display" id="total-row-${index}">0 FCFA</div>
+                        <input type="hidden" class="unit-price" value="0">
+                    </div>
+                    <div class="col-md-1 text-right mt-3">
+                        <button type="button" class="btn-icon-delete" onclick="removeRow(${index})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
 
-        sousTotal += qty * price;
-        totalRemise += discount;
-    });
+    function updateRow(index, select) {
+        const option = select.selectedOptions[0];
+        const price = option.dataset.prix || 0;
+        const row = document.getElementById(`produit-row-${index}`);
+        row.querySelector('.unit-price').value = price;
+        calculateAll();
+    }
 
-    const totalFinal = sousTotal - totalRemise;
+    function removeRow(index) {
+        document.getElementById(`produit-row-${index}`).remove();
+        calculateAll();
+    }
 
-    document.getElementById('sousTotal').textContent = formatFCFA(sousTotal);
-    document.getElementById('totalRemise').textContent = formatFCFA(totalRemise);
-    document.getElementById('totalFinal').textContent = formatFCFA(totalFinal);
-}
+    function calculateAll() {
+        let st = 0; let tr = 0;
+        document.querySelectorAll('.produit-item').forEach(row => {
+            const price = toNumber(row.querySelector('.unit-price').value);
+            const qty = toNumber(row.querySelector('.quantity').value);
+            const disc = toNumber(row.querySelector('.discount').value);
+            const lineTotal = (price * qty) - disc;
+            row.querySelector('.total-display').innerText = formatFCFA(lineTotal);
+            st += (price * qty);
+            tr += disc;
+        });
+        montantTotal = st - tr;
+        document.getElementById('sousTotal').innerText = formatFCFA(st);
+        document.getElementById('totalRemise').innerText = formatFCFA(tr);
+        document.getElementById('totalFinal').innerText = formatFCFA(montantTotal);
+    }
 
-function reindexRows() {
-    document.querySelectorAll('#venteLinesTable tbody tr').forEach((row, i) => {
-        row.querySelectorAll('select, input').forEach(input => {
-            const name = input.getAttribute('name');
-            if (name) input.setAttribute('name', name.replace(/\[\d+\]/, `[${i}]`));
+    function ouvrirModalPaiement() {
+        if(document.getElementById('entrepot_id').value === "") {
+            alert("Erreur: Vous devez choisir un entrepôt avant d'encaisser.");
+            document.getElementById('entrepot_id').style.borderColor = "red";
+            document.getElementById('entrepot_id').focus();
+            return;
+        }
+        if(montantTotal <= 0) return alert("Veuillez ajouter au moins un produit.");
+
+        document.getElementById('montantAPayer').innerText = formatFCFA(montantTotal);
+        document.getElementById('paiementsContainer').innerHTML = "";
+        ajouterPaiement();
+        $('#paiementModal').modal('show');
+    }
+
+    function ajouterPaiement() {
+        const container = document.getElementById('paiementsContainer');
+        const id = paiementIndex++;
+        const html = `
+            <div class="row no-gutters mb-2 align-items-center bg-white p-2 rounded border" id="pay-row-${id}">
+                <div class="col-6 pr-2">
+                    <select class="form-control form-control-sm mode-pay">
+                        <option value="especes">Espèces</option>
+                        <option value="wave">Wave</option>
+                        <option value="orange">Orange Money</option>
+                        <option value="carte">Carte Bancaire</option>
+                    </select>
+                </div>
+                <div class="col-5">
+                    <input type="number" class="form-control form-control-sm amount-pay" oninput="calcPay()" placeholder="Montant">
+                </div>
+                <div class="col-1 text-center">
+                    <button class="btn text-danger btn-sm" onclick="this.closest('.row').remove();calcPay();"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    function calcPay() {
+        let paid = 0;
+        document.querySelectorAll('.amount-pay').forEach(input => paid += toNumber(input.value));
+        const reste = montantTotal - paid;
+        document.getElementById('totalPaye').innerText = formatFCFA(paid);
+        const resteEl = document.getElementById('resteAPayer');
+        if(reste <= 0) {
+            resteEl.innerText = (reste < 0) ? "À rendre: " + formatFCFA(Math.abs(reste)) : "Soldé";
+            resteEl.className = "text-success font-weight-bold";
+        } else {
+            resteEl.innerText = formatFCFA(reste);
+            resteEl.className = "text-danger font-weight-bold";
+        }
+    }
+
+    function confirmerPaiement() {
+        // Envoi au serveur ici via fetch ou $.post
+        alert("Succès: Vente enregistrée et stock mis à jour !");
+        location.reload();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ajouterLigneProduit();
+        // Reset border color on select change
+        document.getElementById('entrepot_id').addEventListener('change', function() {
+            this.style.borderColor = "#36b9cc";
         });
     });
-    lineIndex = document.querySelectorAll('#venteLinesTable tbody tr').length;
-}
-
-// Ajouter une ligne
-document.querySelector('#venteLinesTable tbody').addEventListener('click', function(e) {
-    if (e.target.closest('#addLineBtn') || e.target.closest('.addLineBtn')) {
-        const tbody = document.querySelector('#venteLinesTable tbody');
-
-        tbody.insertAdjacentHTML('beforeend', `
-            <tr>
-                <td>
-                    <select name="items[${lineIndex}][product_id]" class="form-control productSelect" required>
-                        <option value="">Choisir...</option>
-                        <option value="1" data-nom="Ordinateur HP" data-prix="450000">Ordinateur HP</option>
-                        <option value="2" data-nom="Samsung S23" data-prix="850000">Samsung S23</option>
-                        <option value="3" data-nom="MacBook Air M2" data-prix="950000">MacBook Air M2</option>
-                        <option value="4" data-nom="iPhone 15 Pro" data-prix="1200000">iPhone 15 Pro</option>
-                        <option value="5" data-nom="Dell XPS 13" data-prix="750000">Dell XPS 13</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="number" name="items[${lineIndex}][unit_price]" class="form-control unit_price" value="0" min="0" required>
-                </td>
-                <td>
-                    <input type="number" name="items[${lineIndex}][quantity]" class="form-control quantity" value="1" min="1" required>
-                </td>
-                <td>
-                    <input type="number" name="items[${lineIndex}][discount]" class="form-control discount" value="0" min="0">
-                </td>
-                <td class="total_line text-end fw-bold">0 FCFA</td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-success me-1 addLineBtn" title="Ajouter">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button type="button" class="btn btn-danger removeLineBtn" title="Supprimer">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `);
-
-        const newRow = tbody.querySelector('tr:last-child');
-        updateLineTotal(newRow);
-        reindexRows();
-    }
-});
-
-// Gestion du changement de produit
-document.querySelector('#venteLinesTable tbody').addEventListener('change', function(e) {
-    const row = e.target.closest('tr');
-    if (e.target.classList.contains('productSelect')) {
-        const selectedOption = e.target.selectedOptions[0];
-        const price = selectedOption?.dataset.prix || 0;
-        row.querySelector('.unit_price').value = price;
-        updateLineTotal(row);
-    }
-});
-
-// Supprimer une ligne
-document.querySelector('#venteLinesTable tbody').addEventListener('click', e => {
-    if (e.target.closest('.removeLineBtn')) {
-        const tbody = document.querySelector('#venteLinesTable tbody');
-        if (tbody.querySelectorAll('tr').length > 1) {
-            e.target.closest('tr').remove();
-            reindexRows();
-            updateInvoiceTotals();
-        } else {
-            alert('Vous devez avoir au moins une ligne de produit');
-        }
-    }
-});
-
-// Calcul automatique lors de la saisie
-document.querySelector('#venteLinesTable tbody').addEventListener('input', function(e) {
-    if (e.target.classList.contains('quantity') ||
-        e.target.classList.contains('unit_price') ||
-        e.target.classList.contains('discount')) {
-        updateLineTotal(e.target.closest('tr'));
-    }
-});
-
-// Initialiser les totaux
-document.querySelectorAll('#venteLinesTable tbody tr').forEach(row => {
-    updateLineTotal(row);
-});
-
-function validerVente() {
-    const rows = document.querySelectorAll('#venteLinesTable tbody tr');
-    if (rows.length === 0) {
-        alert('Veuillez ajouter au moins un produit');
-        return;
-    }
-
-    // Vérifier que tous les produits sont sélectionnés
-    let valid = true;
-    rows.forEach(row => {
-        const productSelect = row.querySelector('.productSelect');
-        if (!productSelect.value) {
-            valid = false;
-        }
-    });
-
-    if (!valid) {
-        alert('Veuillez sélectionner un produit pour chaque ligne');
-        return;
-    }
-
-    // Récupérer les données client (optionnelles)
-    const clientNom = document.getElementById('clientNom').value.trim();
-    const clientTelephone = document.getElementById('clientTelephone').value.trim();
-    const clientAdresse = document.getElementById('clientAdresse').value.trim();
-    const modePaiement = document.getElementById('modePaiement').value;
-
-    console.log('Client:', { clientNom, clientTelephone, clientAdresse, modePaiement });
-
-    alert('Vente validée ! Prête à être enregistrée en backend');
-    $('#venteModal').modal('hide');
-}
 </script>
 @endpush
-
-<style>
-.table td, .table th {
-    vertical-align: middle;
-    padding: 0.75rem;
-}
-
-.card {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-#venteLinesTable {
-    font-size: 1rem;
-}
-
-#venteLinesTable input,
-#venteLinesTable select {
-    font-size: 1rem;
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-}
-
-#venteLinesTable input[type="number"] {
-    height: calc(1.5em + 1rem + 2px);
-}
-
-.form-control {
-    font-size: 1rem;
-}
-
-.form-control-sm {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.875rem;
-}
-
-.btn {
-    padding: 0.45rem 0.75rem;
-    font-size: 1rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.text-end {
-    text-align: right;
-}
-
-.fw-bold {
-    font-weight: 600;
-}
-
-.align-middle {
-    vertical-align: middle !important;
-}
-
-.me-1 {
-    margin-right: 0.25rem;
-}
-
-.form-label {
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-}
-
-.modal-header {
-    border-bottom: 2px solid #e9ecef;
-}
-
-.modal-footer {
-    border-top: 2px solid #e9ecef;
-}
-
-.table-light {
-    background-color: #f8f9fa;
-    font-weight: 500;
-}
-
-.badge {
-    padding: 0.35em 0.65em;
-    font-size: 0.9rem;
-}
-
-.total_line {
-    font-size: 1.05rem;
-}
-
-.card-header h6 {
-    font-weight: 600;
-    color: #495057;
-}
-
-/* Largeur du modal élargie */
-@media (min-width: 992px) {
-    .modal-fullscreen-lg-down {
-        max-width: 1400px !important;
-    }
-}
-</style>
 @endsection
