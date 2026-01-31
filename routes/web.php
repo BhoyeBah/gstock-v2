@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UnitsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\InventoryController;
@@ -172,6 +173,17 @@ Route::middleware(['auth', 'subscription.permission:manage_wallets'])->group(fun
 Route::middleware(['auth'])->group(function() {
      Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     //  Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+});
+
+Route::prefix("/employes")->name("employes.")->controller(EmployeController::class)->middleware(['auth'])->group(function() {
+    Route::get("/", "index")->name("index");
+    Route::post("/store", "store")->name("store");
+    Route::get("/{employe}/show", "show")->name("show");
+    Route::get("/{employe}/edit", "edit")->name("edit");
+    Route::put("/{employe}/update", "update")->name("update");
+    Route::patch("/{employe}/toggle", "toggleActive")->name("toggleActive");
+    Route::post("/{employe}/pay", "pay")->name("pay");
+    Route::delete("/{employe}/delete", "destroy")->name("destroy");
 });
 
 require __DIR__.'/auth.php';

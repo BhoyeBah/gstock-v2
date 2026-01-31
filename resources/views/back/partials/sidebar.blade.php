@@ -411,12 +411,28 @@
                         Sorties de stock
                     </a>
                     <hr class="sidebar-divider">
+
                 </div>
             </div>
         </li>
     @endcan
 
     <hr class="sidebar-divider">
+
+    <!-- Gestion des employés -->
+    <div class="sidebar-heading">
+        Gestion des employés
+    </div>
+
+    <li class="nav-item {{ request()->routeIs('employes.*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('employes.index') }}">
+            <i class="fas fa-users"></i>
+            <span>Liste des employés</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider">
+
 
     <!-- Gestion du Système -->
     <div class="sidebar-heading">Gestion du Système</div>

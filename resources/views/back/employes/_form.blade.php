@@ -20,7 +20,9 @@
 
         {{-- Nom complet --}}
         <div class="form-group">
-            <label for="full_name">Nom complet <span class="text-danger">*</span></label>
+            <label for="full_name">
+                Nom complet <span class="text-danger">*</span>
+            </label>
             <input type="text"
                    name="full_name"
                    id="full_name"
@@ -28,6 +30,7 @@
                    placeholder="Ex : John Doe"
                    value="{{ old('full_name', $employe->full_name ?? '') }}"
                    required>
+
             @error('full_name')
                 <small class="text-danger d-block mt-1">{{ $message }}</small>
             @enderror
@@ -39,9 +42,11 @@
             <input type="text"
                    name="phone"
                    id="phone"
+                   required
                    class="form-control @error('phone') is-invalid @enderror"
                    placeholder="Ex : +221 77 000 00 00"
                    value="{{ old('phone', $employe->phone ?? '') }}">
+
             @error('phone')
                 <small class="text-danger d-block mt-1">{{ $message }}</small>
             @enderror
@@ -49,7 +54,9 @@
 
         {{-- Poste --}}
         <div class="form-group">
-            <label for="position">Poste <span class="text-danger">*</span></label>
+            <label for="position">
+                Poste <span class="text-danger">*</span>
+            </label>
             <input type="text"
                    name="position"
                    id="position"
@@ -57,6 +64,7 @@
                    placeholder="Ex : Développeur, Comptable..."
                    value="{{ old('position', $employe->position ?? '') }}"
                    required>
+
             @error('position')
                 <small class="text-danger d-block mt-1">{{ $message }}</small>
             @enderror
@@ -66,13 +74,14 @@
         <div class="form-group">
             <label for="salary">Salaire (FCFA)</label>
             <input type="number"
-                   min="0"
-                   step="1"
                    name="salary"
                    id="salary"
+                   min="0"
+                   step="1"
                    class="form-control @error('salary') is-invalid @enderror"
                    placeholder="Ex : 250000"
                    value="{{ old('salary', $employe->salary ?? '') }}">
+
             @error('salary')
                 <small class="text-danger d-block mt-1">{{ $message }}</small>
             @enderror
@@ -85,6 +94,7 @@
         <button type="button" class="btn btn-secondary" data-dismiss="modal">
             <i class="fas fa-times"></i> Annuler
         </button>
+
         <button type="submit" class="btn btn-primary">
             <i class="fas {{ $method === 'POST' ? 'fa-save' : 'fa-check' }}"></i>
             {{ $method === 'POST' ? 'Ajouter' : 'Enregistrer les modifications' }}
