@@ -417,19 +417,23 @@
         </li>
     @endcan
 
-    <hr class="sidebar-divider">
 
     <!-- Gestion des employés -->
-    <div class="sidebar-heading">
-        Gestion des employés
-    </div>
+    @can('manage_employee')
+        <hr class="sidebar-divider">
 
-    <li class="nav-item {{ request()->routeIs('employes.*') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('employes.index') }}">
-            <i class="fas fa-users"></i>
-            <span>Liste des employés</span>
-        </a>
-    </li>
+        <div class="sidebar-heading">
+            Gestion des employés
+        </div>
+
+        <li class="nav-item {{ request()->routeIs('employes.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('employes.index') }}">
+                <i class="fas fa-users"></i>
+                <span>Liste des employés</span>
+            </a>
+        </li>
+    @endcan
+
 
     <hr class="sidebar-divider">
 
