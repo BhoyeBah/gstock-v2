@@ -7,6 +7,7 @@ use App\Http\Requests\PaymentEmployeRequest;
 use App\Models\Employe;
 use App\Models\EmployeTransaction;
 use App\Models\Wallet;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -15,10 +16,21 @@ class EmployeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
-        $employes = Employe::paginate(10);
+        $employes = Employe::query()
+            ->when($request->filled('search_name'), function ($query) use ($request) {
+                $query->where('full_name', 'LIKE', '%'.$request->search_name.'%');
+            })
+            ->when($request->filled('matricule'), function ($query) use ($request) {
+                $query->where('matricule', 'LIKE', '%'.$request->matricule.'%');
+            })
+            ->when($request->filled('search_position'), function ($query) use ($request) {
+                $query->where('position', 'LIKE', '%'.$request->search_position.'%');
+            })
+            ->latest()
+            ->paginate(10);
 
         return view('back.employes.index', compact('employes'));
     }
