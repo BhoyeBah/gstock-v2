@@ -17,7 +17,7 @@ class EmployeCreateRequest extends FormRequest
             'full_name' => ['required', 'string', 'max:255'],
             'phone'     => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9\s\-\(\)]{7,30}$/'],
             'position'  => ['required', 'string', 'max:255'],
-            'salary'    => ['nullable', 'integer', 'min:0'],
+            'salary'    => ['required', 'integer', 'min:0'],
         ];
     }
 
@@ -25,6 +25,7 @@ class EmployeCreateRequest extends FormRequest
     {
         return [
             'full_name.required' => 'Le nom complet est obligatoire.',
+            'salary.required' => 'Le salaire est obligatoire.',
             'full_name.string'   => 'Le nom complet doit être une chaîne de caractères.',
             'full_name.max'      => 'Le nom complet ne doit pas dépasser 255 caractères.',
 
