@@ -216,7 +216,7 @@ class InvoiceController extends Controller
         $this->validateType($type);
         $this->checkAuthorization($invoice, $type);
         $amount_paid = (int) $request->input('amount_paid');
-
+        $payment_date = $request->input('payment_date');
         if ($amount_paid > $invoice->balance || $amount_paid <= 0) {
             return back()->with('error', "Impossible de payer $amount_paid pour cette facture.");
         }
@@ -267,7 +267,7 @@ class InvoiceController extends Controller
                 'contact_id' => $invoice->contact_id,
                 'amount_paid' => $amount_paid,
                 'remaining_amount' => $invoice->balance,
-                'payment_date' => now(),
+                'payment_date' => $payment_date,
                 'payment_type' => $wallet->name,
                 'payment_source' => $invoice->type,
             ]);

@@ -23,6 +23,7 @@ class PaymentController extends Controller
 
         $payments = Payment::with(['invoice', 'contact'])
             ->where('payment_source', rtrim($type, 's'))
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         // Charger les factures du même type (client ou supplier)
@@ -51,6 +52,7 @@ class PaymentController extends Controller
 
         $invoice = Invoice::findOrFail($request->invoice_id);
         $amountPaid = (int) $request->input('amount_paid');
+        $payment_date = $request->input('payment_date');
 
         if ($amountPaid > $invoice->balance) {
             return back()->with('error', "Montant trop élevé. Solde restant : {$invoice->balance} FCFA");
@@ -93,8 +95,8 @@ class PaymentController extends Controller
             } elseif ($invoice->balance == 0) {
                 $invoice->status = 'paid';
             }
-            $invoice->save();
 
+            $invoice->save();
             Payment::create([
                 'wallet_id' => $wallet->id,
                 'invoice_id' => $invoice->id,
@@ -102,7 +104,7 @@ class PaymentController extends Controller
                 'contact_id' => $invoice->contact_id,
                 'amount_paid' => $amountPaid,
                 'remaining_amount' => $invoice->balance,
-                'payment_date' => now(),
+                'payment_date' => $payment_date,
                 'payment_type' => $wallet->name,
                 'payment_source' => $invoice->type,
             ]);

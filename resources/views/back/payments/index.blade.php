@@ -497,7 +497,8 @@
                                     <th>Type</th>
                                     <th class="text-right">Montant payé</th>
                                     <th class="text-right">Reste</th>
-                                    <th>Date</th>
+                                    <th>Date Paiement</th>
+                                    <th>Date Création</th>
                                     <th>Méthode</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -544,6 +545,10 @@
                                         <td>
                                             <i class="fas fa-calendar-alt text-muted mr-1"></i>
                                             {{ Carbon::parse($payment->payment_date)->format('d/m/Y') }}
+                                        </td>
+                                          <td>
+                                            <i class="fas fa-calendar-alt text-muted mr-1"></i>
+                                            {{ Carbon::parse($payment->created_at)->format('d/m/Y') }}
                                         </td>
                                         <td>
                                             <i class="fas fa-credit-card text-muted mr-1"></i>
