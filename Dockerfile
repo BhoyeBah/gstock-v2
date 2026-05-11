@@ -35,6 +35,8 @@ FROM php:8.2-apache
 
 WORKDIR /var/www/html
 
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libfreetype6-dev \
@@ -50,7 +52,9 @@ RUN apt-get update \
         pdo_mysql \
         zip \
     && a2enmod rewrite \
-    && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf \
+    && echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf \
+    && a2enconf servername \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
