@@ -1,19 +1,27 @@
 providers = ["php", "node"]
 
 [variables]
-NIXPACKS_PHP_VERSION = "8.2"
-NODE_VERSION = "20"
+    NIXPACKS_PHP_VERSION = "8.2"
+    NODE_VERSION = "20"
+    # Active l'optimisation de production pour Laravel
+    APP_ENV = "production"
 
 [phases.install]
-cmds = [
-    "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
-    "npm ci"
-]
+    cmds = [
+        "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
+        "npm ci"
+    ]
 
 [phases.build]
-cmds = [
-    "npm run build"
-]
+    cmds = [
+        "npm run build",
+        "php artisan config:cache",
+        "php artisan route:cache",
+        "php artisan view:cache"
+    ]
 
 [start]
-cmd = "php artisan storage:link || true && php artisan config:cache && php artisan view:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"
+    # 1. Crée le lien storage
+    # 2. Lance les migrations
+    # 3. Lance le serveur web de production (Nginx + PHP-FPM par défaut sur Nixpacks)
+    cmd = "php artisan storage:link || true && php artisan migrate --force && php-fpm -D && nginx -g 'daemon off;'"
