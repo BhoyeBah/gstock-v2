@@ -1,13 +1,16 @@
-providers = ["php", "node"]
+# On ne garde QUE le provider PHP – pas de "node"
+providers = ["php"]
 
 [variables]
     NIXPACKS_PHP_VERSION = "8.2"
-    NODE_VERSION = "20"
-    # Active l'optimisation de production pour Laravel
-    APP_ENV = "production"
+    # Pas besoin de NODE_VERSION ici, on l'installe manuellement
 
 [phases.install]
     cmds = [
+        # Installation manuelle de Node 20 (l'image de base est Ubuntu)
+        "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -",
+        "apt-get install -y nodejs",
+        # Maintenant que Node est dispo, on peut lancer npm et composer
         "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
         "npm ci"
     ]
@@ -21,7 +24,5 @@ providers = ["php", "node"]
     ]
 
 [start]
-    # 1. Crée le lien storage
-    # 2. Lance les migrations
-    # 3. Lance le serveur web de production (Nginx + PHP-FPM par défaut sur Nixpacks)
+    # Assure le lien storage, lance les migrations, puis démarre nginx + php-fpm
     cmd = "php artisan storage:link || true && php artisan migrate --force && php-fpm -D && nginx -g 'daemon off;'"
