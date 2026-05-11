@@ -1,6 +1,0 @@
-[phases.install]
-cmds = [
-    "composer install --optimize-autoloader",
-    "composer require sabberworm/php-css-parser --no-update",
-    "npm install"
-]
