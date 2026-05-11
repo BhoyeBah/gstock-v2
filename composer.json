@@ -11,6 +11,7 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "sabberworm/php-css-parser": "^9.3",
         "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {

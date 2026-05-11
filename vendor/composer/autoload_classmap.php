@@ -72,6 +72,7 @@ return array(
     'App\\Http\\Requests\\ProductRequest' => $baseDir . '/app/Http/Requests/ProductRequest.php',
     'App\\Http\\Requests\\ProfileUpdateRequest' => $baseDir . '/app/Http/Requests/ProfileUpdateRequest.php',
     'App\\Http\\Requests\\ReturnRequestProduct' => $baseDir . '/app/Http/Requests/ReturnRequestProduct.php',
+    'App\\Http\\Requests\\StockOutRequest' => $baseDir . '/app/Http/Requests/StockOutRequest.php',
     'App\\Http\\Requests\\StoreInvoiceRequest' => $baseDir . '/app/Http/Requests/StoreInvoiceRequest.php',
     'App\\Http\\Requests\\UnitRequest' => $baseDir . '/app/Http/Requests/UnitRequest.php',
     'App\\Http\\Requests\\WalletRequest' => $baseDir . '/app/Http/Requests/WalletRequest.php',

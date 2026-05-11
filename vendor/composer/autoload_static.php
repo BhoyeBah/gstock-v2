@@ -721,6 +721,7 @@ class ComposerStaticInitaa5a05e0b3d7320afd332e29e154bf80
         'App\\Http\\Requests\\ProductRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProductRequest.php',
         'App\\Http\\Requests\\ProfileUpdateRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProfileUpdateRequest.php',
         'App\\Http\\Requests\\ReturnRequestProduct' => __DIR__ . '/../..' . '/app/Http/Requests/ReturnRequestProduct.php',
+        'App\\Http\\Requests\\StockOutRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StockOutRequest.php',
         'App\\Http\\Requests\\StoreInvoiceRequest' => __DIR__ . '/../..' . '/app/Http/Requests/StoreInvoiceRequest.php',
         'App\\Http\\Requests\\UnitRequest' => __DIR__ . '/../..' . '/app/Http/Requests/UnitRequest.php',
         'App\\Http\\Requests\\WalletRequest' => __DIR__ . '/../..' . '/app/Http/Requests/WalletRequest.php',
