@@ -52,7 +52,6 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        // dd($request);
 
         $this->hasPermission('create_products');
 
@@ -82,7 +81,7 @@ class ProductController extends Controller
             'invoiceItems.invoice.contact',
             'movement.batch.warehouse',
             'movement.invoice.contact',
-        ])->findOrFail($id);
+        ])->where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
 
         // Calcul des stats rapides à partir des invoiceItems
         $invoiceItems = $product->invoiceItems;
@@ -203,7 +202,7 @@ class ProductController extends Controller
     {
         $this->hasPermission('toggle_product');
         // Inversion du statut
-        $product = Product::findOrFail($id);
+        $product = Product::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
         $product->is_active = ! $product->is_active;
         $product->save();
 

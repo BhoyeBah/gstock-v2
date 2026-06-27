@@ -19,6 +19,15 @@ class InventoryMovement extends Model
         'product_id',
         'quantity',
         'reason',
+        'tenant_id',
+        'inventory_id',
+        'inventory_item_id',
+        'warehouse_id',
+        'quantity_before',
+        'quantity_after',
+        'variance',
+        'user_id',
+        'movement_type',
     ];
 
     /**

@@ -59,6 +59,7 @@ class ExpenseController extends Controller
     {
         //
         $wallet = Wallet::where('id', $request->wallet_id)
+            ->where('tenant_id', auth()->user()->tenant_id)
             ->lockForUpdate()
             ->firstOrFail();
         $amount = (int) $request->amount;

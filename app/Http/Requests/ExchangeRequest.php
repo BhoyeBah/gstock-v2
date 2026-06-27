@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Validation\Rule;
+
 class ExchangeRequest extends FormRequest
 {
     /**
@@ -21,10 +23,10 @@ class ExchangeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from_warehouse' => ['required', 'exists:warehouses,id'],
-            'to_warehouse'   => ['required', 'exists:warehouses,id', 'different:from_warehouse'],
+            'from_warehouse' => ['required', Rule::exists('warehouses', 'id')->where('tenant_id', auth()->user()->tenant_id)],
+            'to_warehouse'   => ['required', Rule::exists('warehouses', 'id')->where('tenant_id', auth()->user()->tenant_id), 'different:from_warehouse'],
             'batch_id'       => ['required', 'array', 'min:1'],
-            'batch_id.*'     => ['required', 'exists:batches,id'],
+            'batch_id.*'     => ['required', Rule::exists('batches', 'id')->where('tenant_id', auth()->user()->tenant_id)],
             'quantity'       => ['required', 'array', 'min:1'],
             'quantity.*'     => ['required', 'integer', 'min:1'],
         ];

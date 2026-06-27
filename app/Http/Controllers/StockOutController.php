@@ -38,7 +38,12 @@ class StockOutController extends Controller
     public function store(Request $request)
     {
         $currentUser = auth()->user();
-        $batch = Batch::findOrFail($request->batch_id);
+
+        // Sécurité : vérifier que le batch appartient au tenant
+        $batch = Batch::where('id', $request->batch_id)
+            ->where('tenant_id', $currentUser->tenant_id)
+            ->firstOrFail();
+
         $quantityOut = (int) $request->input('quantity');
         $reason = $request->input('reason');
 
@@ -46,17 +51,19 @@ class StockOutController extends Controller
             return back()->with('error', 'La quantité demandée dépasse le stock disponible.');
         }
 
-        StockOut::create([
-            'tenant_id' => $currentUser->tenant_id,
-            'batch_id' => $batch->id,
-            'quantity' => $request->quantity,
-            'reason' => $request->reason,
-        ]);
+        DB::transaction(function () use ($currentUser, $batch, $quantityOut, $reason) {
+            StockOut::create([
+                'tenant_id' => $currentUser->tenant_id,
+                'batch_id'  => $batch->id,
+                'quantity'  => $quantityOut,
+                'reason'    => $reason,
+            ]);
 
-        $batch->remaining -= $request->quantity;
-        $batch->save();
+            $batch->remaining -= $quantityOut;
+            $batch->save();
+        });
 
-        return back()->with('success', 'Sortie de stock enrégistrée avec succées');
+        return back()->with('success', 'Sortie de stock enrégistrée avec succès');
     }
 
     /**
@@ -89,7 +96,7 @@ class StockOutController extends Controller
     public function destroy(string $id)
     {
         DB::transaction(function () use ($id) {
-            $stockOut = StockOut::findOrFail($id);
+            $stockOut = StockOut::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
             $batch = $stockOut->batch;
 
             if ($batch) {

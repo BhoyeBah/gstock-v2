@@ -85,8 +85,11 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $productId = $request->input('product_id');
 
+        $tenantId = auth()->user()->tenant_id;
+
         $itemsQuery = InvoiceItem::query()
-            ->where('type', 'out');
+            ->where('type', 'out')
+            ->whereHas('invoice', fn ($q) => $q->where('tenant_id', $tenantId));
 
         $itemsQuery->with([
             'invoice:id,status,type,invoice_date,invoice_number',
@@ -121,6 +124,7 @@ class ReportController extends Controller
         $invoiceItems = $itemsQuery->get();
 
         $quantityInByProduct = InvoiceItem::where('type', 'in')
+            ->whereHas('invoice', fn ($q) => $q->where('tenant_id', $tenantId))
             ->selectRaw('product_id, SUM(quantity) as total_in')
             ->groupBy('product_id')
             ->pluck('total_in', 'product_id');
@@ -157,7 +161,7 @@ class ReportController extends Controller
         $totalRevenue = $reportData->sum('total_sale');
         $totalQtySold = $reportData->sum('qty_sold');
 
-        $products = Product::where('is_active', true)
+        $products = Product::where('tenant_id', $tenantId)->where('is_active', true)
             ->orderBy('name', 'asc')
             ->get();
 
@@ -179,7 +183,8 @@ class ReportController extends Controller
         $supplierId = $request->input('supplier_id');
 
         // Liste des fournisseurs
-        $suppliers = Contact::where('type', 'supplier')->get();
+        $suppliers = Contact::where('tenant_id', auth()->user()->tenant_id)
+            ->where('type', 'supplier')->get();
 
         // Base Query
         $query = Payment::query()
@@ -187,7 +192,8 @@ class ReportController extends Controller
                 'invoice:id,invoice_number,total_invoice,contact_id',
                 'invoice.contact:id,fullname',
             ])
-            ->where('payment_source', 'supplier'); // Paiement fournisseur seulement
+            ->where('payment_source', 'supplier')
+            ->where('tenant_id', auth()->user()->tenant_id); // Paiement fournisseur seulement
 
         // 🔥 Filtre fournisseur
         if (! empty($supplierId)) {
@@ -240,7 +246,8 @@ class ReportController extends Controller
         $supplierId = $request->input('supplier_id');
 
         $itemsQuery = InvoiceItem::query()
-            ->where('type', 'in');
+            ->where('type', 'in')
+            ->whereHas('invoice', fn ($q) => $q->where('tenant_id', auth()->user()->tenant_id));
 
         $itemsQuery->with([
             'invoice:id,status,type,invoice_date,invoice_number,contact_id',

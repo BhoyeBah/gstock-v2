@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Validation\Rule;
+
 class ReturnRequestProduct extends FormRequest
 {
     /**
@@ -20,7 +22,17 @@ class ReturnRequestProduct extends FormRequest
     public function rules(): array
     {
         return [
-            'invoice_item_id'     => 'required|uuid|exists:invoice_items,id',
+            'invoice_item_id'     => [
+                'required',
+                'uuid',
+                Rule::exists('invoice_items', 'id')->where(function ($query) {
+                    $query->whereIn('invoice_id', function ($sub) {
+                        $sub->select('id')
+                            ->from('invoices')
+                            ->where('tenant_id', auth()->user()->tenant_id);
+                    });
+                })
+            ],
             'quantity'            => 'required|integer|min:1',
             'motif'               => 'required|string|max:255',
         ];
