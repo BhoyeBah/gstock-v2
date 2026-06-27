@@ -27,7 +27,7 @@ class StoreInvoiceRequest extends FormRequest
         $type = $this->input('type');
 
         $rules = [
-            'contact_id' => ['required', 'uuid', 'exists:contacts,id'],
+            'contact_id' => ['required', 'uuid', Rule::exists('contacts', 'id')->where('tenant_id', $tenantId)],
             'invoice_number' => [
                 'nullable',
                 'string',
@@ -43,8 +43,8 @@ class StoreInvoiceRequest extends FormRequest
 
             // Lignes de facture
             'items' => ['required', 'array', 'min:1'],
-            'items.*.warehouse_id' => ['required', 'uuid', 'exists:warehouses,id'],
-            'items.*.product_id' => ['required', 'uuid', 'exists:products,id'],
+            'items.*.warehouse_id' => ['required', 'uuid', Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)],
+            'items.*.product_id' => ['required', 'uuid', Rule::exists('products', 'id')->where('tenant_id', $tenantId)],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'integer', 'min:0'],
             'items.*.discount' => ['nullable', 'integer', 'min:0'],

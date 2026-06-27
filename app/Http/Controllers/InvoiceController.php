@@ -115,17 +115,21 @@ class InvoiceController extends Controller
     {
         //
         $this->validateType($type);
-        $invoice = Invoice::with('items')->findOrFail($id);
+        $invoice = Invoice::where('tenant_id', auth()->user()->tenant_id)
+            ->with('items')->findOrFail($id);
 
-        $invoice = Invoice::with(['items.returns', 'items.product', 'items.warehouse', 'contact'])
+        $invoice = Invoice::where('tenant_id', auth()->user()->tenant_id)
+            ->with(['items.returns', 'items.product', 'items.warehouse', 'contact'])
             ->findOrFail($id);
 
         $this->checkAuthorization($invoice, $type);
 
-        $batches = Batch::where('invoice_id', $invoice->id)->orderBy('remaining')->paginate(10);
-        $payments = Payment::where('invoice_id', $invoice->id)->paginate(10);
+        $batches = Batch::where('tenant_id', auth()->user()->tenant_id)
+            ->where('invoice_id', $invoice->id)
+            ->orderBy('remaining')->paginate(10);
+        $payments = Payment::where('tenant_id', auth()->user()->tenant_id)
+            ->where('invoice_id', $invoice->id)->paginate(10);
 
-        // dd($batches);
         return view('back.invoices.show', compact('invoice', 'batches', 'payments', 'type'));
     }
 
@@ -141,8 +145,6 @@ class InvoiceController extends Controller
         $products = Product::all();
         $contacts = Contact::type(rtrim($type, 's'))->get();
         $warehouses = Warehouse::all();
-        // dd($products, $contacts, $warehouses);
-
         return view('back.invoices.edit', compact('invoice', 'products', 'warehouses', 'contacts', 'type'));
     }
 
@@ -192,7 +194,8 @@ class InvoiceController extends Controller
 
         $this->validateType($type);
 
-        $invoice = Invoice::with('items')->findOrFail($id);
+        $invoice = Invoice::where('tenant_id', auth()->user()->tenant_id)
+            ->with('items')->findOrFail($id);
 
         if ($invoice->status !== 'draft') {
             return back()->with('error', 'Cette facture est déjà validée');
@@ -215,6 +218,11 @@ class InvoiceController extends Controller
 
         $this->validateType($type);
         $this->checkAuthorization($invoice, $type);
+
+        if ($invoice->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, "Action non autorisée.");
+        }
+
         $amount_paid = (int) $request->input('amount_paid');
         $payment_date = $request->input('payment_date');
         if ($amount_paid > $invoice->balance || $amount_paid <= 0) {
@@ -222,9 +230,9 @@ class InvoiceController extends Controller
         }
 
         try {
-            // code...
             DB::beginTransaction();
-            $wallet = Wallet::where('id', $request->wallet_id)
+            $wallet = Wallet::where('tenant_id', auth()->user()->tenant_id)
+                ->where('id', $request->wallet_id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -239,17 +247,6 @@ class InvoiceController extends Controller
                 $wallet->decrement('current_balance', $amount_paid);
             }
 
-            walletTransaction::create([
-                'wallet_id' => $wallet->id,
-                'type' => $invoice->type === 'client' ? 'in' : 'out',
-                'amount' => $amount_paid,
-                'balance_before' => $beforeBalance,
-                'balance_after' => $wallet->current_balance,
-                'source_type' => $wallet->name,
-                'source_id' => $invoice->id,
-                'note' => 'Paiement '.($invoice->type === 'client' ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
-            ]);
-
             $invoice->balance -= $amount_paid;
 
             if ($invoice->balance > 0) {
@@ -260,7 +257,7 @@ class InvoiceController extends Controller
             }
             $invoice->save();
 
-            Payment::create([
+            $payment = Payment::create([
                 'wallet_id' => $wallet->id,
                 'invoice_id' => $invoice->id,
                 'tenant_id' => $invoice->tenant_id,
@@ -270,6 +267,22 @@ class InvoiceController extends Controller
                 'payment_date' => $payment_date,
                 'payment_type' => $wallet->name,
                 'payment_source' => $invoice->type,
+            ]);
+
+            walletTransaction::create([
+                'tenant_id' => $invoice->tenant_id,
+                'wallet_id' => $wallet->id,
+                'payment_id' => $payment->id,
+                'user_id' => auth()->user()->id,
+                'type' => $invoice->type === 'client' ? 'in' : 'out',
+                'transaction_type' => 'payment',
+                'amount' => $amount_paid,
+                'balance_before' => $beforeBalance,
+                'balance_after' => $wallet->current_balance,
+                'source_type' => $wallet->name,
+                'source_id' => $invoice->id,
+                'description' => 'Paiement '.$invoice->invoice_number,
+                'note' => 'Paiement '.($invoice->type === 'client' ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
             ]);
 
             DB::commit();
@@ -287,7 +300,9 @@ class InvoiceController extends Controller
     public function returnProduct(string $type, ReturnRequestProduct $request)
     {
         $validated = $request->validated();
-        $invoiceItem = InvoiceItem::with('invoice')->findOrFail($validated['invoice_item_id']);
+        $invoiceItem = InvoiceItem::with('invoice')
+            ->whereHas('invoice', fn ($query) => $query->where('tenant_id', auth()->user()->tenant_id))
+            ->findOrFail($validated['invoice_item_id']);
         $invoice = $invoiceItem->invoice;
 
         $quantity = (int) $request->input('quantity');
@@ -295,7 +310,9 @@ class InvoiceController extends Controller
         $amountToReturn = $quantity * $unitPrice;
 
         // Tous les batches du produit (FIFO)
-        $batches = Batch::where('product_id', $invoiceItem->product_id)
+        $batches = Batch::where('tenant_id', auth()->user()->tenant_id)
+            ->where('product_id', $invoiceItem->product_id)
+            ->where('warehouse_id', $invoiceItem->warehouse_id)
             ->orderBy('created_at')
             ->lockForUpdate()
             ->get();
@@ -320,6 +337,7 @@ class InvoiceController extends Controller
                 $batch->save();
 
                 $movement = InventoryMovement::create([
+                    'tenant_id' => auth()->user()->tenant_id,
                     'invoice_item_id' => $invoiceItem->id,
                     'invoice_id' => $invoice->id,
                     'batch_id' => $batch->id,
@@ -371,6 +389,7 @@ class InvoiceController extends Controller
                     $batch->save();
 
                     $movement = InventoryMovement::create([
+                        'tenant_id' => auth()->user()->tenant_id,
                         'invoice_item_id' => $invoiceItem->id,
                         'invoice_id' => $invoice->id,
                         'batch_id' => $batch->id,
@@ -434,6 +453,7 @@ class InvoiceController extends Controller
         $start = $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null;
         $end = $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : null;
         $invoices = Invoice::with('contact')
+            ->where('tenant_id', auth()->user()->tenant_id)
             ->where('balance', '>', 0)
             ->where('type', 'client')
             ->when($start && $end, function ($query) use ($start, $end) {
@@ -449,8 +469,6 @@ class InvoiceController extends Controller
         //     $invoice->balance = $invoice->total_amount - $invoice->total_paid;
         //     $invoice->days_overdue = Carbon::now()->diffInDays(Carbon::parse($invoice->due_date), false);
         // });
-
-        // dd($invoices);
 
         return view('back.invoices.unpaid', compact('invoices', 'totalMontant', 'totalPaye', 'totalReste'));
     }
@@ -475,28 +493,97 @@ class InvoiceController extends Controller
         $current_user = auth()->user();
         $error_message = "Vous n'avez pas le droit de supprimer cette facture";
 
-        // Vérification type
         if ($invoice->type.'s' !== $type) {
             abort(403, $error_message);
         }
 
-        // Vérification tenant
         if ($current_user->tenant_id !== $invoice->tenant_id) {
             abort(403, $error_message);
         }
 
-        DB::transaction(function () use ($invoice) {
-            InventoryMovement::where('invoice_id', $invoice->id)->delete();
-            // Supprime tous les batches liés à la facture
-            Batch::where('invoice_id', $invoice->id)->delete();
+        try {
+            DB::transaction(function () use ($invoice) {
+                $payments = Payment::where('tenant_id', $invoice->tenant_id)
+                    ->where('invoice_id', $invoice->id)
+                    ->lockForUpdate()->get();
+                foreach ($payments as $payment) {
+                    if ($payment->amount_paid > 0) {
+                        $wallet = Wallet::where('tenant_id', auth()->user()->tenant_id)
+                            ->where('id', $payment->wallet_id)
+                            ->lockForUpdate()
+                            ->first();
+                        if ($wallet) {
+                            $beforeBalance = $wallet->current_balance;
+                            if ($invoice->type === 'client') {
+                                $wallet->decrement('current_balance', $payment->amount_paid);
+                            } else {
+                                $wallet->increment('current_balance', $payment->amount_paid);
+                            }
 
-            // Supprime les items liés à la facture
-            InvoiceItem::where('invoice_id', $invoice->id)->delete();
-            Payment::where('invoice_id', $invoice->id)->delete();
+                            walletTransaction::create([
+                                'tenant_id' => $invoice->tenant_id,
+                                'wallet_id' => $wallet->id,
+                                'payment_id' => $payment->id,
+                                'user_id' => auth()->user()->id,
+                                'type' => $invoice->type === 'client' ? 'out' : 'in',
+                                'transaction_type' => 'payment_reversal',
+                                'amount' => $payment->amount_paid,
+                                'balance_before' => $beforeBalance,
+                                'balance_after' => $wallet->current_balance,
+                                'source_type' => $wallet->name,
+                                'source_id' => $invoice->id,
+                                'description' => 'Suppression définitive facture '.$invoice->invoice_number,
+                                'note' => 'Annulation paiement suite à la suppression définitive de la facture ' . $invoice->invoice_number,
+                            ]);
+                        }
+                    }
+                    $payment->delete();
+                }
 
-            // Supprime la facture elle-même
-            $invoice->forceDelete();
-        });
+                $movements = InventoryMovement::where('invoice_id', $invoice->id)->get();
+
+                if ($invoice->type === 'supplier') {
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->find($movement->batch_id);
+                        if (!$batch || $batch->remaining < $movement->quantity) {
+                            $prodName = $batch && $batch->product ? $batch->product->name : 'produit';
+                            throw new \Exception("Impossible de supprimer la facture : le stock du produit {$prodName} a déjà été consommé.");
+                        }
+                    }
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->lockForUpdate()->find($movement->batch_id);
+                        if ($batch) {
+                            $batch->remaining -= $movement->quantity;
+                            $batch->quantity -= $movement->quantity;
+                            $batch->save();
+                        }
+                    }
+                } else {
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->lockForUpdate()->find($movement->batch_id);
+                        if ($batch) {
+                            $batch->remaining += $movement->quantity;
+                            $invoiceItem = InvoiceItem::whereHas('invoice', fn ($query) => $query->where('tenant_id', $invoice->tenant_id))
+                                ->find($movement->invoice_item_id);
+                            if ($invoiceItem) {
+                                $profit = ($invoiceItem->unit_price - $batch->unit_price) * $movement->quantity;
+                                $batch->benefit -= $profit;
+                            }
+                            $batch->save();
+                        }
+                    }
+                }
+
+                InventoryMovement::where('invoice_id', $invoice->id)->delete();
+                Batch::where('invoice_id', $invoice->id)->delete();
+                InvoiceItem::where('invoice_id', $invoice->id)->delete();
+
+                $invoice->forceDelete();
+            });
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', 'Facture et ses données liées supprimées avec succès');
     }
@@ -516,46 +603,81 @@ class InvoiceController extends Controller
 
         try {
             DB::transaction(function () use ($invoice) {
+                $payments = Payment::where('tenant_id', $invoice->tenant_id)
+                    ->where('invoice_id', $invoice->id)
+                    ->lockForUpdate()->get();
+                foreach ($payments as $payment) {
+                    if ($payment->amount_paid > 0) {
+                        $wallet = Wallet::where('tenant_id', auth()->user()->tenant_id)
+                            ->where('id', $payment->wallet_id)
+                            ->lockForUpdate()
+                            ->first();
+                        if ($wallet) {
+                            $beforeBalance = $wallet->current_balance;
+                            if ($invoice->type === 'client') {
+                                $wallet->decrement('current_balance', $payment->amount_paid);
+                            } else {
+                                $wallet->increment('current_balance', $payment->amount_paid);
+                            }
 
-                // 1️⃣ VALIDATION MÉTIER (AUCUNE ÉCRITURE)
-                foreach ($invoice->items as $item) {
-
-                    $batch = Batch::where('product_id', $item->product_id)
-                        ->where('unit_price', $item->unit_price)
-                        ->lockForUpdate()
-                        ->first();
-
-                    if (! $batch) {
-                        abort(422, "Batch introuvable pour le produit {$item->product->name}");
+                            walletTransaction::create([
+                                'tenant_id' => $invoice->tenant_id,
+                                'wallet_id' => $wallet->id,
+                                'payment_id' => $payment->id,
+                                'user_id' => auth()->user()->id,
+                                'type' => $invoice->type === 'client' ? 'out' : 'in',
+                                'transaction_type' => 'payment_reversal',
+                                'amount' => $payment->amount_paid,
+                                'balance_before' => $beforeBalance,
+                                'balance_after' => $wallet->current_balance,
+                                'source_type' => $wallet->name,
+                                'source_id' => $invoice->id,
+                                'description' => 'Annulation facture '.$invoice->invoice_number,
+                                'note' => 'Annulation paiement suite à l\'annulation de la facture ' . $invoice->invoice_number,
+                            ]);
+                        }
                     }
+                    $payment->delete();
+                }
 
-                    if ($batch->remaining < $item->quantity) {
-                        abort(
-                            422,
-                            "Impossible d’annuler la facture : le stock du produit {$item->product->name} a déjà été consommé."
-                        );
+                $movements = InventoryMovement::where('invoice_id', $invoice->id)->get();
+
+                if ($invoice->type === 'supplier') {
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->find($movement->batch_id);
+                        if (!$batch || $batch->remaining < $movement->quantity) {
+                            $prodName = $batch && $batch->product ? $batch->product->name : 'produit';
+                            throw new \Exception("Impossible d’annuler la facture : le stock du produit {$prodName} a déjà été consommé.");
+                        }
+                    }
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->lockForUpdate()->find($movement->batch_id);
+                        if ($batch) {
+                            $batch->remaining -= $movement->quantity;
+                            $batch->quantity -= $movement->quantity;
+                            $batch->save();
+                        }
+                    }
+                } else {
+                    foreach ($movements as $movement) {
+                        $batch = Batch::where('tenant_id', $invoice->tenant_id)->lockForUpdate()->find($movement->batch_id);
+                        if ($batch) {
+                            $batch->remaining += $movement->quantity;
+                            $invoiceItem = InvoiceItem::whereHas('invoice', fn ($query) => $query->where('tenant_id', $invoice->tenant_id))
+                                ->find($movement->invoice_item_id);
+                            if ($invoiceItem) {
+                                $profit = ($invoiceItem->unit_price - $batch->unit_price) * $movement->quantity;
+                                $batch->benefit -= $profit;
+                            }
+                            $batch->save();
+                        }
                     }
                 }
 
-                // 2️⃣ EXÉCUTION (APRÈS VALIDATION COMPLÈTE)
-                foreach ($invoice->items as $item) {
-
-                    $batch = Batch::where('product_id', $item->product_id)
-                        ->where('unit_price', $item->unit_price)
-                        ->lockForUpdate()
-                        ->first();
-
-                    $batch->quantity -= $item->quantity;
-                    $batch->remaining -= $item->quantity;
-                    $batch->save();
-                }
-
-                // 3️⃣ Nettoyage logique
                 InventoryMovement::where('invoice_id', $invoice->id)->delete();
-                Payment::where('invoice_id', $invoice->id)->delete();
 
-                // 4️⃣ Annulation logique
                 $invoice->status = 'cancelled';
+                $invoice->balance = $invoice->total_invoice;
                 $invoice->save();
             });
 

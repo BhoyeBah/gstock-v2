@@ -12,8 +12,8 @@ class ReturnProductController extends Controller
      */
     public function index()
     {
-        //
-        dd("okey");
+        $returnProducts = \App\Models\ReturnProduct::paginate(15);
+        return view('back.return_products.index', compact('returnProducts'));
     }
 
     /**

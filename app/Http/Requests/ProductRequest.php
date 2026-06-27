@@ -24,7 +24,7 @@ class ProductRequest extends FormRequest
         $tenantId = auth()->user()->tenant_id ?? $this->tenant_id;
 
         return [
-            'category_id' => ['required', 'uuid', 'exists:categories,id'],
+            'category_id' => ['required', 'uuid', Rule::exists('categories', 'id')->where('tenant_id', $tenantId)],
             'unit_id'     => ['required', 'uuid', 'exists:units,id'],
             'name'        => [
                 'required',

@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Validation\Rule;
+
 class PaymentRequest extends FormRequest
 {
     /**
@@ -23,7 +25,7 @@ class PaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'invoice_id' => ['required', 'uuid', 'exists:invoices,id'],
+            'invoice_id' => ['required', 'uuid', Rule::exists('invoices', 'id')->where('tenant_id', auth()->user()->tenant_id)],
             'amount_paid' => ['required', 'integer', 'min:0'],
             'payment_date' => ['required', 'date'],
         ];

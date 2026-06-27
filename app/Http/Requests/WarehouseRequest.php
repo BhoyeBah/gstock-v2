@@ -34,7 +34,7 @@ class WarehouseRequest extends FormRequest
             ],
             'address' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
-            'manager_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'manager_id' => ['nullable', 'uuid', Rule::exists('users', 'id')->where('tenant_id', $tenantId)],
         ];
     }
 

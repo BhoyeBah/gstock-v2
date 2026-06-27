@@ -17,10 +17,12 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\TaxRateController;
 use App\Http\Controllers\StockOutController;
 use App\Http\Controllers\Tenant\SubscriptionController as TenantSubscriptionController;
 use App\Http\Controllers\UserController;
@@ -79,6 +81,14 @@ Route::resource('/warehouses', WarehouseController::class)->middleware(['auth', 
 Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
 Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
 Route::put('/settings/{setting}', [SettingController::class, 'update'])->name('settings.update');
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('/quotes', QuoteController::class)->names('quotes');
+    Route::post('/quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+    Route::get('/quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quotes.pdf');
+
+    Route::resource('/tax-rates', TaxRateController::class)->names('tax_rates');
+});
 
 Route::middleware(['auth', 'can:manage_notifications'])->prefix('admin')->group(function () {
     Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('admin.notifications.index');

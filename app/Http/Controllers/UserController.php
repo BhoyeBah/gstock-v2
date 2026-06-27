@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Traits\LogsActivity;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -54,7 +55,11 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|string|exists:roles,id',
+            'role' => [
+                'required',
+                'string',
+                Rule::exists('roles', 'id')->where('tenant_id', $current->tenant_id)
+            ],
             'is_active' => 'nullable',
         ]);
 
@@ -72,7 +77,10 @@ class UserController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            $role = Role::findOrFail($validated['role']);
+            $role = Role::where('tenant_id', $current->tenant_id)->findOrFail($validated['role']);
+            if ($role->tenant_id !== $current->tenant_id) {
+                abort(403, "Action non autorisée.");
+            }
             $newUser->syncRoles([$role]);
 
             DB::commit();
@@ -122,7 +130,11 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|string|exists:roles,name',
+            'role' => [
+                'required',
+                'string',
+                Rule::exists('roles', 'name')->where('tenant_id', $user->tenant_id)
+            ],
             'is_active' => 'nullable',
         ]);
 
@@ -144,7 +156,12 @@ class UserController extends Controller
                 'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $user->password,
             ]);
 
-            $role = Role::where('name', $validated['role'])->firstOrFail();
+            $role = Role::where('name', $validated['role'])
+                ->where('tenant_id', $user->tenant_id)
+                ->firstOrFail();
+            if ($role->tenant_id !== $user->tenant_id) {
+                abort(403, "Action non autorisée.");
+            }
             $user->syncRoles([$role]);
 
             DB::commit();
@@ -193,7 +210,7 @@ class UserController extends Controller
 
     public function toggle(String $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
         $current = Auth::user();
 
         if ($user->is_owner) {

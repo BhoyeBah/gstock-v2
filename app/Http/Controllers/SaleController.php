@@ -12,6 +12,6 @@ class SaleController extends Controller
     }
 
     public function store() {
-        return dd('ok');
+        abort(501, 'Non implémenté');
     }
 }

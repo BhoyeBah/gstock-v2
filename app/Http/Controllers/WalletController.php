@@ -54,16 +54,17 @@ class WalletController extends Controller
 
     public function transfert(Request $request)
     {
+        $tenantId = auth()->user()->tenant_id;
         $request->validate([
-            'from_wallet_id' => 'required|exists:wallets,id',
-            'to_wallet_id' => 'required|exists:wallets,id|different:from_wallet_id',
+            'from_wallet_id' => ['required', \Illuminate\Validation\Rule::exists('wallets', 'id')->where('tenant_id', $tenantId)],
+            'to_wallet_id' => ['required', \Illuminate\Validation\Rule::exists('wallets', 'id')->where('tenant_id', $tenantId), 'different:from_wallet_id'],
             'amount' => 'required|numeric|min:1',
         ]);
 
         DB::transaction(function () use ($request) {
 
-            $fromWallet = Wallet::lockForUpdate()->findOrFail($request->from_wallet_id);
-            $toWallet = Wallet::lockForUpdate()->findOrFail($request->to_wallet_id);
+            $fromWallet = Wallet::where('tenant_id', auth()->user()->tenant_id)->lockForUpdate()->findOrFail($request->from_wallet_id);
+            $toWallet = Wallet::where('tenant_id', auth()->user()->tenant_id)->lockForUpdate()->findOrFail($request->to_wallet_id);
             $amount = $request->amount;
 
             if ($fromWallet->current_balance < $amount) {

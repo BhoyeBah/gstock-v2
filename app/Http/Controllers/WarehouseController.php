@@ -54,6 +54,10 @@ class WarehouseController extends Controller
      */
     public function show(Warehouse $warehouse)
     {
+        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, "Action non autorisée.");
+        }
+
         // Récupérer les lots de cet entrepôt avec le produit et la facture associée
         $batches = $warehouse->batches()
             ->with(['product', 'invoice'])  // Charger relations
@@ -75,7 +79,10 @@ class WarehouseController extends Controller
      */
     public function edit(Warehouse $warehouse)
     {
-        //
+        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, "Action non autorisée.");
+        }
+
         return view('back.warehouses.edit', compact('warehouse'));
     }
 
@@ -85,6 +92,9 @@ class WarehouseController extends Controller
     public function update(WarehouseRequest $request, Warehouse $warehouse)
     {
         //
+        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, "Action non autorisée.");
+        }
         $warehouse->update($request->validated());
 
         return redirect()->route('warehouses.index')
@@ -97,11 +107,14 @@ class WarehouseController extends Controller
      */
     public function destroy(Warehouse $warehouse)
     {
+        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, "Action non autorisée.");
+        }
+
         if ($warehouse->is_active) {
             return back()->with('error', 'Impossible de supprimer un entrêpot actif. Veuillez le désactiver d\'abord.');
         }
 
-        //
         $warehouse->delete();
 
         return back()->with('success', 'Entrêpot supprimé avec succés');
@@ -109,18 +122,26 @@ class WarehouseController extends Controller
 
     public function exchangeIndex(string $id)
     {
-        $warehouse = Warehouse::with('batches.product')->findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
+        $warehouse = Warehouse::with('batches.product')
+            ->where('tenant_id', $tenantId)
+            ->findOrFail($id);
 
-        // Récupérer tous les entrepôts sauf l'entrepôt source
-        $warehouses = Warehouse::with('batches')->where('id', '!=', $warehouse->id)->get();
+        // Récupérer tous les entrepôts du tenant sauf l'entrepôt source
+        $warehouses = Warehouse::with('batches')
+            ->where('tenant_id', $tenantId)
+            ->where('id', '!=', $warehouse->id)
+            ->get();
 
         return view('back.warehouses.exchange', compact('warehouse', 'warehouses'));
-
     }
 
     public function exchange(ExchangeRequest $request, string $id)
     {
-        $warehouseOut = Warehouse::with('batches.product')->findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
+        $warehouseOut = Warehouse::with('batches.product')
+            ->where('tenant_id', $tenantId)
+            ->findOrFail($id);
 
         $warehouseInId = $request->input('to_warehouse');
         $batches = $request->input('batch_id');
@@ -132,8 +153,8 @@ class WarehouseController extends Controller
             foreach ($batches as $index => $batchId) {
                 $quantity = $quantities[$index];
 
-                // Récupérer le batch source
-                $batch = Batch::findOrFail($batchId);
+                // Récupérer le batch source (scoped au tenant)
+                $batch = Batch::where('tenant_id', $tenantId)->lockForUpdate()->findOrFail($batchId);
 
                 if ($batch->remaining < $quantity) {
                     throw new \Exception("La quantité demandée pour le lot {$batch->code} est supérieure au stock disponible.");
@@ -182,7 +203,7 @@ class WarehouseController extends Controller
 
     public function toggleActive(string $id)
     {
-        $warehouse = Warehouse::findOrFail($id);
+        $warehouse = Warehouse::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
         $warehouse->is_active = ! $warehouse->is_active;
         $warehouse->save();
 
