@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\DocumentNumberService;
 use App\Traits\HasTenant;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -37,14 +38,13 @@ class Inventory extends Model
         return $this->hasMany(InventoryItem::class);
     }
 
+    public function movements()
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
     public static function generateInventoryNumber(): string
     {
-        $year = date('Y');
-
-        // Compter le nombre d'inventaires pour l'année en cours
-        $count = self::whereYear('created_at', $year)->count() + 1;
-
-        // Formater le numéro : INV-2024-001
-        return 'INV-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
+        return app(DocumentNumberService::class)->generate('inventory');
     }
 }

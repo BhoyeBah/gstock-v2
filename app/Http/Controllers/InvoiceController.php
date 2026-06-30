@@ -16,6 +16,7 @@ use App\Models\ReturnProduct;
 use App\Models\Wallet;
 use App\Models\walletTransaction;
 use App\Models\Warehouse;
+use App\Services\DocumentNumberService;
 use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -115,9 +116,10 @@ class InvoiceController extends Controller
     {
         //
         $this->validateType($type);
-        $invoice = Invoice::with('items')->findOrFail($id);
-
-        $invoice = Invoice::with(['items.returns', 'items.product', 'items.warehouse', 'contact'])
+        $tenantId = auth()->user()->tenant_id;
+        $invoice = Invoice::query()
+            ->where('tenant_id', $tenantId)
+            ->with(['items.returns', 'items.product', 'items.warehouse', 'contact', 'quote', 'saleOrder'])
             ->findOrFail($id);
 
         $this->checkAuthorization($invoice, $type);
@@ -261,6 +263,7 @@ class InvoiceController extends Controller
             $invoice->save();
 
             Payment::create([
+                'payment_number' => app(DocumentNumberService::class)->generate('payment', $invoice->tenant),
                 'wallet_id' => $wallet->id,
                 'invoice_id' => $invoice->id,
                 'tenant_id' => $invoice->tenant_id,
@@ -516,11 +519,44 @@ class InvoiceController extends Controller
 
         try {
             DB::transaction(function () use ($invoice) {
-
-                // 1️⃣ VALIDATION MÉTIER (AUCUNE ÉCRITURE)
                 foreach ($invoice->items as $item) {
+                    $movements = InventoryMovement::query()
+                        ->where('invoice_id', $invoice->id)
+                        ->where('invoice_item_id', $item->id)
+                        ->whereNotNull('batch_id')
+                        ->lockForUpdate()
+                        ->get();
 
-                    $batch = Batch::where('product_id', $item->product_id)
+                    if ($movements->isNotEmpty()) {
+                        foreach ($movements as $movement) {
+                            $batch = Batch::query()
+                                ->whereKey($movement->batch_id)
+                                ->lockForUpdate()
+                                ->first();
+
+                            if (! $batch) {
+                                abort(422, "Batch introuvable pour le produit {$item->product->name}");
+                            }
+
+                            if ($batch->remaining < $movement->quantity) {
+                                abort(
+                                    422,
+                                    "Impossible d’annuler la facture : le stock du produit {$item->product->name} a déjà été consommé."
+                                );
+                            }
+
+                            $batch->quantity += $movement->quantity;
+                            $batch->remaining += $movement->quantity;
+                            $batch->save();
+                        }
+
+                        continue;
+                    }
+
+                    $batch = Batch::query()
+                        ->where('tenant_id', $invoice->tenant_id)
+                        ->where('warehouse_id', $item->warehouse_id)
+                        ->where('product_id', $item->product_id)
                         ->where('unit_price', $item->unit_price)
                         ->lockForUpdate()
                         ->first();
@@ -535,26 +571,17 @@ class InvoiceController extends Controller
                             "Impossible d’annuler la facture : le stock du produit {$item->product->name} a déjà été consommé."
                         );
                     }
-                }
 
-                // 2️⃣ EXÉCUTION (APRÈS VALIDATION COMPLÈTE)
-                foreach ($invoice->items as $item) {
-
-                    $batch = Batch::where('product_id', $item->product_id)
-                        ->where('unit_price', $item->unit_price)
-                        ->lockForUpdate()
-                        ->first();
-
-                    $batch->quantity -= $item->quantity;
-                    $batch->remaining -= $item->quantity;
+                    $batch->quantity += $item->quantity;
+                    $batch->remaining += $item->quantity;
                     $batch->save();
                 }
 
-                // 3️⃣ Nettoyage logique
+                // Nettoyage logique
                 InventoryMovement::where('invoice_id', $invoice->id)->delete();
                 Payment::where('invoice_id', $invoice->id)->delete();
 
-                // 4️⃣ Annulation logique
+                // Annulation logique
                 $invoice->status = 'cancelled';
                 $invoice->save();
             });

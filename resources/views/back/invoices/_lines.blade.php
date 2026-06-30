@@ -126,6 +126,37 @@
     <i class="fas fa-plus"></i> Ajouter une ligne
 </button>
 
+<template id="invoice-line-template">
+    <tr>
+        <td>
+            <select name="items[__INDEX__][warehouse_id]" class="form-control warehouseSelect" required>
+                <option value="">Sélectionnez un entrepôt</option>
+                @foreach ($warehouses as $warehouse)
+                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                @endforeach
+            </select>
+        </td>
+
+        <td>
+            <select name="items[__INDEX__][product_id]" class="form-control productSelect" required>
+                <option value="">Sélectionnez un produit</option>
+                @foreach ($products as $product)
+                    <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-is-perishable="{{ $product->is_perishable }}">
+                        {{ $product->name }}
+                    </option>
+                @endforeach
+            </select>
+        </td>
+
+        <td><input type="number" name="items[__INDEX__][quantity]" class="form-control quantity" value="1" min="1" required></td>
+        <td><input type="number" name="items[__INDEX__][unit_price]" class="form-control unit_price" value="0" min="0" required></td>
+        <td><input type="number" name="items[__INDEX__][discount]" class="form-control discount" value="0" min="0"></td>
+        __EXPIRATION_CELL__
+        <td class="total_line">0</td>
+        <td class="text-center"><button type="button" class="btn btn-sm btn-danger removeLineBtn"><i class="fas fa-trash"></i></button></td>
+    </tr>
+</template>
+
 <div class="mt-3 text-right">
     <strong>Total Réduction : </strong> <span id="invoiceDiscountTotal">0</span> FCFA<br>
     <strong>Total Facture : </strong> <span id="invoiceTotal">0</span> FCFA
@@ -134,6 +165,7 @@
 @push('scripts')
     <script>
         const isSupplier = @json($isSupplier);
+        const lineTemplate = document.getElementById('invoice-line-template');
         let lineIndex = document.querySelectorAll('#invoiceLinesTable tbody tr').length;
 
         function toNumber(v) {
@@ -186,40 +218,20 @@
 
         document.getElementById('addLineBtn').addEventListener('click', () => {
             const tbody = document.querySelector('#invoiceLinesTable tbody');
+            if (!tbody || !lineTemplate) return;
 
-            let expirationCell = isSupplier ?
-                `<td><input type="date" name="items[${lineIndex}][expiration_date]" class="form-control expiration_date" disabled></td>` :
-                '';
+            const expirationCell = isSupplier
+                ? `<td><input type="date" name="items[${lineIndex}][expiration_date]" class="form-control expiration_date" disabled></td>`
+                : '';
 
-            tbody.insertAdjacentHTML('beforeend', `
-<tr>
-    <td>
-        <select name="items[${lineIndex}][warehouse_id]" class="form-control warehouseSelect" required>
-            <option value="">Sélectionnez un entrepôt</option>
-            @foreach ($warehouses as $warehouse)
-                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-            @endforeach
-        </select>
-    </td>
+            const wrapper = document.createElement('tbody');
+            wrapper.innerHTML = lineTemplate.innerHTML
+                .replaceAll('__INDEX__', String(lineIndex))
+                .replace('__EXPIRATION_CELL__', expirationCell);
 
-    <td>
-        <select name="items[${lineIndex}][product_id]" class="form-control productSelect" required>
-            <option value="">Sélectionnez un produit</option>
-            @foreach ($products as $product)
-                <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-is-perishable="{{ $product->is_perishable }}">
-                    {{ $product->name }}
-                </option>
-            @endforeach
-        </select>
-    </td>
+            const clone = wrapper.querySelector('tr');
 
-    <td><input type="number" name="items[${lineIndex}][quantity]" class="form-control quantity" value="1" min="1" required></td>
-    <td><input type="number" name="items[${lineIndex}][unit_price]" class="form-control unit_price" value="0" min="0" required></td>
-    <td><input type="number" name="items[${lineIndex}][discount]" class="form-control discount" value="0" min="0"></td>
-    ${expirationCell}
-    <td class="total_line">0</td>
-    <td class="text-center"><button type="button" class="btn btn-sm btn-danger removeLineBtn"><i class="fas fa-trash"></i></button></td>
-</tr>`);
+            tbody.appendChild(clone);
 
             const newRow = tbody.querySelector('tr:last-child');
             updateLineTotal(newRow);

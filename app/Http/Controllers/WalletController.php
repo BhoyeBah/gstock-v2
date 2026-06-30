@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\WalletRequest;
 use App\Models\Wallet;
-use App\Models\walletTransaction;
+use App\Models\walletTransaction as WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class WalletController extends Controller
 {
@@ -54,16 +55,31 @@ class WalletController extends Controller
 
     public function transfert(Request $request)
     {
+        $tenantId = $request->user()->tenant_id;
+
         $request->validate([
-            'from_wallet_id' => 'required|exists:wallets,id',
-            'to_wallet_id' => 'required|exists:wallets,id|different:from_wallet_id',
+            'from_wallet_id' => [
+                'required',
+                Rule::exists('wallets', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
+            ],
+            'to_wallet_id' => [
+                'required',
+                'different:from_wallet_id',
+                Rule::exists('wallets', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
+            ],
             'amount' => 'required|numeric|min:1',
         ]);
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, $tenantId) {
 
-            $fromWallet = Wallet::lockForUpdate()->findOrFail($request->from_wallet_id);
-            $toWallet = Wallet::lockForUpdate()->findOrFail($request->to_wallet_id);
+            $fromWallet = Wallet::where('tenant_id', $tenantId)
+                ->whereKey($request->from_wallet_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $toWallet = Wallet::where('tenant_id', $tenantId)
+                ->whereKey($request->to_wallet_id)
+                ->lockForUpdate()
+                ->firstOrFail();
             $amount = $request->amount;
 
             if ($fromWallet->current_balance < $amount) {
@@ -75,14 +91,18 @@ class WalletController extends Controller
             $fromWallet->decrement('current_balance', $amount);
 
             WalletTransaction::create([
+                'tenant_id' => $tenantId,
                 'wallet_id' => $fromWallet->id,
+                'user_id' => $request->user()->id,
                 'type' => 'out',
+                'transaction_type' => 'wallet_transfer_out',
                 'amount' => $amount,
                 'balance_before' => $fromBefore,
                 'balance_after' => $fromBefore - $amount,
-                'source_type' => $fromWallet->name,
+                'source_type' => Wallet::class,
                 'source_id' => $toWallet->id,
                 'note' => 'Transfert vers '.$toWallet->name.'('.$fromWallet->identifier.')',
+                'description' => 'Transfert vers '.$toWallet->name.'('.$fromWallet->identifier.')',
             ]);
 
             // ===== CRÉDIT =====
@@ -90,14 +110,18 @@ class WalletController extends Controller
             $toWallet->increment('current_balance', $amount);
 
             WalletTransaction::create([
+                'tenant_id' => $tenantId,
                 'wallet_id' => $toWallet->id,
+                'user_id' => $request->user()->id,
                 'type' => 'in',
+                'transaction_type' => 'wallet_transfer_in',
                 'amount' => $amount,
                 'balance_before' => $toBefore,
                 'balance_after' => $toBefore + $amount,
-                'source_type' => $toWallet->name,
+                'source_type' => Wallet::class,
                 'source_id' => $fromWallet->id,
                 'note' => 'Transfert depuis '.$fromWallet->name.'('.$toWallet->identifier.')',
+                'description' => 'Transfert depuis '.$fromWallet->name.'('.$toWallet->identifier.')',
             ]);
 
         });
@@ -108,7 +132,7 @@ class WalletController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(wallet $wallet)
+    public function show(Wallet $wallet)
     {
         //
     }
@@ -116,7 +140,7 @@ class WalletController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(wallet $wallet)
+    public function edit(Wallet $wallet)
     {
         //
     }
@@ -124,7 +148,7 @@ class WalletController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, wallet $wallet)
+    public function update(Request $request, Wallet $wallet)
     {
         //
     }
@@ -132,7 +156,7 @@ class WalletController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(wallet $wallet)
+    public function destroy(Wallet $wallet)
     {
         //
     }

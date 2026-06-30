@@ -6,6 +6,11 @@
             <h4 class="mb-0 text-gray-800">
                 <i class="fas fa-cog mr-2"></i> Paramètres de configuration
             </h4>
+            @can('read_document_sequences')
+                <a href="{{ route('document-sequences.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-list-ol mr-1"></i> Sequences documents
+                </a>
+            @endcan
         </div>
 
         {{-- Card affichant l'état actuel --}}

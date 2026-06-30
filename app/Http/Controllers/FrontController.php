@@ -139,11 +139,27 @@ class FrontController extends Controller
             ->limit(10)
             ->get();
 
+        $lowStockProducts = DB::table('products as p')
+            ->leftJoin('batches as b', 'p.id', '=', 'b.product_id')
+            ->select(
+                'p.id',
+                'p.name',
+                'p.seuil_alert',
+                DB::raw('COALESCE(SUM(b.remaining), 0) as stock_total')
+            )
+            ->where('p.tenant_id', $tenant->id)
+            ->groupBy('p.id', 'p.name', 'p.seuil_alert')
+            ->havingRaw('COALESCE(SUM(b.remaining), 0) <= p.seuil_alert')
+            ->orderBy('stock_total')
+            ->limit(6)
+            ->get();
+
         return view('back.dashboard.client', [
             'period' => $period,
             'stats' => $stats,
             'dernieresFactures' => $dernieresFactures,
             'derniersPaiements' => $derniersPaiements,
+            'lowStockProducts' => $lowStockProducts,
         ]);
     }
 }

@@ -8,11 +8,16 @@ use App\Models\Batch;
 use App\Models\InventoryMovement;
 use App\Models\StockTransfert;
 use App\Models\Warehouse;
+use App\Services\DocumentNumberService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class WarehouseController extends Controller
 {
+    public function __construct(
+        private readonly DocumentNumberService $documentNumberService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -109,10 +114,16 @@ class WarehouseController extends Controller
 
     public function exchangeIndex(string $id)
     {
-        $warehouse = Warehouse::with('batches.product')->findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
+        $warehouse = Warehouse::with('batches.product')
+            ->where('tenant_id', $tenantId)
+            ->findOrFail($id);
 
         // Récupérer tous les entrepôts sauf l'entrepôt source
-        $warehouses = Warehouse::with('batches')->where('id', '!=', $warehouse->id)->get();
+        $warehouses = Warehouse::with('batches')
+            ->where('tenant_id', $tenantId)
+            ->where('id', '!=', $warehouse->id)
+            ->get();
 
         return view('back.warehouses.exchange', compact('warehouse', 'warehouses'));
 
@@ -120,7 +131,10 @@ class WarehouseController extends Controller
 
     public function exchange(ExchangeRequest $request, string $id)
     {
-        $warehouseOut = Warehouse::with('batches.product')->findOrFail($id);
+        $tenantId = auth()->user()->tenant_id;
+        $warehouseOut = Warehouse::with('batches.product')
+            ->where('tenant_id', $tenantId)
+            ->findOrFail($id);
 
         $warehouseInId = $request->input('to_warehouse');
         $batches = $request->input('batch_id');
@@ -133,7 +147,7 @@ class WarehouseController extends Controller
                 $quantity = $quantities[$index];
 
                 // Récupérer le batch source
-                $batch = Batch::findOrFail($batchId);
+                $batch = Batch::where('tenant_id', $tenantId)->findOrFail($batchId);
 
                 if ($batch->remaining < $quantity) {
                     throw new \Exception("La quantité demandée pour le lot {$batch->code} est supérieure au stock disponible.");
@@ -159,6 +173,7 @@ class WarehouseController extends Controller
 
                 // Enregistrer le transfert
                 StockTransfert::create([
+                    'transfer_number' => $this->documentNumberService->generate('transfer', auth()->user()->tenant),
                     'tenant_id' => $batch->tenant_id,
                     'product_id' => $batch->product_id,
                     'source_warehouse_id' => $warehouseOut->id,

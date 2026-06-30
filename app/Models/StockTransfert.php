@@ -17,6 +17,7 @@ class StockTransfert extends Model
      * Les attributs pouvant être assignés en masse.
      */
     protected $fillable = [
+        'transfer_number',
         'product_id',
         'source_warehouse_id',
         'target_warehouse_id',

@@ -298,10 +298,12 @@
                     <i class="fas fa-plus-circle mr-1"></i>
                     <strong>Nouvelle catégorie</strong>
                 </button>
-                <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#addProductModal">
-                    <i class="fas fa-plus-circle mr-1"></i>
-                    <strong>Nouveau produit</strong>
-                </button>
+                @can('create_products')
+                    <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#addProductModal">
+                        <i class="fas fa-plus-circle mr-1"></i>
+                        <strong>Nouveau produit</strong>
+                    </button>
+                @endcan
             </div>
         </div>
     </div>
@@ -586,29 +588,33 @@
                     <p class="text-muted mb-4">
                         Essayez de modifier vos filtres ou créez-en un nouveau
                     </p>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">
-                        <i class="fas fa-plus-circle mr-2"></i> Créer un nouveau produit
-                    </button>
+                    @can('create_products')
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">
+                            <i class="fas fa-plus-circle mr-2"></i> Créer un nouveau produit
+                        </button>
+                    @endcan
                 </div>
             @endif
         </div>
     </div>
 
     <!-- Modal : Ajout d'un produit -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                @include('back.products._form', [
-                    'route' => route('products.store'),
-                    'method' => 'POST',
-                    'product' => new \App\Models\Product(),
-                    'categories' => \App\Models\Category::all(),
-                    'units' => \App\Models\Units::all(),
-                ])
+    @can('create_products')
+        <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel"
+            aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-product-compact" role="document">
+                <div class="modal-content">
+                    @include('back.products._form', [
+                        'route' => route('products.store'),
+                        'method' => 'POST',
+                        'product' => new \App\Models\Product(),
+                        'categories' => \App\Models\Category::all(),
+                        'units' => \App\Models\Units::all(),
+                    ])
+                </div>
             </div>
         </div>
-    </div>
+    @endcan
 
     <!-- Modal : Ajout d'une catégorie -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel"

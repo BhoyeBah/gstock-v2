@@ -15,7 +15,8 @@ class Payment extends Model
      * Les attributs qui peuvent être remplis en masse.
      */
     protected $fillable = [
-        'wallet_id', 
+        'payment_number',
+        'wallet_id',
         'invoice_id',
         'tenant_id',
         'contact_id',
@@ -23,13 +24,18 @@ class Payment extends Model
         'remaining_amount',
         'payment_date',
         'payment_type',
-        'payment_source'
+        'payment_source',
+        'status',
+        'cancelled_at',
+        'cancelled_by',
+        'cancellation_reason',
     ];
 
     protected $casts = [
         'payment_date' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
 
@@ -55,5 +61,25 @@ class Payment extends Model
     public function contact()
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function wallet()
+    {
+        return $this->belongsTo(Wallet::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(walletTransaction::class);
+    }
+
+    public function cancelledBy()
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
     }
 }

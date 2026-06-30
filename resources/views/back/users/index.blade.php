@@ -1,26 +1,30 @@
 @extends('back.layouts.admin')
 
 @section('content')
-<!-- En-tête de page -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">👥 Gestion des utilisateurs</h1>
-    @can('create_users')
-    <a href="{{ route('users.create') }}" class="btn btn-primary shadow-sm">
-        <i class="fas fa-plus fa-sm text-white-50"></i> Nouvel utilisateur
-    </a>
-    @endcan
+<div class="page-hero page-hero--accent">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <div class="page-hero__eyebrow mb-2">Paramètres</div>
+            <h1 class="page-hero__title mb-0">👥 Gestion des utilisateurs</h1>
+            <p class="page-hero__subtitle">Comptes, accès et statuts pour votre entreprise.</p>
+        </div>
+        @can('create_users')
+            <a href="{{ route('users.create') }}" class="btn btn-light">
+                <i class="fas fa-plus fa-sm mr-1"></i> Nouvel utilisateur
+            </a>
+        @endcan
+    </div>
 </div>
 
-<!-- Liste des utilisateurs -->
-<div class="card shadow border-left-primary">
-    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+<div class="table-card">
+    <div class="card-header text-white d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold">Liste des utilisateurs</h6>
     </div>
 
     <div class="card-body">
         @if($users->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-sm">
+                <table class="table data-table">
                     <thead class="thead-light text-uppercase text-secondary">
                         <tr>
                             <th>#</th>

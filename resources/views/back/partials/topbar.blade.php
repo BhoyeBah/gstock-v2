@@ -147,23 +147,23 @@
                 <div class="row">
                     <!-- Nouvelle Facture Client -->
                     <div class="col-4 text-center mb-3">
-                        <a href="{{ route('invoices.store', 'clients') }}" class="text-decoration-none">
+                        <a href="{{ route('invoices.index', ['type' => 'clients']) }}" class="text-decoration-none">
                             <div class="icon-circle bg-primary mx-auto mb-2"
                                 style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-file-invoice text-white"></i>
                             </div>
-                            <div class="small font-weight-bold text-dark">Facture Client</div>
+                            <div class="small font-weight-bold text-dark">Factures Client</div>
                         </a>
                     </div>
 
                     <!-- Facture Fournisseur -->
                     <div class="col-4 text-center mb-3">
-                        <a href="{{ route('invoices.index', 'suppliers') }}" class="text-decoration-none">
+                        <a href="{{ route('invoices.index', ['type' => 'suppliers']) }}" class="text-decoration-none">
                             <div class="icon-circle bg-warning mx-auto mb-2"
                                 style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-receipt text-white"></i>
                             </div>
-                            <div class="small font-weight-bold text-dark">Facture Fournisseur</div>
+                            <div class="small font-weight-bold text-dark">Factures Fournisseur</div>
                         </a>
                     </div>
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasTenant;
 use App\Traits\HasUuid;
+use App\Services\DocumentNumberService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,12 +15,18 @@ class Invoice extends Model
 
     protected $fillable = [
         'contact_id',
+        'quote_id',
+        'sale_order_id',
         'invoice_number',
         'invoice_date',
         'due_date',
         'type',
         'total_invoice',
+        'total_ht',
+        'tax_amount',
+        'discount_amount',
         'balance',
+        'status',
         'created_at',
         'updated_at',
     ];
@@ -69,6 +76,16 @@ class Invoice extends Model
         return $this->belongsTo(Contact::class);
     }
 
+    public function quote()
+    {
+        return $this->belongsTo(Quote::class);
+    }
+
+    public function saleOrder()
+    {
+        return $this->belongsTo(SaleOrder::class);
+    }
+
     // Lignes de facture
     public function items()
     {
@@ -79,6 +96,12 @@ class Invoice extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class, 'invoice_id', 'id');
+    }
+
+    public function completedPayments()
+    {
+        return $this->hasMany(Payment::class, 'invoice_id', 'id')
+            ->where('status', 'completed');
     }
 
     /**
@@ -97,32 +120,11 @@ class Invoice extends Model
         throw new \RuntimeException('tenant_id et type requis pour générer invoice_number');
     }
 
-    // Date de facture
-    $this->invoice_date = $this->invoice_date ?? now();
-    $year = \Carbon\Carbon::parse($this->invoice_date)->format('Y');
+    $documentType = $this->type === self::TYPE_SUPPLIER
+        ? 'supplier_invoice'
+        : 'customer_invoice';
 
-    $base = "FAC-{$year}-";
-
-    // Récupère le dernier numéro généré valide de l’année
-    $lastInvoice = self::where('tenant_id', $this->tenant_id)
-        ->where('type', $this->type)
-        ->whereYear('invoice_date', $year)
-        ->where('status', '!=', 'draft')
-        ->where('invoice_number', 'LIKE', $base . '%') // 🔹 Ignore les numéros manuels
-        ->orderByDesc('invoice_number')
-        ->first();
-
-    // Extrait la partie numérique (ex: "FAC-2025-000009" => 9)
-    $lastNumber = 0;
-    if ($lastInvoice && preg_match('/FAC-' . $year . '-(\d+)/', $lastInvoice->invoice_number, $matches)) {
-        $lastNumber = (int) $matches[1];
-    }
-
-    // Incrémente le numéro
-    $next = $lastNumber + 1;
-
-    // Formate le nouveau numéro
-    $this->invoice_number = sprintf('%s%06d', $base, $next);
+    $this->invoice_number = app(DocumentNumberService::class)->generate($documentType, $this->tenant);
 
     return $this->invoice_number;
 }

@@ -1,22 +1,28 @@
 @extends('back.layouts.admin')
 
 @section('content')
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">🛡️ Gestion des rôles</h1>
-    <a href="{{ route('roles.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nouveau rôle
-    </a>
+<div class="page-hero page-hero--accent">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <div class="page-hero__eyebrow mb-2">Accès</div>
+            <h1 class="page-hero__title mb-0">🛡️ Gestion des rôles</h1>
+            <p class="page-hero__subtitle">Permissions organisées pour chaque niveau d’accès.</p>
+        </div>
+        <a href="{{ route('roles.create') }}" class="btn btn-light">
+            <i class="fas fa-plus mr-1"></i> Nouveau rôle
+        </a>
+    </div>
 </div>
 
-<div class="card shadow border-left-primary">
-    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+<div class="table-card">
+    <div class="card-header text-white d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold">Liste des rôles</h6>
     </div>
 
     <div class="card-body">
         @if($roles->count())
             <div class="table-responsive">
-                <table class="table table-hover align-middle text-sm">
+                <table class="table data-table">
                     <thead class="thead-light text-uppercase text-secondary">
                         <tr>
                             <th>#</th>

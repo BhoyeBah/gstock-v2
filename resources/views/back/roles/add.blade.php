@@ -1,86 +1,109 @@
 @extends('back.layouts.admin')
 
 @section('content')
-<!-- Page Heading -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h4 mb-0 text-gray-800">🛡️ Ajouter un rôle</h1>
-    <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left"></i> Retour à la liste
-    </a>
-</div>
+    <div class="page-hero page-hero--accent mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <div class="page-hero__eyebrow mb-2">Accès</div>
+                <h1 class="page-hero__title mb-0">🛡️ Ajouter un rôle</h1>
+                <p class="page-hero__subtitle">Structurez les permissions par profil pour garder une gestion claire et scalable.</p>
+            </div>
+            <a href="{{ route('roles.index') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left mr-1"></i> Retour
+            </a>
+        </div>
+    </div>
 
-<!-- Card -->
-<div class="card shadow-sm border-0">
-    <div class="card-body">
+    <div class="panel-card">
         <form action="{{ route('roles.store') }}" method="POST">
             @csrf
 
-            <!-- Entreprise -->
-            <div class="form-group">
-                <label for="tenant_id" class="font-weight-bold">Entreprise concernée <span class="text-danger">*</span></label>
-                <select name="tenant_id" id="tenant_id" class="form-control @error('tenant_id') is-invalid @enderror" required>
-                    @if(auth()->user()->is_platform_user())
-                        <option value="">-- Choisir une entreprise --</option>
-                    @endif
-                    @foreach($tenants as $tenant)
-                        <option value="{{ $tenant->id }}" {{ old('tenant_id') == $tenant->id ? 'selected' : '' }}>
-                            {{ $tenant->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('tenant_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="modern-input-group">
+                        <label for="tenant_id" class="modern-label">Entreprise concernée <span class="text-danger">*</span></label>
+                        <div class="modern-input-wrapper">
+                            <i class="fas fa-building input-icon"></i>
+                            <select name="tenant_id" id="tenant_id" class="form-control" required>
+                                @if (auth()->user()->is_platform_user())
+                                    <option value="">-- Choisir une entreprise --</option>
+                                @endif
+                                @foreach ($tenants as $tenant)
+                                    <option value="{{ $tenant->id }}" {{ old('tenant_id') == $tenant->id ? 'selected' : '' }}>
+                                        {{ $tenant->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @error('tenant_id')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="modern-input-group">
+                        <label for="name" class="modern-label">Nom du rôle <span class="text-danger">*</span></label>
+                        <div class="modern-input-wrapper">
+                            <i class="fas fa-user-shield input-icon"></i>
+                            <input type="text" name="name" id="name" class="form-control"
+                                placeholder="Ex: Manager, Caissier, Agent SAV..."
+                                value="{{ old('name') }}" required>
+                        </div>
+                        @error('name')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
             </div>
 
-            <!-- Nom du rôle -->
-            <div class="form-group mt-3">
-                <label for="name" class="font-weight-bold">Nom du rôle <span class="text-danger">*</span></label>
-                <input type="text" name="name" id="name"
-                       class="form-control @error('name') is-invalid @enderror"
-                       placeholder="Ex: Manager, Caissier, Agent SAV..."
-                       value="{{ old('name') }}" required>
-                @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+            <div class="mt-3">
+                <div class="section-title">
+                    <div>
+                        <h3>Permissions associées</h3>
+                        <p>Choisissez les droits réellement nécessaires pour ce profil.</p>
+                    </div>
+                </div>
 
-            <!-- Permissions -->
-            <div class="form-group mt-4">
-                <label class="font-weight-bold">Permissions associées</label>
                 <div class="row">
-                    @forelse($permissions as $permission)
-                        <div class="col-md-4 col-sm-6 mb-2">
-                            <div class="custom-control custom-checkbox">
+                    @forelse ($permissions as $permission)
+                        <div class="col-lg-4 col-md-6 mb-3">
+                            <div class="modern-checkbox h-100">
                                 <input type="checkbox"
-                                       class="custom-control-input"
-                                       id="perm_{{ $permission->id }}"
-                                       name="permissions[]"
-                                       value="{{ $permission->id }}"
-                                       {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="perm_{{ $permission->id }}">
+                                    id="perm_{{ $permission->id }}"
+                                    name="permissions[]"
+                                    value="{{ $permission->id }}"
+                                    {{ in_array($permission->id, old('permissions', [])) ? 'checked' : '' }}>
+                                <label for="perm_{{ $permission->id }}">
                                     {{ ucfirst(str_replace('_', ' ', $permission->description)) }}
                                 </label>
                             </div>
                         </div>
                     @empty
                         <div class="col-12">
-                            <small class="text-muted">Aucune permission disponible.</small>
+                            <div class="empty-state">
+                                <div class="empty-state__icon">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                <div class="font-weight-bold text-gray-900">Aucune permission disponible</div>
+                            </div>
                         </div>
                     @endforelse
                 </div>
+
                 @error('permissions')
-                    <div class="text-danger mt-2">{{ $message }}</div>
+                    <small class="text-danger d-block mt-1">{{ $message }}</small>
                 @enderror
             </div>
 
-            <!-- Bouton -->
-            <div class="form-group mt-4 mb-0">
-                <button type="submit" class="btn btn-primary">
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{{ route('roles.index') }}" class="btn-modern btn-secondary">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn-modern btn-primary">
                     <i class="fas fa-save"></i> Enregistrer le rôle
                 </button>
             </div>
         </form>
     </div>
-</div>
 @endsection

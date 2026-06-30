@@ -29,6 +29,16 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'tenant_id' => function () {
+                return \App\Models\Tenant::firstOrCreate([
+                    'slug' => 'platform',
+                ], [
+                    'name' => 'Plateforme SaaS',
+                    'email' => 'contact@platform.local',
+                    'is_active' => true,
+                ])->id;
+            },
+            'is_active' => true,
         ];
     }
 

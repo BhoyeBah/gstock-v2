@@ -6,14 +6,20 @@ use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\InventoryItem;
 use App\Models\Warehouse;
+use App\Services\InventoryReconciliationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
 {
-    //
+    public function __construct(
+        private readonly InventoryReconciliationService $inventoryReconciliationService
+    ) {}
+
     public function index()
     {
 
@@ -31,6 +37,13 @@ class InventoryController extends Controller
 
     public function store(Request $request)
     {
+        $tenantId = auth()->user()->tenant_id;
+        $request->validate([
+            'warehouse_id' => [
+                'required',
+                Rule::exists('warehouses', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
+            ],
+        ]);
 
         $warehouse_id = $request->warehouse_id;
         $existingInventory = Inventory::where('status', '=', 'pending')->where('warehouse_id', '=', $warehouse_id)->first();
@@ -97,36 +110,46 @@ class InventoryController extends Controller
 
     public function show(string $id)
     {
-        $inventory = Inventory::with('items.product')->findOrFail($id);
-        $items = $inventory->items()->get();
+        $inventory = Inventory::with([
+            'warehouse',
+            'items.product',
+            'items.movements.batch',
+            'items.validatedBy',
+            'items.reconciledBy',
+        ])
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->findOrFail($id);
+
+        $items = $inventory->items;
 
         return view('back.inventories.show', compact('inventory', 'items'));
     }
 
     public function validateItem(Request $request, string $id)
     {
+        $validated = $request->validate([
+            'real_qty' => ['required', 'integer', 'min:0'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
 
-        $inventoryItem = InventoryItem::with('product', 'inventory')->findOrFail($id);
+        try {
+            $inventoryItem = $this->inventoryReconciliationService->reconcileItem(
+                inventoryItemId: $id,
+                user: auth()->user(),
+                realQuantity: (int) $validated['real_qty'],
+                reason: $validated['reason'] ?? null
+            );
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors())->withInput();
+        }
+
         $productName = $inventoryItem->product->name;
-        $inventory = $inventoryItem->inventory;
-        $real_qty = $request->input('real_qty');
-        $inventoryItem->real_qty = $real_qty;
 
-        $inventoryItem->variance = $inventoryItem->theoretical_qty - $real_qty;
-        $inventoryItem->validated = true;
-
-        $inventoryItem->save();
-
-        $invalidatedItems = InventoryItem::where('validated', '=', false)->where('inventory_id', $inventoryItem->inventory_id)->first();
-        if (! $invalidatedItems) {
-            $inventory->closed_at = now();
-            $inventory->status = 'completed';
-            $inventory->save();
-
+        if ($inventoryItem->inventory->status === 'completed') {
             return back()->with('success', 'Inventaire validé avec succès.');
         }
 
-        return back()->with('success', "Inventaire du produit ($productName) validé avec succès.");
+        return back()->with('success', "Inventaire du produit ($productName) ajusté avec succès.");
     }
 
     public function print(Inventory $inventory)

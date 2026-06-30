@@ -12,8 +12,15 @@ class ReturnProductController extends Controller
      */
     public function index()
     {
-        //
-        dd("okey");
+        return view('back.modules.placeholder', [
+            'moduleKey' => 'returns',
+            'module' => [
+                'title' => 'Retours clients / fournisseurs',
+                'status' => 'En préparation',
+                'description' => 'Les retours sont gérés aujourd’hui depuis la facture. Le module autonome n’est pas encore livré.',
+                'permissions' => ['manage_client_invoices', 'manage_supplier_invoices'],
+            ],
+        ]);
     }
 
     /**

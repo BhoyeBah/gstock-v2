@@ -271,6 +271,7 @@
                 return $return->quantity * $item->unit_price;
             });
         });
+        $sourceLabel = $invoice->quote ? 'Créée depuis un devis' : ($invoice->saleOrder ? 'Créée depuis une commande client' : 'Créée directement');
     @endphp
 
     <!-- Conteneur principal (avec la classe de correction pour la hauteur) -->
@@ -429,6 +430,27 @@
                                     {{ ucfirst($invoice->status) }}
                                 </span>
                             </dd>
+
+                            <dt class="col-sm-4 mt-2">Origine</dt>
+                            <dd class="col-sm-8 mt-2">{{ $sourceLabel }}</dd>
+
+                            @if ($invoice->quote)
+                                <dt class="col-sm-4">Devis source</dt>
+                                <dd class="col-sm-8">
+                                    <a href="{{ route('quotes.show', $invoice->quote) }}" class="contact-link">
+                                        {{ $invoice->quote->quote_number }}
+                                    </a>
+                                </dd>
+                            @endif
+
+                            @if ($invoice->saleOrder)
+                                <dt class="col-sm-4">Commande source</dt>
+                                <dd class="col-sm-8">
+                                    <a href="{{ route('sale-orders.show', $invoice->saleOrder) }}" class="contact-link">
+                                        {{ $invoice->saleOrder->order_number }}
+                                    </a>
+                                </dd>
+                            @endif
 
                             <dt class="col-sm-4 mt-2">Note</dt>
                             <dd class="col-sm-8 mt-2 text-wrap">{{ $invoice->note ?? '-' }}</dd>
