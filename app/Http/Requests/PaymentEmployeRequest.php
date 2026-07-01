@@ -33,7 +33,7 @@ class PaymentEmployeRequest extends FormRequest
                 }),
                 'nullable',
                 'uuid',
-                'exists:wallets,id',
+                Rule::exists('wallets', 'id')->where('tenant_id', auth()->user()->tenant_id),
             ],
 
             'amount' => [

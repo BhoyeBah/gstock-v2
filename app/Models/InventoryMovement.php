@@ -31,6 +31,15 @@ class InventoryMovement extends Model
         'user_id',
         'movement_date',
         'reason',
+        'tenant_id',
+        'inventory_id',
+        'inventory_item_id',
+        'warehouse_id',
+        'quantity_before',
+        'quantity_after',
+        'variance',
+        'user_id',
+        'movement_type',
     ];
 
     protected $casts = [

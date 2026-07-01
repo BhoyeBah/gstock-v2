@@ -104,6 +104,7 @@ class ContactController extends Controller
         $this->checkAuthorization($contact, $type);
 
         $contact = Contact::with(['invoices.payments'])
+            ->where('tenant_id', auth()->user()->tenant_id)
             ->findOrFail($contact->id);
 
         return view('back.contacts.show', compact('contact', 'type'));
@@ -166,7 +167,7 @@ class ContactController extends Controller
     {
         $contactType = $type === 'clients' ? 'Client' : 'Fournisseur';
 
-        $client = Contact::findOrFail($id);
+        $client = Contact::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
         $client->is_active = ! $client->is_active;
         $client->save();
 

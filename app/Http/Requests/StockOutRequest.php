@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use Illuminate\Validation\Rule;
+
 class StockOutRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,7 +16,7 @@ class StockOutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'batch_id' => ['required', 'exists:batches,id'],
+            'batch_id' => ['required', Rule::exists('batches', 'id')->where('tenant_id', auth()->user()->tenant_id)],
             'quantity' => ['required', 'integer', 'min:1'],
             'reason'   => ['nullable', 'string', 'max:255'],
         ];

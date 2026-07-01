@@ -22,6 +22,7 @@ class walletTransaction extends Model
         'balance_after',
         'source_type',
         'source_id',
+        'description',
         'note',
         'description',
     ];
