@@ -8,7 +8,7 @@
     <style>
         /* En-tête de page */
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -85,8 +85,8 @@
         }
 
         .stats-card.border-left-primary .stats-icon {
-            background: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
+            background: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
         }
 
         /* Section recherche */
@@ -99,7 +99,7 @@
         }
 
         .search-section .card-header {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -111,8 +111,8 @@
         }
 
         .search-section .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
         }
 
         .search-section label {
@@ -130,7 +130,7 @@
         }
 
         .invoice-list-section .card-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -230,17 +230,17 @@
             border-radius: 6px;
             margin: 0 0.125rem;
             border: none;
-            color: #4e73df;
+            color: #4f46e5;
         }
 
         .page-link:hover {
-            background: #4e73df;
+            background: #4f46e5;
             color: #fff;
         }
 
         .page-item.active .page-link {
-            background: #4e73df;
-            border-color: #4e73df;
+            background: #4f46e5;
+            border-color: #4f46e5;
         }
 
         /* Animations */

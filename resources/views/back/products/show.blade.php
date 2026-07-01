@@ -36,7 +36,7 @@
         <style>
             /* Header moderne */
             .product-show-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                 border-radius: 15px;
                 padding: 2rem;
                 margin-bottom: 2rem;
@@ -65,7 +65,7 @@
 
             .product-show-header .btn:hover {
                 background: #fff;
-                color: #764ba2;
+                color: #7c3aed;
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             }
@@ -92,7 +92,7 @@
             }
 
             .stat-card.border-primary {
-                border-left-color: #4e73df;
+                border-left-color: #4f46e5;
             }
 
             .stat-card.border-dark {
@@ -144,14 +144,14 @@
             }
 
             .section-card .card-header {
-                background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
                 color: #fff;
                 padding: 1.25rem 1.5rem;
                 border: none;
             }
 
             .section-card .card-header.bg-info {
-                background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+                background: linear-gradient(135deg, #475569 0%, #334155 100%);
             }
 
             .section-card .card-header.bg-secondary {
@@ -159,7 +159,7 @@
             }
 
             .section-card .card-header.bg-success {
-                background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+                background: linear-gradient(135deg, #475569 0%, #334155 100%);
             }
 
             .section-card .card-header h6 {
@@ -214,7 +214,7 @@
             }
 
             .product-info-table td a {
-                color: #4e73df;
+                color: #4f46e5;
                 font-weight: 600;
                 text-decoration: none;
             }
@@ -232,7 +232,7 @@
             }
 
             .badge-success {
-                background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+                background: linear-gradient(135deg, #475569 0%, #334155 100%);
                 color: #fff;
             }
 
@@ -314,7 +314,7 @@
             }
 
             .modern-table tbody td a {
-                color: #4e73df;
+                color: #4f46e5;
                 font-weight: 600;
                 text-decoration: none;
             }
@@ -366,7 +366,7 @@
             }
 
             .bg-gradient-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             }
 
             .border-left-info {
@@ -383,7 +383,7 @@
             }
 
             .form-control:focus {
-                border-color: #667eea;
+                border-color: #4f46e5;
                 box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
             }
 

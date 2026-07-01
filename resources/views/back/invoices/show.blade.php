@@ -38,7 +38,7 @@
                                                    EN-TÊTE DE PAGE
                                                    ==================================== */
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -100,8 +100,8 @@
 
         /* Couleurs pour les icônes */
         .stats-card.border-left-primary .stats-icon {
-            background: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
+            background: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
         }
 
         .stats-card.border-left-success .stats-icon {
@@ -128,7 +128,7 @@
         }
 
         .invoice-list-section .card-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             border: none;
             color: #fff;
             /* Texte blanc sur l'en-tête */
@@ -154,7 +154,7 @@
         }
 
         .contact-link {
-            color: #4e73df;
+            color: #4f46e5;
             font-weight: 600;
             text-decoration: none;
         }
@@ -226,7 +226,7 @@
 
         .nav-tabs .nav-link.active {
             color: #ffffffe5;
-            border-bottom-color: #4e73df;
+            border-bottom-color: #4f46e5;
             font-weight: 700;
             background: none;
         }

@@ -4,7 +4,7 @@
     <style>
         /* En-tête de page */
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -56,8 +56,8 @@
         }
 
         .stats-card.border-left-primary .stats-icon {
-            background: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
+            background: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
         }
 
         .stats-card.border-left-success .stats-icon {
@@ -75,7 +75,7 @@
         }
 
         .search-section .card-header {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -87,8 +87,8 @@
         }
 
         .search-section .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
         }
 
         .search-section label {
@@ -106,7 +106,7 @@
         }
 
         .invoice-list-section .card-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -150,8 +150,8 @@
         }
 
         .badge-soft-primary {
-            background: rgba(78, 115, 223, .12);
-            color: #4e73df;
+            background: rgba(79, 70, 229, .12);
+            color: #4f46e5;
         }
 
         .badge-soft-dark {
@@ -177,9 +177,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            color: #4e73df;
-            background: rgba(78, 115, 223, .12);
-            border: 1px solid rgba(78, 115, 223, .25);
+            color: #4f46e5;
+            background: rgba(79, 70, 229, .12);
+            border: 1px solid rgba(79, 70, 229, .25);
         }
 
         .action-buttons .btn {

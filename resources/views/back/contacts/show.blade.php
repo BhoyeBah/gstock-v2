@@ -18,7 +18,7 @@
         <style>
             /* Design inspiré de la page de détails du produit pour la cohérence */
             .contact-show-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                 border-radius: 15px;
                 padding: 2rem;
                 margin-bottom: 2rem;
@@ -49,7 +49,7 @@
 
             .contact-show-header .btn:hover {
                 background: #fff;
-                color: #764ba2;
+                color: #7c3aed;
                 transform: translateY(-2px);
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             }
@@ -71,7 +71,7 @@
             }
 
             .stat-card.border-primary {
-                border-left-color: #4e73df;
+                border-left-color: #4f46e5;
             }
 
             .stat-card.border-success {
@@ -114,14 +114,14 @@
             }
 
             .section-card .card-header {
-                background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
                 color: #fff;
                 padding: 1.25rem 1.5rem;
                 border: none;
             }
 
             .section-card .card-header.bg-info {
-                background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+                background: linear-gradient(135deg, #475569 0%, #334155 100%);
             }
 
             .section-card .card-header h6 {

@@ -332,4 +332,47 @@ class ReportController extends Controller
             'productId'
         ));
     }
+
+    /**
+     * Sprint 2 - Fonctionnalité 11 : rapport journalier des ventes.
+     */
+    public function dailySales(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $date = Carbon::parse($request->input('date', now()->toDateString()))->toDateString();
+
+        // Factures clients validées ce jour (les brouillons ne comptent pas).
+        $invoices = Invoice::where('tenant_id', $tenantId)
+            ->where('type', 'client')
+            ->where('status', '!=', 'draft')
+            ->whereDate('invoice_date', $date)
+            ->with('contact')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $totalSales = (int) $invoices->sum('total_invoice');
+        $totalOutstanding = (int) $invoices->sum('balance');
+        $salesCount = $invoices->count();
+
+        // Encaissements clients réels du jour (hors initialisation à 0).
+        $collectedByWallet = Payment::where('tenant_id', $tenantId)
+            ->where('payment_source', 'client')
+            ->where('amount_paid', '>', 0)
+            ->whereDate('payment_date', $date)
+            ->selectRaw('payment_type, SUM(amount_paid) as total')
+            ->groupBy('payment_type')
+            ->pluck('total', 'payment_type');
+
+        $totalCollected = (int) $collectedByWallet->sum();
+
+        return view('back.reports.daily_sales', compact(
+            'date',
+            'invoices',
+            'totalSales',
+            'totalCollected',
+            'totalOutstanding',
+            'salesCount',
+            'collectedByWallet'
+        ));
+    }
 }

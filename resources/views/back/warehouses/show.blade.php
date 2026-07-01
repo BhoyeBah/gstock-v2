@@ -3,7 +3,7 @@
 @section('content')
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --warning-gradient: linear-gradient(135deg, #f093fb 0%, #fee140 100%);
             --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
@@ -66,7 +66,7 @@
 
         .btn-back {
             background: white;
-            color: #667eea;
+            color: #4f46e5;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 12px;
@@ -79,7 +79,7 @@
         .btn-back:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            color: #667eea;
+            color: #4f46e5;
         }
 
         /* Info Card */
@@ -162,14 +162,14 @@
         }
 
         .info-value a {
-            color: #667eea;
+            color: #4f46e5;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s ease;
         }
 
         .info-value a:hover {
-            color: #764ba2;
+            color: #7c3aed;
             text-decoration: underline;
         }
 
@@ -304,14 +304,14 @@
         }
 
         .modern-table tbody td a {
-            color: #667eea;
+            color: #4f46e5;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s ease;
         }
 
         .modern-table tbody td a:hover {
-            color: #764ba2;
+            color: #7c3aed;
             text-decoration: underline;
         }
 
@@ -382,7 +382,7 @@
         .page-item .page-link {
             border: 2px solid #e5e7eb;
             border-radius: 10px;
-            color: #667eea;
+            color: #4f46e5;
             font-weight: 600;
             padding: 0.5rem 1rem;
             margin: 0 0.25rem;
@@ -396,7 +396,7 @@
 
         .page-item .page-link:hover {
             background: #f3f4f6;
-            border-color: #667eea;
+            border-color: #4f46e5;
         }
 
         /* Responsive */
