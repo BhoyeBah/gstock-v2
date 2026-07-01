@@ -31,7 +31,7 @@ class SupplierReturnController extends Controller
                         ->orWhereHas('contact', fn ($cq) => $cq->where('fullname', 'like', "%{$search}%"));
                 });
             })
-            ->with(['contact', 'supplierInvoice', 'goodsReceipt', 'warehouse'])
+            ->with(['contact', 'supplierInvoice', 'goodsReceipt', 'warehouse', 'creditNote'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -89,6 +89,8 @@ class SupplierReturnController extends Controller
             'contact',
             'warehouse',
             'movements.batch',
+            'creditNote.items.product',
+            'creditNote.invoice',
         ]);
 
         return view('back.returns.show', [
@@ -134,7 +136,19 @@ class SupplierReturnController extends Controller
     {
         $return = $this->supplierReturnService->validateReturn($supplierReturn, $request->user());
 
-        return redirect()->route('supplier-returns.show', $return)->with('success', 'Bon de retour fournisseur validé.');
+        $message = 'Bon de retour fournisseur validé.';
+        if ($return->creditNote) {
+            if ($return->creditNote->applied_amount > 0) {
+                $message = "Bon de retour fournisseur validé. Un avoir fournisseur de ".number_format($return->creditNote->applied_amount, 0, ',', ' ').' FCFA a été appliqué.';
+                if ($return->creditNote->remaining_amount > 0) {
+                    $message .= ' Crédit restant disponible : '.number_format($return->creditNote->remaining_amount, 0, ',', ' ').' FCFA.';
+                }
+            } else {
+                $message = "Bon de retour fournisseur validé. Un avoir fournisseur de ".number_format($return->creditNote->total_ttc, 0, ',', ' ').' FCFA est disponible.';
+            }
+        }
+
+        return redirect()->route('supplier-returns.show', $return)->with('success', $message);
     }
 
     public function cancel(Request $request, SupplierReturn $supplierReturn)

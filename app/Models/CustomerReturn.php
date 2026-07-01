@@ -54,6 +54,11 @@ class CustomerReturn extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function creditNote()
+    {
+        return $this->hasOne(CustomerCreditNote::class, 'customer_return_id');
+    }
+
     public function items()
     {
         return $this->hasMany(CustomerReturnItem::class);

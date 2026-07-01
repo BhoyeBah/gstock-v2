@@ -38,6 +38,7 @@ return new class extends Migration
         if (DB::getDriverName() === 'sqlite') {
             $this->rebuildBatchesForSqlite();
             $this->rebuildInventoryMovementsForSqlite();
+            $this->rebuildReturnProductsForSqlite();
 
             return;
         }
@@ -256,6 +257,38 @@ return new class extends Migration
         ");
 
         Schema::drop('inventory_movements_old_reconciliation');
+        DB::statement('PRAGMA foreign_keys=ON');
+    }
+
+    private function rebuildReturnProductsForSqlite(): void
+    {
+        DB::statement('PRAGMA foreign_keys=OFF');
+        Schema::rename('return_products', 'return_products_old_inventory_reconciliation');
+
+        Schema::create('return_products', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid('tenant_id');
+            $table->uuid('invoice_item_id');
+            $table->uuid('inventory_movement_id')->nullable();
+            $table->integer('quantity');
+            $table->string('motif');
+            $table->timestamps();
+
+            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+            $table->foreign('invoice_item_id')->references('id')->on('invoice_items')->onDelete('cascade');
+            $table->foreign('inventory_movement_id')->references('id')->on('inventory_movements')->onDelete('set null');
+        });
+
+        DB::statement("
+            INSERT INTO return_products (
+                id, tenant_id, invoice_item_id, inventory_movement_id, quantity, motif, created_at, updated_at
+            )
+            SELECT
+                id, tenant_id, invoice_item_id, inventory_movement_id, quantity, motif, created_at, updated_at
+            FROM return_products_old_inventory_reconciliation
+        ");
+
+        Schema::drop('return_products_old_inventory_reconciliation');
         DB::statement('PRAGMA foreign_keys=ON');
     }
 };

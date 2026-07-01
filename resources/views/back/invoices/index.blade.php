@@ -344,6 +344,8 @@
                 'draft' => ['label' => 'Brouillon', 'color' => 'secondary', 'icon' => 'fa-file'],
                 'validated' => ['label' => 'Validée', 'color' => 'info', 'icon' => 'fa-check-circle'],
                 'partial' => ['label' => 'Partielle', 'color' => 'warning', 'icon' => 'fa-clock'],
+                'credited' => ['label' => 'Créditée', 'color' => 'success', 'icon' => 'fa-file-invoice-dollar'],
+                'partially_credited' => ['label' => 'Partiellement payée', 'color' => 'warning', 'icon' => 'fa-file-invoice-dollar'],
                 'paid' => ['label' => 'Payée', 'color' => 'success', 'icon' => 'fa-check-double'],
                 'cancelled' => ['label' => 'Annulée', 'color' => 'danger', 'icon' => 'fa-times-circle'],
             ];

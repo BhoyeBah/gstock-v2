@@ -2,37 +2,43 @@
 
 ## Résumé exécutif
 
-Le projet contient un noyau métier solide pour les factures, paiements, inventaires, wallets, rapports et abonnements.
-En revanche, plusieurs modules visibles dans l’UI sont encore des placeholders ou des écrans de préparation. Le POS n’était pas branché sur un vrai workflow, et deux routes utilisaient encore du debug bloquant.
+Le projet contient maintenant un noyau métier cohérent pour les devis, commandes, livraisons, réceptions, factures, paiements, wallets, taxes, POS, retours et inventaires.
+Les derniers écarts constatés concernent surtout le durcissement sécurité/tenant, l’enforcement des limites d’abonnement et la finition de quelques écrans de stock.
 
 ## Changements réalisés
 
 - suppression du `dd('ok')` dans `SaleController::store()`;
 - suppression du `dd("okey")` dans `ReturnProductController::index()`;
-- remplacement des écrans sales / retours par des pages de préparation honnêtes;
-- ajout de badges explicites `En préparation` et `Bientôt` dans la sidebar;
+- livraison du workflow POS avec reçu imprimable;
+- livraison des bons de retour client et fournisseur avec actions selon le statut;
+- livraison des avoirs client et fournisseur avec application sur facture et remboursement wallet;
+- ajout d’un tableau de bord retours / avoirs avec synthèse des documents récents et des totaux;
+- livraison des pages de taxe, devis, commandes, livraisons, achats et réceptions comme vrais modules ERP;
+- mise à jour du hub `/modules/*` pour refléter les modules réellement livrés;
 - ajout d’une synthèse d’audit du sprint.
 
 ## Modules audités
 
 | Module | Route existe ? | Contrôleur réel ? | Vue Blade réelle ? | Permission existe ? | Données en base ? | Statut | Action recommandée |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| POS / vente rapide | Oui (`/sales`) | Partiel | Partiel | Non dédiée | Non | En préparation | Garder une page de préparation et lancer le vrai sprint POS |
-| Retours clients | Via facture | Partiel | Partiel | Oui | Oui | Partiel | Garder l’interface depuis la facture, puis créer un module autonome |
-| Retours fournisseurs | Non claire | Non | Non | Non dédiée | Partiel | Absent / partiel | Ne pas l’exposer comme terminé |
-| Devis / Proforma | Placeholder | Non | Placeholder | Oui | Non | Absent | Rester en badge `Bientôt` |
-| Commandes clients | Placeholder | Non | Placeholder | Oui | Non | Absent | Rester en badge `Bientôt` |
-| Bons de livraison | Placeholder | Non | Placeholder | Oui | Non | Absent | Rester en badge `Bientôt` |
-| Commandes fournisseurs | Placeholder | Non | Placeholder | Oui | Non | Absent | Rester en badge `Bientôt` |
-| Bons de réception | Placeholder | Non | Placeholder | Oui | Non | Absent | Rester en badge `Bientôt` |
-| Lots / batches | Oui indirectement | Partiel | Partiel | Oui | Oui | Partiel | Continuer à lister depuis stock / entrepôts |
-| Mouvements de stock | Oui indirectement | Partiel | Partiel | Oui | Oui | Partiel | Ajouter un listing global plus tard |
-| Transferts de stock | Oui indirectement | Partiel | Partiel | Oui | Oui | Partiel | Ajouter un module autonome plus tard |
-| Taxes / TVA | Oui | Oui | Oui | Oui | Oui | Fonctionnel | Conserver |
-| Numérotation documents | Oui | Oui | Oui | Oui | Oui | Fonctionnel | Conserver et tester |
-| Paiements & wallets | Oui | Oui | Oui | Oui | Oui | Fonctionnel | Conserver et durcir |
-| Inventaires physiques | Oui | Oui | Oui | Oui | Oui | Fonctionnel | Conserver et durcir |
-| Abonnements / plans / limites | Oui | Oui | Oui | Oui | Oui | Partiel | Limites visibles mais enforcement à compléter |
+| POS / vente rapide | Oui (`/sales`) | Oui | Oui | Oui | Oui | Livré | Garder le durcissement sur reçu et caisse |
+| Retours clients | Oui (`/customer-returns`) | Oui | Oui | Oui | Oui | Livré | Continuer à surveiller validation / réintégration |
+| Retours fournisseurs | Oui (`/supplier-returns`) | Oui | Oui | Oui | Oui | Livré | Continuer à surveiller validation / sortie |
+| Avoirs clients | Oui (`/customer-credit-notes`) | Oui | Oui | Oui | Oui | Livré | Suivre application / remboursement |
+| Avoirs fournisseurs | Oui (`/supplier-credit-notes`) | Oui | Oui | Oui | Oui | Livré | Suivre application / remboursement |
+| Devis / Proforma | Oui (`/quotes`) | Oui | Oui | Oui | Oui | Livré | Conserver le workflow de conversion |
+| Commandes clients | Oui (`/sale-orders`) | Oui | Oui | Oui | Oui | Livré | Conserver le workflow de validation / livraison |
+| Bons de livraison | Oui (`/delivery-notes`) | Oui | Oui | Oui | Oui | Livré | Conserver le lien stock / livraison |
+| Commandes fournisseurs | Oui (`/purchase-orders`) | Oui | Oui | Oui | Oui | Livré | Conserver le lien vers réceptions / factures |
+| Bons de réception | Oui (`/goods-receipts`) | Oui | Oui | Oui | Oui | Livré | Conserver le lien lots / mouvements |
+| Lots / batches | Oui indirectement | Oui | Oui | Oui | Oui | Partiel | Améliorer la vue globale et les filtres |
+| Mouvements de stock | Oui indirectement | Oui | Oui | Oui | Oui | Partiel | Ajouter un affichage plus exploitable à l’échelle globale |
+| Transferts de stock | Oui indirectement | Oui | Oui | Oui | Oui | Partiel | Ajouter un module de gestion plus complet |
+| Taxes / TVA | Oui (`/taxes`) | Oui | Oui | Oui | Oui | Livré | Conserver et tester les règles d’isolation |
+| Numérotation documents | Oui | Oui | Oui | Oui | Oui | Livré | Conserver et tester |
+| Paiements & wallets | Oui | Oui | Oui | Oui | Oui | Livré | Conserver et durcir |
+| Inventaires physiques | Oui | Oui | Oui | Oui | Oui | Livré | Conserver et durcir |
+| Abonnements / plans / limites | Oui | Oui | Oui | Oui | Oui | Partiel | Enforcement des limites à compléter |
 | Rapports | Oui | Oui | Oui | Oui | Oui | Partiel | Tenant-safe et pagination à surveiller |
 
 ## Debug supprimé
@@ -44,24 +50,28 @@ En revanche, plusieurs modules visibles dans l’UI sont encore des placeholders
 
 ### Avant
 
-- les modules `quotes`, `sale-orders`, `deliveries`, `purchase-orders`, `receipts`, `batches`, `movements`, `transfers` étaient affichés comme des entrées ERP classiques;
-- aucun badge n’indiquait clairement qu’ils étaient en préparation ou partiels;
-- le POS n’était pas distingué comme module non finalisé.
+- la navigation mélangeait modules livrés et écrans de préparation;
+- les retours et le POS n’avaient pas encore de présentation métier cohérente;
+- le hub de modules pouvait encore laisser penser que certains parcours n’étaient pas terminés.
 
 ### Après
 
-- `POS / Vente rapide` est affiché comme `En préparation`;
-- les modules non livrés sont marqués `Bientôt`;
-- les modules partiels sont marqués `Partiel`;
-- les liens morts sont évités;
-- la hiérarchie reste lisible.
+- `Retours clients` et `Retours fournisseurs` sont accessibles via leurs modules dédiés;
+- le POS a un écran de vente réel et un reçu imprimable;
+- les modules commerciaux et achats reposent sur les vraies routes métier;
+- les anciens écrans d’état doivent être considérés comme un hub d’audit, pas comme la source de vérité.
 
 ## Permissions vérifiées
 
+- `create_pos_sales`
+- `manage_taxes`
 - `read_quotes`
 - `create_quotes`
 - `read_sale_orders`
 - `read_deliveries`
+- `read_customer_returns`
+- `read_supplier_returns`
+- `read_sale_orders`
 - `read_purchase_orders`
 - `read_receipts`
 - `manage_client_invoices`
@@ -86,20 +96,15 @@ En revanche, plusieurs modules visibles dans l’UI sont encore des placeholders
 
 ### P0 - Bloquants avant pilote
 
-- supprimer le debug bloquant;
-- stabiliser le POS minimal;
-- clarifier sidebar et placeholders;
-- garder paiements / wallets cohérents;
-- sécuriser les parcours tenant sensibles;
-- fiabiliser l’inventaire.
+- supprimer les derniers écarts de validation tenant;
+- faire respecter les limites d’abonnement dans le code;
+- retirer les éventuels écrans de préparation obsolètes;
+- fiabiliser l’inventaire et les modules de stock partiels;
+- garder paiements / wallets cohérents.
 
 ### P1 - Modules ERP essentiels
 
-- Devis / Proforma réel;
-- Commandes clients;
-- Bons de livraison;
-- Commandes fournisseurs;
-- Bons de réception;
+- finaliser la navigation d’audit pour les modules déjà livrés;
 - Import / export produits;
 - enforcement réel des quotas de plan.
 
@@ -114,11 +119,11 @@ En revanche, plusieurs modules visibles dans l’UI sont encore des placeholders
 
 ## Recommandation pour le prochain sprint
 
-Priorité recommandée: **A. POS / Vente rapide**
+Priorité recommandée: **A. Sécurité et limites d’abonnement**
 
 Raison:
 
-- c’est le plus visible commercialement;
-- le noyau stock / facturation est déjà en place;
-- le sprint de stabilisation a clarifié ce qui est prêt et ce qui ne l’est pas;
-- le vrai levier de valeur maintenant est de rendre une vente rapide utilisable.
+- le métier principal est désormais livré;
+- les risques les plus élevés restants sont l’isolation tenant et l’enforcement des limites;
+- ces points touchent plusieurs modules déjà en production;
+- corriger cela augmente la stabilité sans remettre en cause le périmètre déjà livré.

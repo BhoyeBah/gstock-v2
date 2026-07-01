@@ -21,6 +21,8 @@ class DocumentNumberService
         'supplier_invoice' => ['prefix' => 'FF', 'reset_period' => 'yearly', 'padding' => 4],
         'customer_return' => ['prefix' => 'RCL', 'reset_period' => 'yearly', 'padding' => 4],
         'supplier_return' => ['prefix' => 'RFL', 'reset_period' => 'yearly', 'padding' => 4],
+        'customer_credit_note' => ['prefix' => 'AC', 'reset_period' => 'yearly', 'padding' => 4],
+        'supplier_credit_note' => ['prefix' => 'AF', 'reset_period' => 'yearly', 'padding' => 4],
         'payment' => ['prefix' => 'PAY', 'reset_period' => 'yearly', 'padding' => 4],
         'inventory' => ['prefix' => 'INV', 'reset_period' => 'yearly', 'padding' => 4],
         'transfer' => ['prefix' => 'TRF', 'reset_period' => 'yearly', 'padding' => 4],

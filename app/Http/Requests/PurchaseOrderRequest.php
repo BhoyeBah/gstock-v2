@@ -39,7 +39,11 @@ class PurchaseOrderRequest extends FormRequest
             'items.*.unit_cost_ht' => ['required', 'integer', 'min:0'],
             'items.*.discount_amount' => ['nullable', 'integer', 'min:0'],
             'items.*.expiration_date' => ['nullable', 'date'],
-            'items.*.tax_id' => ['nullable', 'uuid'],
+            'items.*.tax_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('taxes', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)->whereNull('deleted_at')),
+            ],
         ];
     }
 }

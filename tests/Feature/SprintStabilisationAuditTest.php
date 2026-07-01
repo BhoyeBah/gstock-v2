@@ -12,13 +12,12 @@ class SprintStabilisationAuditTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sales_route_redirects_to_dashboard(): void
+    public function test_sales_route_is_now_a_real_pos_module(): void
     {
-        [, $user] = $this->createPlatformUser();
-
-        $this->actingAs($user)
-            ->get(route('sales.index'))
-            ->assertRedirect(route('dashboard'));
+        // La route /sales pointe maintenant vers le module POS (plus de redirect vers dashboard)
+        $this->assertNotNull(app('router')->getRoutes()->getByName('sales.index'));
+        $this->assertNotNull(app('router')->getRoutes()->getByName('sales.store'));
+        $this->assertNotNull(app('router')->getRoutes()->getByName('sales.receipt'));
     }
 
     public function test_quotes_route_is_now_a_real_module(): void
@@ -35,8 +34,15 @@ class SprintStabilisationAuditTest extends TestCase
     public function test_blocking_controllers_no_longer_contain_debug_helpers(): void
     {
         $returnController = file_get_contents(app_path('Http/Controllers/ReturnProductController.php'));
-
         $this->assertStringNotContainsString('dd(', $returnController);
+
+        $invoiceController = file_get_contents(app_path('Http/Controllers/InvoiceController.php'));
+        $this->assertStringNotContainsString('dd(', $invoiceController);
+        $this->assertStringNotContainsString('dump(', $invoiceController);
+
+        $productController = file_get_contents(app_path('Http/Controllers/ProductController.php'));
+        $this->assertStringNotContainsString('dd(', $productController);
+        $this->assertStringNotContainsString('dump(', $productController);
     }
 
     private function createPlatformUser(): array

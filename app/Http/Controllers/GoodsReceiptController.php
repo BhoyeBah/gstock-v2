@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GoodsReceiptRequest;
 use App\Models\GoodsReceipt;
 use App\Models\PurchaseOrder;
+use App\Models\Warehouse;
 use App\Services\ReceiptService;
 use Illuminate\Http\Request;
 
@@ -34,12 +35,15 @@ class GoodsReceiptController extends Controller
 
     public function create(Request $request)
     {
+        $tenantId = $request->user()->tenant_id;
+
         return view('back.documents.form', [
             'title' => 'Créer un bon de réception',
             'record' => new GoodsReceipt(['receipt_date' => now()->toDateString()]),
             'storeRoute' => 'goods-receipts.store',
             'updateRoute' => null,
-            'purchaseOrders' => PurchaseOrder::query()->where('tenant_id', $request->user()->tenant_id)->orderBy('purchase_number')->get(),
+            'purchaseOrders' => PurchaseOrder::query()->where('tenant_id', $tenantId)->orderBy('purchase_number')->get(),
+            'warehouses' => Warehouse::query()->where('tenant_id', $tenantId)->orderBy('name')->get(),
             'mode' => 'receipt',
         ]);
     }

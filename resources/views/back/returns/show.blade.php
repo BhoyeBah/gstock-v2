@@ -17,6 +17,9 @@
         $validateRoute = $isCustomer ? 'customer-returns.validate' : 'supplier-returns.validate';
         $cancelRoute = $isCustomer ? 'customer-returns.cancel' : 'supplier-returns.cancel';
         $indexRoute = $isCustomer ? 'customer-returns.index' : 'supplier-returns.index';
+        $creditNoteRoute = $record->creditNote
+            ? route($isCustomer ? 'customer-credit-notes.show' : 'supplier-credit-notes.show', $record->creditNote)
+            : null;
         $sourceRoute = $isCustomer
             ? ($record->invoice ? route('invoices.show', ['type' => 'clients', 'invoice' => $record->invoice]) : ($record->deliveryNote ? route('delivery-notes.show', $record->deliveryNote) : route($indexRoute)))
             : ($record->supplierInvoice ? route('invoices.show', ['type' => 'suppliers', 'invoice' => $record->supplierInvoice]) : ($record->goodsReceipt ? route('goods-receipts.show', $record->goodsReceipt) : route($indexRoute)));
@@ -43,6 +46,9 @@
                 ['label' => 'Imprimer / Télécharger', 'icon' => 'print', 'type' => 'link', 'url' => route($printRoute, $record), 'variant' => 'outline-primary'],
                 ['label' => 'Voir source', 'icon' => 'link', 'type' => 'link', 'url' => $sourceRoute, 'variant' => 'outline-secondary'],
             ];
+            if ($creditNoteRoute) {
+                array_unshift($primaryActions, ['label' => $isCustomer ? 'Voir avoir client' : 'Voir avoir fournisseur', 'icon' => 'file-invoice-dollar', 'type' => 'link', 'url' => $creditNoteRoute, 'variant' => 'success']);
+            }
             $secondaryActions = $canCancel
                 ? [['label' => 'Annuler', 'icon' => 'ban', 'type' => 'post', 'url' => route($cancelRoute, $record), 'danger' => true, 'confirm' => 'Confirmer l’annulation ?']]
                 : [];
@@ -206,6 +212,23 @@
                             <div>
                                 <div class="info-row__label">Entrepôt</div>
                                 <div class="info-row__value">{{ $record->warehouse?->name ?? 'N/A' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div>
+                                <div class="info-row__label">Impact financier</div>
+                                <div class="info-row__value">
+                                    @if($record->creditNote)
+                                        @if($record->creditNote->applied_amount > 0)
+                                            Avoir appliqué: {{ number_format($record->creditNote->applied_amount, 0, ',', ' ') }} FCFA
+                                        @else
+                                            Avoir disponible: {{ number_format($record->creditNote->total_ttc, 0, ',', ' ') }} FCFA
+                                        @endif
+                                    @else
+                                        Aucun impact financier
+                                    @endif
+                                </div>
                             </div>
                         </div>
 

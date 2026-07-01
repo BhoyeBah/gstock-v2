@@ -98,6 +98,16 @@ class Invoice extends Model
         return $this->hasMany(Payment::class, 'invoice_id', 'id');
     }
 
+    public function supplierCreditNotes()
+    {
+        return $this->hasMany(SupplierCreditNote::class, 'supplier_invoice_id', 'id');
+    }
+
+    public function customerCreditNotes()
+    {
+        return $this->hasMany(CustomerCreditNote::class, 'customer_invoice_id', 'id');
+    }
+
     public function completedPayments()
     {
         return $this->hasMany(Payment::class, 'invoice_id', 'id')
@@ -109,24 +119,24 @@ class Invoice extends Model
      * Utilisable comme $invoice->generateInvoiceNumber();
      */
     public function generateInvoiceNumber(): string
-{
-    if ($this->invoice_number) {
-        // Si l'utilisateur a déjà défini un numéro, on ne le regénère pas.
-        // Mais tu veux ignorer les numéros manuels pour le calcul, pas pour la génération actuelle.
+    {
+        if ($this->invoice_number) {
+            // Si l'utilisateur a déjà défini un numéro, on ne le regénère pas.
+            // Mais tu veux ignorer les numéros manuels pour le calcul, pas pour la génération actuelle.
+            return $this->invoice_number;
+        }
+
+        if (! $this->tenant_id || ! $this->type) {
+            throw new \RuntimeException('tenant_id et type requis pour générer invoice_number');
+        }
+
+        $documentType = $this->type === self::TYPE_SUPPLIER
+            ? 'supplier_invoice'
+            : 'customer_invoice';
+
+        $this->invoice_number = app(DocumentNumberService::class)->generate($documentType, $this->tenant);
+
         return $this->invoice_number;
     }
-
-    if (! $this->tenant_id || ! $this->type) {
-        throw new \RuntimeException('tenant_id et type requis pour générer invoice_number');
-    }
-
-    $documentType = $this->type === self::TYPE_SUPPLIER
-        ? 'supplier_invoice'
-        : 'customer_invoice';
-
-    $this->invoice_number = app(DocumentNumberService::class)->generate($documentType, $this->tenant);
-
-    return $this->invoice_number;
-}
 
 }

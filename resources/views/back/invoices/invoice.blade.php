@@ -432,20 +432,24 @@
                         @endif
 
                         @php
-                            $statusClass = match ($invoice->status) {
-                                'paid' => 'status-paid',
-                                'validated' => 'status-unpaid',
-                                'partial' => 'status-partial',
-                                'cancelled' => 'status-cancelled',
-                                default => 'status-pending',
-                            };
-                            $statusText = match ($invoice->status) {
-                                'paid' => 'Payée',
-                                'validated' => 'Validée(non payée)',
-                                'partial' => 'Paiement partiel',
-                                'cancelled' => 'Annulée',
-                                default => 'Brouillon',
-                            };
+                        $statusClass = match ($invoice->status) {
+                            'paid' => 'status-paid',
+                            'validated' => 'status-unpaid',
+                            'partial' => 'status-partial',
+                            'credited' => 'status-paid',
+                            'partially_credited' => 'status-partial',
+                            'cancelled' => 'status-cancelled',
+                            default => 'status-pending',
+                        };
+                        $statusText = match ($invoice->status) {
+                            'paid' => 'Payée',
+                            'validated' => 'Validée(non payée)',
+                            'partial' => 'Paiement partiel',
+                            'credited' => 'Créditée',
+                            'partially_credited' => 'Partiellement payée',
+                            'cancelled' => 'Annulée',
+                            default => 'Brouillon',
+                        };
                         @endphp
 
                         <span class="status-badge {{ $statusClass }}" style="display: inline-block; margin-top: 5px;">
@@ -612,20 +616,24 @@
                         @endif
 
                         @php
-                            $statusClass = match ($invoice->status) {
-                                'paid' => 'status-paid',
-                                'validated' => 'status-unpaid',
-                                'partial' => 'status-partial',
-                                'cancelled' => 'status-cancelled',
-                                default => 'status-pending',
-                            };
-                            $statusText = match ($invoice->status) {
-                                'paid' => 'Payée',
-                                'validated' => 'Validée(non payée)',
-                                'partial' => 'Paiement partiel',
-                                'cancelled' => 'Annulée',
-                                default => 'Brouillon',
-                            };
+                        $statusClass = match ($invoice->status) {
+                            'paid' => 'status-paid',
+                            'validated' => 'status-unpaid',
+                            'partial' => 'status-partial',
+                            'credited' => 'status-paid',
+                            'partially_credited' => 'status-partial',
+                            'cancelled' => 'status-cancelled',
+                            default => 'status-pending',
+                        };
+                        $statusText = match ($invoice->status) {
+                            'paid' => 'Payée',
+                            'validated' => 'Validée(non payée)',
+                            'partial' => 'Paiement partiel',
+                            'credited' => 'Créditée',
+                            'partially_credited' => 'Partiellement payée',
+                            'cancelled' => 'Annulée',
+                            default => 'Brouillon',
+                        };
                         @endphp
 
                         <span class="status-badge {{ $statusClass }}" style="display: inline-block; margin-top: 5px;">

@@ -15,12 +15,13 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use App\Services\DocumentNumberService;
 
 class CustomerReturnService
 {
     public function __construct(
-        private readonly DocumentNumberService $documentNumberService
+        private readonly DocumentNumberService $documentNumberService,
+        private readonly CustomerCreditNoteService $customerCreditNoteService,
+        private readonly InvoicePaymentStatusService $invoicePaymentStatusService
     ) {
     }
 
@@ -194,8 +195,9 @@ class CustomerReturnService
                 ]);
 
             $return->refresh();
+            $this->customerCreditNoteService->createFromReturn($return->fresh(['items.product', 'invoice']), $user);
 
-            return $return->fresh(['items', 'contact', 'invoice', 'deliveryNote', 'warehouse', 'movements.batch']);
+            return $return->fresh(['items', 'contact', 'invoice', 'deliveryNote', 'warehouse', 'movements.batch', 'creditNote.items.product', 'creditNote.invoice']);
         });
     }
 
@@ -214,7 +216,7 @@ class CustomerReturnService
             }
 
             if ($return->status === 'validated') {
-                $return->load('movements.batch', 'items');
+                $return->load('movements.batch', 'items', 'creditNote.invoice');
                 foreach ($return->movements as $movement) {
                     if (! $movement->batch) {
                         continue;
@@ -223,6 +225,23 @@ class CustomerReturnService
                     $movement->batch->quantity = max(0, $movement->batch->quantity - $movement->quantity);
                     $movement->batch->remaining = max(0, $movement->batch->remaining - $movement->quantity);
                     $movement->batch->save();
+                }
+
+                if ($return->creditNote) {
+                    $creditNote = $return->creditNote;
+                    $creditedInvoice = $creditNote->invoice;
+
+                    $creditNote->forceFill([
+                        'status' => 'cancelled',
+                        'applied_amount' => 0,
+                        'remaining_amount' => 0,
+                        'cancelled_at' => now(),
+                        'cancelled_by' => $user->id,
+                    ])->save();
+
+                    if ($creditedInvoice) {
+                        $this->invoicePaymentStatusService->recalculate($creditedInvoice->fresh());
+                    }
                 }
             }
 
@@ -237,7 +256,7 @@ class CustomerReturnService
 
             $return->refresh();
 
-            return $return->fresh(['items', 'contact', 'invoice', 'deliveryNote', 'warehouse']);
+            return $return->fresh(['items', 'contact', 'invoice', 'deliveryNote', 'warehouse', 'creditNote']);
         });
     }
 
@@ -279,22 +298,22 @@ class CustomerReturnService
 
         $deliveryNote = DeliveryNote::where('tenant_id', $tenantId)->with('items')->whereKey($deliveryNoteId)->firstOrFail();
 
-            return [
-                'contact_id' => $deliveryNote->contact_id,
-                'invoice_id' => null,
-                'delivery_note_id' => $deliveryNote->id,
-                'warehouse_id' => $data['warehouse_id'] ?? $deliveryNote->warehouse_id,
-                'items' => $deliveryNote->items->map(function ($item) use ($tenantId) {
-                    return [
-                        'id' => $item->id,
-                        'product_id' => $item->product_id,
-                        'quantity_sold' => (int) ($item->quantity_delivered ?? $item->quantity_ordered ?? 0),
-                        'unit_price_ht' => (int) ($item->unit_price ?? $item->unit_price_ht ?? 0),
-                        'tax_rate' => (float) ($item->tax_rate ?? 0),
-                        'tax_amount' => (int) ($item->tax_amount ?? 0),
-                        'total_ttc' => (int) ($item->total_ttc ?? 0),
-                        'invoice_item_id' => null,
-                        'delivery_note_item_id' => $item->id,
+        return [
+            'contact_id' => $deliveryNote->contact_id,
+            'invoice_id' => null,
+            'delivery_note_id' => $deliveryNote->id,
+            'warehouse_id' => $data['warehouse_id'] ?? $deliveryNote->warehouse_id,
+            'items' => $deliveryNote->items->map(function ($item) use ($tenantId) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'quantity_sold' => (int) ($item->quantity_delivered ?? $item->quantity_ordered ?? 0),
+                    'unit_price_ht' => (int) ($item->unit_price ?? $item->unit_price_ht ?? 0),
+                    'tax_rate' => (float) ($item->tax_rate ?? 0),
+                    'tax_amount' => (int) ($item->tax_amount ?? 0),
+                    'total_ttc' => (int) ($item->total_ttc ?? 0),
+                    'invoice_item_id' => null,
+                    'delivery_note_item_id' => $item->id,
                     'batch_id' => $this->resolveDeliveryItemBatchId($tenantId, $item->id),
                 ];
             })->all(),

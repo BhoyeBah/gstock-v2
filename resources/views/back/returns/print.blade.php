@@ -188,6 +188,16 @@
                         <div class="print-meta__label">Lignes / Quantité</div>
                         <div class="print-meta__value">{{ $totalLines }} ligne(s) · {{ number_format($totalReturned) }} unité(s)</div>
                     </div>
+                    <div class="print-meta__card">
+                        <div class="print-meta__label">Impact financier</div>
+                        <div class="print-meta__value">
+                            @if($record->creditNote)
+                                {{ number_format($record->creditNote->applied_amount ?: $record->creditNote->total_ttc, 0, ',', ' ') }} FCFA
+                            @else
+                                Aucun
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
                 <div class="print-section mb-4">

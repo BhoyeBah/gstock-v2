@@ -54,11 +54,21 @@ class DeliveryService
     public function validate(DeliveryNote $deliveryNote, $user): DeliveryNote
     {
         return DB::transaction(function () use ($deliveryNote, $user) {
-            $deliveryNote->refresh()->load('items.saleOrderItem');
+            // Verrouillage pessimiste : évite la double-validation concurrente
+            $deliveryNote = DeliveryNote::where('id', $deliveryNote->id)
+                ->where('tenant_id', $user->tenant_id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if ($deliveryNote->status === 'validated') {
+            $deliveryNote->load('items.saleOrderItem');
+
+            if ($deliveryNote->status !== 'draft') {
                 throw ValidationException::withMessages([
-                    'delivery_note' => 'Ce bon de livraison a déjà été validé.',
+                    'delivery_note' => match ($deliveryNote->status) {
+                        'validated' => 'Ce bon de livraison a déjà été validé.',
+                        'cancelled' => 'Ce bon de livraison a été annulé et ne peut pas être validé.',
+                        default     => 'Ce bon de livraison ne peut pas être validé dans son état actuel.',
+                    },
                 ]);
             }
 
@@ -96,6 +106,8 @@ class DeliveryService
 
     public function cancel(DeliveryNote $deliveryNote, $user): DeliveryNote
     {
+        abort_unless($deliveryNote->tenant_id === $user->tenant_id, 403);
+
         $deliveryNote->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),

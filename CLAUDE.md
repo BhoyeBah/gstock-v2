@@ -66,9 +66,11 @@ Business logic lives in `app/Services/` (18 services). Controllers are thin — 
 - `InvoiceService` / `PaymentCancellationService` / `InvoicePaymentStatusService` — invoicing lifecycle
 - `DocumentNumberService` — centralized auto-numbering for all document types (invoices, quotes, orders, etc.)
 - `QuoteConversionService` / `SaleOrderConversionService` / `PurchaseOrderConversionService` — document-to-document conversion workflows
-- `CustomerReturnService` / `SupplierReturnService` — return processing (most complex, ~16KB each)
+- `CustomerReturnService` / `SupplierReturnService` — return processing and stock reintegration / sortie
+- `CustomerCreditNoteService` / `SupplierCreditNoteService` — credit note creation, invoice application, refunds
+- `ReturnProductController` — return / credit dashboard with recent documents and summary totals
 - `InventoryReconciliationService` — physical count reconciliation
-- `PosSaleService` — fast POS checkout (in development)
+- `PosSaleService` — fast POS checkout with receipt printing
 
 ### Stock Management
 
@@ -88,19 +90,19 @@ All commercial documents (Quote → SaleOrder → DeliveryNote → Invoice, and 
 ## Module Readiness (current state)
 
 Per `sprint_stabilisation_audit.md`:
-- **Production-ready**: Invoices, Payments, Wallets, Inventories, Products, Warehouses, Reports, Subscriptions, Roles, Users
-- **Partial**: Batches, Stock Movements, Stock Transfers (functional but limited UI)
-- **In development (placeholders)**: Quotes, Sale Orders, Delivery Notes, Customer Returns, Purchase Orders, Goods Receipts, Supplier Returns, POS/Quick Sale
+- **Production-ready**: Quotes, Sale Orders, Delivery Notes, Customer Returns, Supplier Returns, Customer Credit Notes, Supplier Credit Notes, Return Dashboard, Purchase Orders, Goods Receipts, POS/Quick Sale, Invoices, Payments, Wallets, Inventories, Products, Warehouses, Taxes, Reports, Subscriptions, Roles, Users
+- **Partial**: Batches, Stock Movements, Stock Transfers, subscription quota enforcement, some tenant-safe validation hardening
+- **Legacy placeholder shells**: `/modules/*` still exists as an audit/navigation hub for modules already delivered; it should no longer be used as the source of truth for workflow readiness
 
-Unfinished modules display "En préparation" / "Bientôt disponible" badges in the UI via `ModulePlaceholderController`.
+The live workflow routes are now the source of truth. If a module has real routes/controllers/views under `quotes.*`, `sale-orders.*`, `delivery-notes.*`, `customer-returns.*`, `supplier-returns.*`, `purchase-orders.*`, `goods-receipts.*`, `sales.*`, or `taxes.*`, treat it as shipped unless the code says otherwise.
 
 ## Planned Sprints (from `analyse_projet.md`)
 
-1. **Sprint 1 — Security** (highest priority): Tenant-safe Form Request validation, cross-tenant isolation fixes, remove debug statements
-2. **Sprint 2 — POS/Quick Sale**: Fast checkout, receipt printing, cash session management
-3. **Sprint 3 — Import/Export**: Excel/CSV product import, stock export
-4. **Sprint 4 — Subscription limits**: Enforce `max_users`, `max_storage_mb`, trial periods
-5. **Sprint 5 — Reporting**: Tenant-safe analytics, DB indexes
+1. **Sprint 1 — Security hardening** (highest priority): close tenant-safe validation gaps, review cross-tenant access on remaining requests, remove any stale debug helpers
+2. **Sprint 2 — Subscription limits**: enforce `max_users`, `max_storage_mb`, and trial-period rules in code
+3. **Sprint 3 — Stock UX hardening**: tighten batches, movements, and transfers screens, and keep the stock journal consistent
+4. **Sprint 4 — Import/Export**: Excel/CSV product import, stock export
+5. **Sprint 5 — Reporting**: tenant-safe analytics, DB indexes
 6. **Sprint 6 — Premium features**: WhatsApp/SMS, barcodes, API/webhooks
 
 ## Key Files

@@ -7,12 +7,14 @@ use App\Http\Requests\ReturnRequestProduct;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Models\Batch;
 use App\Models\Contact;
+use App\Models\CustomerCreditNote;
 use App\Models\InventoryMovement;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReturnProduct;
+use App\Models\SupplierCreditNote;
 use App\Models\Wallet;
 use App\Models\walletTransaction;
 use App\Models\Warehouse;
@@ -21,6 +23,8 @@ use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
@@ -41,7 +45,7 @@ class InvoiceController extends Controller
         if (! auth()->user()->can($required_permission_name)) {
             abort(403, "Vous n'avez pas la permission d'acceder à cette fonctionnalité");
         }
-        $status_list = ['draft', 'validated', 'partial', 'paid', 'cancelled'];
+        $status_list = ['draft', 'validated', 'partial', 'paid', 'credited', 'partially_credited', 'cancelled'];
 
         $status = $request->input('status');
 
@@ -126,9 +130,9 @@ class InvoiceController extends Controller
 
         $batches = Batch::where('invoice_id', $invoice->id)->orderBy('remaining')->paginate(10);
         $payments = Payment::where('invoice_id', $invoice->id)->paginate(10);
+        $availableCreditNotes = $this->availableCreditNotes($invoice);
 
-        // dd($batches);
-        return view('back.invoices.show', compact('invoice', 'batches', 'payments', 'type'));
+        return view('back.invoices.show', compact('invoice', 'batches', 'payments', 'type', 'availableCreditNotes'));
     }
 
     /**
@@ -143,8 +147,6 @@ class InvoiceController extends Controller
         $products = Product::all();
         $contacts = Contact::type(rtrim($type, 's'))->get();
         $warehouses = Warehouse::all();
-        // dd($products, $contacts, $warehouses);
-
         return view('back.invoices.edit', compact('invoice', 'products', 'warehouses', 'contacts', 'type'));
     }
 
@@ -285,6 +287,80 @@ class InvoiceController extends Controller
         return back()
             ->with('success', "Vous venez de faire un paiement de $amount_paid FCFA sur la facture $invoice->invoice_number");
 
+    }
+
+    public function applyCreditNote(Request $request, string $type, Invoice $invoice)
+    {
+        $this->validateType($type);
+        $this->checkAuthorization($invoice, $type);
+
+        $invoiceType = rtrim($type, 's');
+        $creditNoteClass = $invoiceType === Invoice::TYPE_CLIENT ? CustomerCreditNote::class : SupplierCreditNote::class;
+        $creditNoteTable = (new $creditNoteClass())->getTable();
+        $tenantId = $request->user()->tenant_id;
+
+        $data = $request->validate([
+            'credit_note_id' => [
+                'required',
+                'uuid',
+                Rule::exists($creditNoteTable, 'id')->where(fn ($query) => $query
+                    ->where('tenant_id', $tenantId)
+                    ->where('contact_id', $invoice->contact_id)
+                    ->where('remaining_amount', '>', 0)
+                    ->whereIn('status', ['validated', 'applied', 'partially_applied'])
+                ),
+            ],
+            'amount' => ['required', 'integer', 'min:1'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $invoice, $creditNoteClass, $data) {
+                $creditNote = $creditNoteClass::query()
+                    ->where('tenant_id', $request->user()->tenant_id)
+                    ->whereKey($data['credit_note_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $invoice = Invoice::query()
+                    ->where('tenant_id', $request->user()->tenant_id)
+                    ->whereKey($invoice->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $amount = (int) $data['amount'];
+
+                if ($amount <= 0 || $amount > $invoice->balance) {
+                    throw ValidationException::withMessages([
+                        'amount' => 'Montant d’avoir invalide pour cette facture.',
+                    ]);
+                }
+
+                if ($amount > $creditNote->remaining_amount) {
+                    throw ValidationException::withMessages([
+                        'credit_note_id' => 'L’avoir sélectionné n’a pas assez de crédit disponible.',
+                    ]);
+                }
+
+                $creditNote->applied_amount = min((int) $creditNote->total_ttc, (int) $creditNote->applied_amount + $amount);
+                $creditNote->remaining_amount = max((int) $creditNote->remaining_amount - $amount, 0);
+                $creditNote->status = $creditNote->remaining_amount > 0 ? 'partially_applied' : 'applied';
+                $creditNote->save();
+
+                $invoice->balance = max((int) $invoice->balance - $amount, 0);
+                if ($invoice->balance === 0) {
+                    $invoice->status = 'credited';
+                } elseif ($amount > 0) {
+                    $invoice->status = 'partially_credited';
+                }
+
+                $invoice->save();
+            });
+        } catch (ValidationException $e) {
+            throw $e;
+        }
+
+        return back()->with('success', 'Avoir appliqué à la facture avec succès.');
     }
 
     public function returnProduct(string $type, ReturnRequestProduct $request)
@@ -453,9 +529,28 @@ class InvoiceController extends Controller
         //     $invoice->days_overdue = Carbon::now()->diffInDays(Carbon::parse($invoice->due_date), false);
         // });
 
-        // dd($invoices);
-
         return view('back.invoices.unpaid', compact('invoices', 'totalMontant', 'totalPaye', 'totalReste'));
+    }
+
+    protected function availableCreditNotes(Invoice $invoice)
+    {
+        if ($invoice->type === Invoice::TYPE_CLIENT) {
+            return CustomerCreditNote::query()
+                ->where('tenant_id', $invoice->tenant_id)
+                ->where('contact_id', $invoice->contact_id)
+                ->where('remaining_amount', '>', 0)
+                ->whereIn('status', ['validated', 'applied', 'partially_applied'])
+                ->latest()
+                ->get();
+        }
+
+        return SupplierCreditNote::query()
+            ->where('tenant_id', $invoice->tenant_id)
+            ->where('contact_id', $invoice->contact_id)
+            ->where('remaining_amount', '>', 0)
+            ->whereIn('status', ['validated', 'applied', 'partially_applied'])
+            ->latest()
+            ->get();
     }
 
     protected function validateType(string $type): void

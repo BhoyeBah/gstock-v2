@@ -55,11 +55,21 @@ class ReceiptService
     public function validate(GoodsReceipt $receipt, $user): GoodsReceipt
     {
         return DB::transaction(function () use ($receipt, $user) {
-            $receipt->refresh()->load('items.purchaseOrderItem');
+            // Verrouillage pessimiste : évite la double-validation concurrente
+            $receipt = GoodsReceipt::where('id', $receipt->id)
+                ->where('tenant_id', $user->tenant_id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if ($receipt->status === 'validated') {
+            $receipt->load('items.purchaseOrderItem');
+
+            if ($receipt->status !== 'draft') {
                 throw ValidationException::withMessages([
-                    'goods_receipt' => 'Ce bon de réception a déjà été validé.',
+                    'goods_receipt' => match ($receipt->status) {
+                        'validated' => 'Ce bon de réception a déjà été validé.',
+                        'cancelled' => 'Ce bon de réception a été annulé et ne peut pas être validé.',
+                        default     => 'Ce bon de réception ne peut pas être validé dans son état actuel.',
+                    },
                 ]);
             }
 
@@ -96,6 +106,8 @@ class ReceiptService
 
     public function cancel(GoodsReceipt $receipt, $user): GoodsReceipt
     {
+        abort_unless($receipt->tenant_id === $user->tenant_id, 403);
+
         $receipt->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),

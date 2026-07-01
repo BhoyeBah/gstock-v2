@@ -59,6 +59,11 @@ class SupplierReturn extends Model
         return $this->hasMany(SupplierReturnItem::class);
     }
 
+    public function creditNote()
+    {
+        return $this->hasOne(SupplierCreditNote::class, 'supplier_return_id');
+    }
+
     public function movements()
     {
         return $this->hasMany(InventoryMovement::class, 'source_id')->where('source_type', self::class);

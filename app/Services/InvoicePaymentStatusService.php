@@ -16,10 +16,24 @@ class InvoicePaymentStatusService
             ->where('status', 'completed')
             ->sum('amount_paid');
 
-        $total = (int) $invoice->total_invoice;
-        $invoice->balance = max($total - $paidAmount, 0);
+        $creditedAmount = (int) (
+            $invoice->type === Invoice::TYPE_CLIENT
+                ? $invoice->customerCreditNotes()
+                : $invoice->supplierCreditNotes()
+        )
+            ->whereIn('status', ['applied', 'partially_applied'])
+            ->sum('applied_amount');
 
-        if ($paidAmount <= 0) {
+        $total = (int) $invoice->total_invoice;
+        $invoice->balance = max($total - $paidAmount - $creditedAmount, 0);
+
+        if ($paidAmount >= $total && $invoice->balance === 0) {
+            $invoice->status = 'paid';
+        } elseif ($creditedAmount > 0 && $invoice->balance === 0) {
+            $invoice->status = 'credited';
+        } elseif ($creditedAmount > 0) {
+            $invoice->status = 'partially_credited';
+        } elseif ($paidAmount <= 0) {
             $invoice->status = 'unpaid';
         } elseif ($paidAmount < $total) {
             $invoice->status = 'partial';

@@ -39,7 +39,11 @@ class QuoteRequest extends FormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price_ht' => ['required', 'integer', 'min:0'],
             'items.*.discount_amount' => ['nullable', 'integer', 'min:0'],
-            'items.*.tax_id' => ['nullable', 'uuid'],
+            'items.*.tax_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('taxes', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)->whereNull('deleted_at')),
+            ],
         ];
     }
 }

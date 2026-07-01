@@ -9,32 +9,32 @@ class ModulePlaceholderController extends Controller
     private const MODULES = [
         'quotes' => [
             'title' => 'Devis / Proforma',
-            'status' => 'Absent',
-            'description' => 'Le module devis / proforma n’est pas encore implémente dans cette base. La sidebar l’expose pour préparer le parcours ERP sans créer de lien mort.',
+            'status' => 'Disponible',
+            'description' => 'Le module devis / proforma est livré et disponible via son workflow dédié.',
             'permissions' => ['read_quotes', 'manage_client_invoices'],
         ],
         'sale-orders' => [
             'title' => 'Commandes clients',
-            'status' => 'Absent',
-            'description' => 'Le workflow commande client n’est pas encore codé. Il devra être livré dans un sprint dédié.',
+            'status' => 'Disponible',
+            'description' => 'Le workflow commande client est disponible avec validation, impression et conversion.',
             'permissions' => ['read_sale_orders', 'manage_client_invoices'],
         ],
         'deliveries' => [
             'title' => 'Bons de livraison',
-            'status' => 'Absent',
-            'description' => 'Le module bon de livraison n’est pas encore disponible dans les routes, contrôleurs et vues de cette base.',
+            'status' => 'Disponible',
+            'description' => 'Le module bon de livraison est livré avec validation et journal stock.',
             'permissions' => ['read_deliveries', 'manage_stock', 'manage_client_invoices'],
         ],
         'purchase-orders' => [
             'title' => 'Commandes fournisseurs',
-            'status' => 'Absent',
-            'description' => 'Le workflow commande fournisseur n’est pas encore implémente.',
+            'status' => 'Disponible',
+            'description' => 'Le workflow commande fournisseur est livré avec création des réceptions et factures associées.',
             'permissions' => ['read_purchase_orders', 'manage_supplier_invoices'],
         ],
         'receipts' => [
             'title' => 'Bons de réception',
-            'status' => 'Absent',
-            'description' => 'Le module bon de réception n’est pas encore disponible dans les routes, contrôleurs et vues de cette base.',
+            'status' => 'Disponible',
+            'description' => 'Le module bon de réception est livré et alimente les lots et mouvements de stock.',
             'permissions' => ['read_receipts', 'manage_stock', 'manage_supplier_invoices'],
         ],
         'batches' => [
@@ -57,8 +57,8 @@ class ModulePlaceholderController extends Controller
         ],
         'returns' => [
             'title' => 'Retours clients / fournisseurs',
-            'status' => 'En préparation',
-            'description' => 'Le retour est déjà intégré dans certaines factures, mais le module autonome reste à cadrer.',
+            'status' => 'Disponible',
+            'description' => 'Les bons de retour client et fournisseur sont livrés dans leurs modules dédiés, avec impression et validations.',
             'permissions' => ['manage_client_invoices', 'manage_supplier_invoices'],
         ],
     ];

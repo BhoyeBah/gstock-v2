@@ -9,7 +9,7 @@
                     {{ $module['title'] }}
                 </h1>
                 <p class="mb-0 text-muted">
-                    Navigation ERP préparée sans lien mort.
+                    Hub d’audit et de navigation ERP sans lien mort.
                 </p>
             </div>
 
@@ -30,13 +30,18 @@
                         <h5 class="mb-3">Pourquoi cette page existe</h5>
                         <p class="text-muted">
                             La sidebar expose ce module pour rendre le parcours ERP lisible pendant l’audit et les tests.
-                            Tant que les routes, contrôleurs et vues métier ne sont pas réellement implémentés, cette page
-                            évite d’afficher un lien cassé ou de laisser croire que la fonctionnalité est terminée.
+                            Cette page sert de résumé d’état et de point d’accès temporaire vers les écrans métier quand
+                            le module est livré, ou vers une zone d’attente quand il reste à finaliser.
                         </p>
                         @if ($module['status'] === 'En préparation')
                             <div class="alert alert-info border-0">
                                 <strong>Bientôt disponible.</strong>
                                 Le module est identifié dans le backlog mais n’est pas encore livré.
+                            </div>
+                        @elseif ($module['status'] === 'Disponible')
+                            <div class="alert alert-success border-0">
+                                <strong>Module livré.</strong>
+                                Les routes métier existent déjà et doivent être utilisées comme source de vérité.
                             </div>
                         @endif
                     </div>

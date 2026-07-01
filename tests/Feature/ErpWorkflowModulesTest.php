@@ -6,11 +6,13 @@ use App\Http\Middleware\CheckSubscriptionAndPermissions;
 use App\Models\Batch;
 use App\Models\Category;
 use App\Models\Contact;
+use App\Models\CustomerCreditNote;
 use App\Models\CustomerReturn;
 use App\Models\DeliveryNote;
 use App\Models\GoodsReceipt;
 use App\Models\InventoryMovement;
 use App\Models\DeliveryNoteItem;
+use App\Models\Invoice;
 use App\Models\Permission;
 use App\Models\Plan;
 use App\Models\Product;
@@ -20,6 +22,7 @@ use App\Models\SaleOrder;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\Tenant;
+use App\Models\SupplierCreditNote;
 use App\Models\SupplierReturn;
 use App\Models\Units;
 use App\Models\User;
@@ -508,6 +511,142 @@ class ErpWorkflowModulesTest extends TestCase
             ->assertSessionHasErrors();
     }
 
+    public function test_returns_dashboard_summarizes_customer_and_supplier_documents(): void
+    {
+        $scenario = $this->createCommerceScenario(withSupplier: true);
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('sale-orders.store'), [
+                'contact_id' => $scenario['client']->id,
+                'order_date' => now()->toDateString(),
+                'notes' => 'Commande dashboard client',
+                'items' => [
+                    [
+                        'product_id' => $scenario['product']->id,
+                        'warehouse_id' => $scenario['warehouse']->id,
+                        'quantity_ordered' => 8,
+                        'unit_price_ht' => 1000,
+                        'discount_amount' => 0,
+                    ],
+                ],
+            ])
+            ->assertRedirect();
+
+        $saleOrder = SaleOrder::query()->where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('sale-orders.create-invoice', $saleOrder))
+            ->assertRedirect();
+
+        $customerInvoice = Invoice::query()
+            ->where('tenant_id', $scenario['tenant']->id)
+            ->where('type', 'client')
+            ->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->patch(route('invoices.validate', ['type' => 'clients', 'invoice' => $customerInvoice]))
+            ->assertRedirect();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('customer-returns.store'), [
+                'invoice_id' => $customerInvoice->id,
+                'contact_id' => $scenario['client']->id,
+                'warehouse_id' => $scenario['warehouse']->id,
+                'return_date' => now()->toDateString(),
+                'reason' => 'Dashboard client',
+                'items' => [
+                    $customerInvoice->items->first()->id => [
+                        'quantity_returned' => 2,
+                    ],
+                ],
+            ])
+            ->assertRedirect();
+
+        $customerReturn = CustomerReturn::query()->where('tenant_id', $scenario['tenant']->id)->with('items')->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('customer-returns.validate', $customerReturn))
+            ->assertRedirect();
+
+        $customerCredit = CustomerCreditNote::query()->where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('purchase-orders.store'), [
+                'contact_id' => $scenario['supplier']->id,
+                'purchase_date' => now()->toDateString(),
+                'notes' => 'Commande dashboard fournisseur',
+                'items' => [
+                    [
+                        'product_id' => $scenario['product']->id,
+                        'warehouse_id' => $scenario['warehouse']->id,
+                        'quantity_ordered' => 10,
+                        'unit_cost_ht' => 600,
+                        'discount_amount' => 0,
+                        'expiration_date' => now()->addMonth()->toDateString(),
+                    ],
+                ],
+            ])
+            ->assertRedirect();
+
+        $purchaseOrder = PurchaseOrder::query()->where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('purchase-orders.create-supplier-invoice', $purchaseOrder))
+            ->assertRedirect();
+
+        $supplierInvoice = Invoice::query()
+            ->where('tenant_id', $scenario['tenant']->id)
+            ->where('type', 'supplier')
+            ->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->patch(route('invoices.validate', ['type' => 'suppliers', 'invoice' => $supplierInvoice]))
+            ->assertRedirect();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('supplier-returns.store'), [
+                'supplier_invoice_id' => $supplierInvoice->id,
+                'contact_id' => $scenario['supplier']->id,
+                'warehouse_id' => $scenario['warehouse']->id,
+                'return_date' => now()->toDateString(),
+                'reason' => 'Dashboard fournisseur',
+                'items' => [
+                    $supplierInvoice->items->first()->id => [
+                        'quantity_returned' => 3,
+                    ],
+                ],
+            ])
+            ->assertRedirect();
+
+        $supplierReturn = SupplierReturn::query()->where('tenant_id', $scenario['tenant']->id)->with('items')->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('supplier-returns.validate', $supplierReturn))
+            ->assertRedirect();
+
+        $supplierCredit = SupplierCreditNote::query()->where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->get(route('returns.index'))
+            ->assertOk()
+            ->assertSee('Tableau de bord retours / avoirs')
+            ->assertSee($customerReturn->return_number)
+            ->assertSee($supplierReturn->return_number)
+            ->assertSee($customerCredit->credit_note_number)
+            ->assertSee($supplierCredit->credit_note_number);
+    }
+
     public function test_foreign_document_access_is_blocked(): void
     {
         $tenantA = $this->createTenant('tenant-a');
@@ -570,6 +709,138 @@ class ErpWorkflowModulesTest extends TestCase
         $this->actingAs($user)
             ->get(route('quotes.index'))
             ->assertForbidden();
+    }
+
+    public function test_delivery_note_double_validation_is_blocked(): void
+    {
+        $scenario = $this->createCommerceScenario();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('sale-orders.store'), [
+                'contact_id' => $scenario['client']->id,
+                'order_date' => now()->toDateString(),
+                'items' => [[
+                    'product_id' => $scenario['product']->id,
+                    'warehouse_id' => $scenario['warehouse']->id,
+                    'quantity_ordered' => 2,
+                    'unit_price_ht' => 500,
+                    'discount_amount' => 0,
+                ]],
+            ]);
+
+        $saleOrder = SaleOrder::where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('sale-orders.create-delivery', $saleOrder));
+
+        $delivery = DeliveryNote::where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        // Première validation : doit réussir
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('delivery-notes.validate', $delivery))
+            ->assertRedirect();
+
+        $stockAfterFirst = (int) $scenario['batchA']->fresh()->remaining
+            + (int) $scenario['batchB']->fresh()->remaining;
+
+        // Deuxième validation : doit être refusée
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('delivery-notes.validate', $delivery))
+            ->assertSessionHasErrors(['delivery_note']);
+
+        // Le stock ne doit pas avoir bougé après la tentative de double validation
+        $stockAfterSecond = (int) $scenario['batchA']->fresh()->remaining
+            + (int) $scenario['batchB']->fresh()->remaining;
+
+        $this->assertSame($stockAfterFirst, $stockAfterSecond, 'Le stock ne doit pas être décrémenté deux fois.');
+
+        // Un seul jeu de mouvements d'inventaire doit exister
+        $movementCount = InventoryMovement::where('tenant_id', $scenario['tenant']->id)
+            ->where('movement_type', 'delivery_out')
+            ->count();
+        $this->assertSame(1, $movementCount, 'Les mouvements d\'inventaire ne doivent pas être dupliqués.');
+    }
+
+    public function test_goods_receipt_double_validation_is_blocked(): void
+    {
+        $scenario = $this->createCommerceScenario(withSupplier: true);
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('purchase-orders.store'), [
+                'contact_id' => $scenario['supplier']->id,
+                'purchase_date' => now()->toDateString(),
+                'items' => [[
+                    'product_id' => $scenario['product']->id,
+                    'warehouse_id' => $scenario['warehouse']->id,
+                    'quantity_ordered' => 5,
+                    'unit_cost_ht' => 800,
+                    'discount_amount' => 0,
+                ]],
+            ]);
+
+        $purchaseOrder = \App\Models\PurchaseOrder::where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('purchase-orders.create-receipt', $purchaseOrder));
+
+        $receipt = \App\Models\GoodsReceipt::where('tenant_id', $scenario['tenant']->id)->firstOrFail();
+
+        // Première validation : doit réussir
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('goods-receipts.validate', $receipt))
+            ->assertRedirect();
+
+        $movementsAfterFirst = InventoryMovement::where('tenant_id', $scenario['tenant']->id)
+            ->where('movement_type', 'receipt_in')
+            ->count();
+
+        // Deuxième validation : doit être refusée
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->post(route('goods-receipts.validate', $receipt))
+            ->assertSessionHasErrors(['goods_receipt']);
+
+        // Les mouvements de stock ne doivent pas avoir doublé
+        $movementsAfterSecond = InventoryMovement::where('tenant_id', $scenario['tenant']->id)
+            ->where('movement_type', 'receipt_in')
+            ->count();
+
+        $this->assertSame(
+            $movementsAfterFirst,
+            $movementsAfterSecond,
+            'Les mouvements d\'inventaire ne doivent pas être dupliqués lors d\'une double validation.'
+        );
+    }
+
+    public function test_goods_receipt_create_page_loads_with_warehouses(): void
+    {
+        $scenario = $this->createCommerceScenario(withSupplier: true);
+
+        $purchaseOrder = \App\Models\PurchaseOrder::create([
+            'contact_id' => $scenario['supplier']->id,
+            'purchase_number' => 'PO-'.uniqid(),
+            'purchase_date' => now()->toDateString(),
+            'status' => 'draft',
+            'total_ht' => 1000,
+            'total_discount' => 0,
+            'tax_amount' => 100,
+            'total_ttc' => 1100,
+            'created_by' => $scenario['user']->id,
+        ]);
+
+        $this->actingAs($scenario['user'])
+            ->withoutMiddleware(CheckSubscriptionAndPermissions::class)
+            ->get(route('goods-receipts.create'))
+            ->assertOk()
+            ->assertSee('Entrepôt')
+            ->assertSee($purchaseOrder->purchase_number);
     }
 
     private function createCommerceScenario(bool $withSupplier = false): array

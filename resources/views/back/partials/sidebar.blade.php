@@ -44,17 +44,24 @@
     $isSupplierPaymentRoute = request()->routeIs('payments.*') && in_array($routeType, ['supplier', 'suppliers'], true);
     $isCustomerReturnRoute = request()->routeIs('customer-returns.*');
     $isSupplierReturnRoute = request()->routeIs('supplier-returns.*');
+    $isCustomerCreditNoteRoute = request()->routeIs('customer-credit-notes.*');
+    $isSupplierCreditNoteRoute = request()->routeIs('supplier-credit-notes.*');
+    $isReturnsDashboardRoute = request()->routeIs('returns.*');
 
     $isSalesActive = request()->routeIs('quotes.*')
         || request()->routeIs('sale-orders.*')
         || request()->routeIs('delivery-notes.*')
         || $isCustomerReturnRoute
+        || $isCustomerCreditNoteRoute
+        || $isReturnsDashboardRoute
         || $isClientInvoiceRoute
         || $isClientPaymentRoute;
 
     $isPurchasesActive = request()->routeIs('purchase-orders.*')
         || request()->routeIs('goods-receipts.*')
         || $isSupplierReturnRoute
+        || $isSupplierCreditNoteRoute
+        || $isReturnsDashboardRoute
         || $isSupplierInvoiceRoute
         || $isSupplierPaymentRoute;
 
@@ -231,7 +238,7 @@
 
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
     <a class="sidebar-brand d-flex align-items-center justify-content-center sidebar-brand-custom"
-        href="{{ route('dashboard') }}">
+        href="{{ $current_user && $current_user->is_platform_user() ? route('admin.dashboard') : route('dashboard') }}">
         <div class="sidebar-brand-icon">
             <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK" class="sidebar-logo">
         </div>
@@ -251,374 +258,407 @@
         <hr class="sidebar-divider">
     @endif
 
-    @can('access_dashboard')
-        <div class="sidebar-heading">Dashboard</div>
-        <li class="nav-item {{ $isActive(['dashboard', 'home', '/']) ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard') }}">
-                <i class="fas fa-home"></i>
-                <span>Tableau de bord</span>
-            </a>
-        </li>
-    @endcan
-
-    @if ($hasAnyPermission(['manage_categories', 'read_products', 'manage_units']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Catalogue</div>
-
-        @can('read_products')
-            <li class="nav-item {{ $isActive(['products.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('products.index') }}">
-                    <i class="fas fa-box-open"></i>
-                    <span>Produits</span>
+    @unless ($current_user && $current_user->is_platform_user())
+        @can('access_dashboard')
+            <div class="sidebar-heading">Dashboard</div>
+            <li class="nav-item {{ $isActive(['dashboard', 'home', '/']) ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('dashboard') }}">
+                    <i class="fas fa-home"></i>
+                    <span>Tableau de bord</span>
                 </a>
             </li>
         @endcan
 
-        @can('manage_categories')
-            <li class="nav-item {{ $isActive(['categories.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('categories.index') }}">
-                    <i class="fas fa-tags"></i>
-                    <span>Catégories</span>
+        @if ($hasAnyPermission(['manage_categories', 'read_products', 'manage_units']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Catalogue</div>
+
+            @can('read_products')
+                <li class="nav-item {{ $isActive(['products.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('products.index') }}">
+                        <i class="fas fa-box-open"></i>
+                        <span>Produits</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('manage_categories')
+                <li class="nav-item {{ $isActive(['categories.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('categories.index') }}">
+                        <i class="fas fa-tags"></i>
+                        <span>Catégories</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('manage_units')
+                <li class="nav-item {{ $isActive(['admin.units.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('admin.units.index') }}">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Unités</span>
+                    </a>
+                </li>
+            @endcan
+        @endif
+
+        @if ($hasAnyPermission(['read_clients', 'read_suppliers']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Contacts</div>
+
+            @can('read_clients')
+                <li class="nav-item {{ $isActive(['clients.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('clients.index') }}">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Clients</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('read_suppliers')
+                <li class="nav-item {{ $isActive(['suppliers.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('suppliers.index') }}">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Fournisseurs</span>
+                    </a>
+                </li>
+            @endcan
+        @endif
+
+        @if ($hasAnyPermission(['read_quotes', 'read_sale_orders', 'read_deliveries', 'read_customer_returns', 'read_client_payments', 'manage_client_invoices']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Commercial / Ventes</div>
+
+            <li class="nav-item {{ $isSalesActive ? 'active' : '' }}">
+                <a class="nav-link {{ $isSalesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                    data-target="#collapseSales" aria-expanded="{{ $isSalesActive ? 'true' : 'false' }}"
+                    aria-controls="collapseSales">
+                    <i class="fas fa-handshake"></i>
+                    <span>Ventes</span>
                 </a>
-            </li>
-        @endcan
 
-        @can('manage_units')
-            <li class="nav-item {{ $isActive(['admin.units.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('admin.units.index') }}">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>Unités</span>
-                </a>
-            </li>
-        @endcan
-    @endif
+                <div id="collapseSales" class="collapse {{ $isSalesActive ? 'show' : '' }}" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        @if ($hasAnyPermission(['read_quotes', 'manage_client_invoices']))
+                            <a class="collapse-item {{ request()->routeIs('quotes.*') ? 'active' : '' }}"
+                                href="{{ route('quotes.index') }}">
+                                Devis / Proforma
+                            </a>
+                        @endif
 
-    @if ($hasAnyPermission(['read_clients', 'read_suppliers']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Contacts</div>
+                        @if ($hasAnyPermission(['read_sale_orders', 'manage_client_invoices']))
+                            <a class="collapse-item {{ request()->routeIs('sale-orders.*') ? 'active' : '' }}"
+                                href="{{ route('sale-orders.index') }}">
+                                Commandes clients
+                            </a>
+                        @endif
 
-        @can('read_clients')
-            <li class="nav-item {{ $isActive(['clients.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('clients.index') }}">
-                    <i class="fas fa-user-tie"></i>
-                    <span>Clients</span>
-                </a>
-            </li>
-        @endcan
+                        @if ($hasAnyPermission(['read_deliveries', 'manage_stock', 'manage_client_invoices']))
+                            <a class="collapse-item {{ request()->routeIs('delivery-notes.*') ? 'active' : '' }}"
+                                href="{{ route('delivery-notes.index') }}">
+                                Bons de livraison
+                            </a>
+                        @endif
 
-        @can('read_suppliers')
-            <li class="nav-item {{ $isActive(['suppliers.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('suppliers.index') }}">
-                    <i class="fas fa-shipping-fast"></i>
-                    <span>Fournisseurs</span>
-                </a>
-            </li>
-        @endcan
-    @endif
+                        @can('read_customer_returns')
+                            <a class="collapse-item collapse-item--customer-return {{ $isCustomerReturnRoute ? 'active' : '' }}"
+                                href="{{ route('customer-returns.index') }}">
+                                <span class="collapse-item__icon"><i class="fas fa-undo"></i></span>
+                                Retours clients
+                            </a>
+                        @endcan
 
-    @if ($hasAnyPermission(['read_quotes', 'read_sale_orders', 'read_deliveries', 'read_customer_returns', 'read_client_payments', 'manage_client_invoices']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Commercial / Ventes</div>
+                        @if ($hasAnyPermission(['read_customer_returns', 'read_supplier_returns', 'manage_client_invoices', 'manage_supplier_invoices']))
+                            <a class="collapse-item {{ $isReturnsDashboardRoute ? 'active' : '' }}"
+                                href="{{ route('returns.index') }}">
+                                <span class="collapse-item__icon"><i class="fas fa-chart-pie"></i></span>
+                                Tableau retours / avoirs
+                            </a>
+                        @endif
 
-        <li class="nav-item {{ $isSalesActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isSalesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapseSales" aria-expanded="{{ $isSalesActive ? 'true' : 'false' }}"
-                aria-controls="collapseSales">
-                <i class="fas fa-handshake"></i>
-                <span>Ventes</span>
-            </a>
+                        @can('manage_client_invoices')
+                            <a class="collapse-item {{ $isClientInvoiceRoute ? 'active' : '' }}"
+                                href="{{ route('invoices.index', ['type' => 'clients']) }}">
+                                Factures clients
+                            </a>
+                        @endcan
 
-            <div id="collapseSales" class="collapse {{ $isSalesActive ? 'show' : '' }}" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @if ($hasAnyPermission(['read_quotes', 'manage_client_invoices']))
-                        <a class="collapse-item {{ request()->routeIs('quotes.*') ? 'active' : '' }}"
-                            href="{{ route('quotes.index') }}">
-                            Devis / Proforma
-                        </a>
-                    @endif
+                        @can('manage_client_invoices')
+                            <a class="collapse-item {{ $isCustomerCreditNoteRoute ? 'active' : '' }}"
+                                href="{{ route('customer-credit-notes.index') }}">
+                                Avoirs clients
+                            </a>
+                        @endcan
 
-                    @if ($hasAnyPermission(['read_sale_orders', 'manage_client_invoices']))
-                        <a class="collapse-item {{ request()->routeIs('sale-orders.*') ? 'active' : '' }}"
-                            href="{{ route('sale-orders.index') }}">
-                            Commandes clients
-                        </a>
-                    @endif
-
-                    @if ($hasAnyPermission(['read_deliveries', 'manage_stock', 'manage_client_invoices']))
-                        <a class="collapse-item {{ request()->routeIs('delivery-notes.*') ? 'active' : '' }}"
-                            href="{{ route('delivery-notes.index') }}">
-                            Bons de livraison
-                        </a>
-                    @endif
-
-                    @can('read_customer_returns')
-                        <a class="collapse-item collapse-item--customer-return {{ $isCustomerReturnRoute ? 'active' : '' }}"
-                            href="{{ route('customer-returns.index') }}">
-                            <span class="collapse-item__icon"><i class="fas fa-undo"></i></span>
-                            Retours clients
-                        </a>
-                    @endcan
-
-                    @can('manage_client_invoices')
-                        <a class="collapse-item {{ $isClientInvoiceRoute ? 'active' : '' }}"
-                            href="{{ route('invoices.index', ['type' => 'clients']) }}">
-                            Factures clients
-                        </a>
-                    @endcan
-
-                    @can('read_client_payments')
-                        <a class="collapse-item {{ $isClientPaymentRoute ? 'active' : '' }}"
-                            href="{{ route('payments.index', ['type' => 'clients']) }}">
-                            Paiements clients
-                        </a>
-                    @endcan
+                        @can('read_client_payments')
+                            <a class="collapse-item {{ $isClientPaymentRoute ? 'active' : '' }}"
+                                href="{{ route('payments.index', ['type' => 'clients']) }}">
+                                Paiements clients
+                            </a>
+                        @endcan
+                    </div>
                 </div>
-            </div>
-        </li>
-    @endif
+            </li>
+        @endif
 
-    @if ($hasAnyPermission(['manage_supplier_invoices', 'read_supplier_returns', 'read_supplier_payments', 'read_purchase_orders', 'read_receipts']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Achats</div>
+        @if ($hasAnyPermission(['manage_supplier_invoices', 'read_supplier_returns', 'read_supplier_payments', 'read_purchase_orders', 'read_receipts']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Achats</div>
 
-        <li class="nav-item {{ $isPurchasesActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isPurchasesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapsePurchases" aria-expanded="{{ $isPurchasesActive ? 'true' : 'false' }}"
-                aria-controls="collapsePurchases">
-                <i class="fas fa-shopping-basket"></i>
-                <span>Achats</span>
-            </a>
+            <li class="nav-item {{ $isPurchasesActive ? 'active' : '' }}">
+                <a class="nav-link {{ $isPurchasesActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                    data-target="#collapsePurchases" aria-expanded="{{ $isPurchasesActive ? 'true' : 'false' }}"
+                    aria-controls="collapsePurchases">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>Achats</span>
+                </a>
 
-            <div id="collapsePurchases" class="collapse {{ $isPurchasesActive ? 'show' : '' }}"
-                data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @if ($hasAnyPermission(['read_purchase_orders', 'manage_supplier_invoices']))
-                        <a class="collapse-item {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}"
-                            href="{{ route('purchase-orders.index') }}">
-                            Commandes fournisseurs
+                <div id="collapsePurchases" class="collapse {{ $isPurchasesActive ? 'show' : '' }}"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        @if ($hasAnyPermission(['read_purchase_orders', 'manage_supplier_invoices']))
+                            <a class="collapse-item {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}"
+                                href="{{ route('purchase-orders.index') }}">
+                                Commandes fournisseurs
+                            </a>
+                        @endif
+
+                        @if ($hasAnyPermission(['read_receipts', 'manage_stock', 'manage_supplier_invoices']))
+                            <a class="collapse-item {{ request()->routeIs('goods-receipts.*') ? 'active' : '' }}"
+                                href="{{ route('goods-receipts.index') }}">
+                                Bons de réception
+                            </a>
+                        @endif
+
+                        @can('read_supplier_returns')
+                            <a class="collapse-item collapse-item--supplier-return {{ $isSupplierReturnRoute ? 'active' : '' }}"
+                                href="{{ route('supplier-returns.index') }}">
+                                <span class="collapse-item__icon"><i class="fas fa-undo"></i></span>
+                                Retours fournisseurs
+                            </a>
+                        @endcan
+
+                        @can('manage_supplier_invoices')
+                            <a class="collapse-item {{ $isSupplierInvoiceRoute ? 'active' : '' }}"
+                                href="{{ route('invoices.index', ['type' => 'suppliers']) }}">
+                                Factures fournisseurs
+                            </a>
+                        @endcan
+
+                        @can('manage_supplier_invoices')
+                            <a class="collapse-item {{ $isSupplierCreditNoteRoute ? 'active' : '' }}"
+                                href="{{ route('supplier-credit-notes.index') }}">
+                                Avoirs fournisseurs
+                            </a>
+                        @endcan
+
+                        @can('read_supplier_payments')
+                            <a class="collapse-item {{ $isSupplierPaymentRoute ? 'active' : '' }}"
+                                href="{{ route('payments.index', ['type' => 'suppliers']) }}">
+                                Paiements fournisseurs
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            </li>
+        @endif
+
+        @if ($hasAnyPermission(['manage_warehouses', 'manage_stock', 'manage_inventories']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Stock &amp; Logistique</div>
+
+            <li class="nav-item {{ $isStockActive ? 'active' : '' }}">
+                <a class="nav-link {{ $isStockActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                    data-target="#collapseStock" aria-expanded="{{ $isStockActive ? 'true' : 'false' }}"
+                    aria-controls="collapseStock">
+                    <i class="fas fa-boxes"></i>
+                    <span>Stock</span>
+                </a>
+
+                <div id="collapseStock" class="collapse {{ $isStockActive ? 'show' : '' }}" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        @can('manage_warehouses')
+                            <a class="collapse-item {{ $isActive(['warehouses.*']) ? 'active' : '' }}"
+                                href="{{ route('warehouses.index') }}">
+                                Entrepôts
+                            </a>
+                        @endcan
+
+                        @if ($hasAnyPermission(['manage_stock', 'manage_warehouses']))
+                            <a class="collapse-item {{ $isActive(['batches.*']) ? 'active' : '' }}"
+                                href="{{ route('batches.index') }}">
+                                Lots / Batches
+                            </a>
+                        @endif
+
+                        @can('manage_inventories')
+                            <a class="collapse-item {{ $isActive(['inventories.*']) ? 'active' : '' }}"
+                                href="{{ route('inventories.index') }}">
+                                Inventaire physique
+                            </a>
+                        @endcan
+
+                        @if ($hasAnyPermission(['manage_stock', 'manage_inventories']))
+                            <a class="collapse-item {{ $isActive(['movements.*']) ? 'active' : '' }}"
+                                href="{{ route('movements.index') }}">
+                                Mouvements de stock
+                            </a>
+                        @endif
+
+                        @if ($hasAnyPermission(['manage_warehouses', 'manage_stock']))
+                            <a class="collapse-item {{ $isActive(['transfers.*']) ? 'active' : '' }}"
+                                href="{{ route('transfers.index') }}">
+                                Transferts internes
+                            </a>
+                        @endif
+
+                        @can('manage_stock_out')
+                            <a class="collapse-item {{ $isActive(['stockout.*']) ? 'active' : '' }}"
+                                href="{{ route('stockout.index') }}">
+                                Sorties de stock
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            </li>
+        @endif
+
+        @if ($hasAnyPermission(['manage_wallets', 'manage_expenses']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Finances</div>
+
+            @can('manage_wallets')
+                <li class="nav-item {{ $isActive(['wallet.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('wallet.index') }}">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallets / Caisses</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('manage_expenses')
+                <li class="nav-item {{ $isActive(['expenses.*']) ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('expenses.index') }}">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Dépenses</span>
+                    </a>
+                </li>
+            @endcan
+        @endif
+
+        @can('manage_reports')
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Rapports</div>
+
+            <li class="nav-item {{ $isReportsActive ? 'active' : '' }}">
+                <a class="nav-link {{ $isReportsActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                    data-target="#collapseReports" aria-expanded="{{ $isReportsActive ? 'true' : 'false' }}"
+                    aria-controls="collapseReports">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Rapports</span>
+                </a>
+
+                <div id="collapseReports" class="collapse {{ $isReportsActive ? 'show' : '' }}"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item {{ request()->routeIs('reports.index') ? 'active' : '' }}"
+                            href="{{ route('reports.index') }}">
+                            Synthèse financière
                         </a>
-                    @endif
-
-                    @if ($hasAnyPermission(['read_receipts', 'manage_stock', 'manage_supplier_invoices']))
-                        <a class="collapse-item {{ request()->routeIs('goods-receipts.*') ? 'active' : '' }}"
-                            href="{{ route('goods-receipts.index') }}">
-                            Bons de réception
+                        <a class="collapse-item {{ request()->routeIs('reports.journal') ? 'active' : '' }}"
+                            href="{{ route('reports.journal') }}">
+                            Journal
                         </a>
-                    @endif
-
-                    @can('read_supplier_returns')
-                        <a class="collapse-item collapse-item--supplier-return {{ $isSupplierReturnRoute ? 'active' : '' }}"
-                            href="{{ route('supplier-returns.index') }}">
-                            <span class="collapse-item__icon"><i class="fas fa-undo"></i></span>
-                            Retours fournisseurs
+                        <a class="collapse-item {{ request()->routeIs('reports.products') ? 'active' : '' }}"
+                            href="{{ route('reports.products') }}">
+                            Rapport produits
                         </a>
-                    @endcan
-
-                    @can('manage_supplier_invoices')
-                        <a class="collapse-item {{ $isSupplierInvoiceRoute ? 'active' : '' }}"
-                            href="{{ route('invoices.index', ['type' => 'suppliers']) }}">
-                            Factures fournisseurs
+                        <a class="collapse-item {{ request()->routeIs('reports.reportSuppliers') ? 'active' : '' }}"
+                            href="{{ route('reports.reportSuppliers') }}">
+                            Rapport fournisseurs
                         </a>
-                    @endcan
-
-                    @can('read_supplier_payments')
-                        <a class="collapse-item {{ $isSupplierPaymentRoute ? 'active' : '' }}"
-                            href="{{ route('payments.index', ['type' => 'suppliers']) }}">
+                        <a class="collapse-item {{ request()->routeIs('reports.suppliers') ? 'active' : '' }}"
+                            href="{{ route('reports.suppliers') }}">
                             Paiements fournisseurs
                         </a>
-                    @endcan
+                    </div>
                 </div>
-            </div>
-        </li>
-    @endif
-
-    @if ($hasAnyPermission(['manage_warehouses', 'manage_stock', 'manage_inventories']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Stock &amp; Logistique</div>
-
-        <li class="nav-item {{ $isStockActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isStockActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapseStock" aria-expanded="{{ $isStockActive ? 'true' : 'false' }}"
-                aria-controls="collapseStock">
-                <i class="fas fa-boxes"></i>
-                <span>Stock</span>
-            </a>
-
-            <div id="collapseStock" class="collapse {{ $isStockActive ? 'show' : '' }}" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @can('manage_warehouses')
-                        <a class="collapse-item {{ $isActive(['warehouses.*']) ? 'active' : '' }}"
-                            href="{{ route('warehouses.index') }}">
-                            Entrepôts
-                        </a>
-                    @endcan
-
-                    @if ($hasAnyPermission(['manage_stock', 'manage_warehouses']))
-                        <a class="collapse-item {{ $isActive(['batches.*']) ? 'active' : '' }}"
-                            href="{{ route('batches.index') }}">
-                            Lots / Batches
-                        </a>
-                    @endif
-
-                    @can('manage_inventories')
-                        <a class="collapse-item {{ $isActive(['inventories.*']) ? 'active' : '' }}"
-                            href="{{ route('inventories.index') }}">
-                            Inventaire physique
-                        </a>
-                    @endcan
-
-                    @if ($hasAnyPermission(['manage_stock', 'manage_inventories']))
-                        <a class="collapse-item {{ $isActive(['movements.*']) ? 'active' : '' }}"
-                            href="{{ route('movements.index') }}">
-                            Mouvements de stock
-                        </a>
-                    @endif
-
-                    @if ($hasAnyPermission(['manage_warehouses', 'manage_stock']))
-                        <a class="collapse-item {{ $isActive(['transfers.*']) ? 'active' : '' }}"
-                            href="{{ route('transfers.index') }}">
-                            Transferts internes
-                        </a>
-                    @endif
-
-                    @can('manage_stock_out')
-                        <a class="collapse-item {{ $isActive(['stockout.*']) ? 'active' : '' }}"
-                            href="{{ route('stockout.index') }}">
-                            Sorties de stock
-                        </a>
-                    @endcan
-                </div>
-            </div>
-        </li>
-    @endif
-
-    @if ($hasAnyPermission(['manage_wallets', 'manage_expenses']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Finances</div>
-
-        @can('manage_wallets')
-            <li class="nav-item {{ $isActive(['wallet.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('wallet.index') }}">
-                    <i class="fas fa-wallet"></i>
-                    <span>Wallets / Caisses</span>
-                </a>
             </li>
         @endcan
 
-        @can('manage_expenses')
-            <li class="nav-item {{ $isActive(['expenses.*']) ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('expenses.index') }}">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>Dépenses</span>
+        @if ($hasAnyPermission(['manage_settings', 'read_document_sequences', 'manage_users', 'manage_roles', 'view_subscriptions']))
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Paramètres</div>
+
+            <li class="nav-item {{ $isAdministrationActive ? 'active' : '' }}">
+                <a class="nav-link {{ $isAdministrationActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                    data-target="#collapseAdministration" aria-expanded="{{ $isAdministrationActive ? 'true' : 'false' }}"
+                    aria-controls="collapseAdministration">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Administration</span>
                 </a>
+
+                <div id="collapseAdministration" class="collapse {{ $isAdministrationActive ? 'show' : '' }}"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        @if ($hasAnyPermission(['manage_settings', 'read_taxes', 'manage_taxes']))
+                            <a class="collapse-item {{ $isActive(['settings.*']) ? 'active' : '' }}"
+                                href="{{ route('settings.index') }}">
+                                Taxes / TVA
+                            </a>
+                        @endif
+
+                        @can('read_document_sequences')
+                            <a class="collapse-item {{ $isActive(['document-sequences.*']) ? 'active' : '' }}"
+                                href="{{ route('document-sequences.index') }}">
+                                Séquences documents
+                            </a>
+                        @endcan
+
+                        @can('manage_users')
+                            <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
+                                href="{{ route('users.index') }}">
+                                Utilisateurs
+                            </a>
+                        @endcan
+
+                        @can('manage_roles')
+                            <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
+                                href="{{ route('roles.index') }}">
+                                Rôles &amp; permissions
+                            </a>
+                        @endcan
+
+                        @can('view_subscriptions')
+                            <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
+                                href="{{ route('tenant.subscriptions.index') }}">
+                                Mes souscriptions
+                            </a>
+                        @endcan
+
+                        @can('manage_employee')
+                            <a class="collapse-item {{ $isActive(['employes.*']) ? 'active' : '' }}"
+                                href="{{ route('employes.index') }}">
+                                Employés
+                            </a>
+                        @endcan
+                    </div>
+                </div>
             </li>
-        @endcan
-    @endif
-
-    @can('manage_reports')
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Rapports</div>
-
-        <li class="nav-item {{ $isReportsActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isReportsActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapseReports" aria-expanded="{{ $isReportsActive ? 'true' : 'false' }}"
-                aria-controls="collapseReports">
-                <i class="fas fa-chart-line"></i>
-                <span>Rapports</span>
-            </a>
-
-            <div id="collapseReports" class="collapse {{ $isReportsActive ? 'show' : '' }}"
-                data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('reports.index') ? 'active' : '' }}"
-                        href="{{ route('reports.index') }}">
-                        Synthèse financière
-                    </a>
-                    <a class="collapse-item {{ request()->routeIs('reports.journal') ? 'active' : '' }}"
-                        href="{{ route('reports.journal') }}">
-                        Journal
-                    </a>
-                    <a class="collapse-item {{ request()->routeIs('reports.products') ? 'active' : '' }}"
-                        href="{{ route('reports.products') }}">
-                        Rapport produits
-                    </a>
-                    <a class="collapse-item {{ request()->routeIs('reports.reportSuppliers') ? 'active' : '' }}"
-                        href="{{ route('reports.reportSuppliers') }}">
-                        Rapport fournisseurs
-                    </a>
-                    <a class="collapse-item {{ request()->routeIs('reports.suppliers') ? 'active' : '' }}"
-                        href="{{ route('reports.suppliers') }}">
-                        Paiements fournisseurs
-                    </a>
-                </div>
-            </div>
-        </li>
-    @endcan
-
-    @if ($hasAnyPermission(['manage_settings', 'read_document_sequences', 'manage_users', 'manage_roles', 'view_subscriptions']))
-        <hr class="sidebar-divider">
-        <div class="sidebar-heading">Paramètres</div>
-
-        <li class="nav-item {{ $isAdministrationActive ? 'active' : '' }}">
-            <a class="nav-link {{ $isAdministrationActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
-                data-target="#collapseAdministration" aria-expanded="{{ $isAdministrationActive ? 'true' : 'false' }}"
-                aria-controls="collapseAdministration">
-                <i class="fas fa-users-cog"></i>
-                <span>Administration</span>
-            </a>
-
-            <div id="collapseAdministration" class="collapse {{ $isAdministrationActive ? 'show' : '' }}"
-                data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    @if ($hasAnyPermission(['manage_settings', 'read_taxes', 'manage_taxes']))
-                        <a class="collapse-item {{ $isActive(['settings.*']) ? 'active' : '' }}"
-                            href="{{ route('settings.index') }}">
-                            Taxes / TVA
-                        </a>
-                    @endif
-
-                    @can('read_document_sequences')
-                        <a class="collapse-item {{ $isActive(['document-sequences.*']) ? 'active' : '' }}"
-                            href="{{ route('document-sequences.index') }}">
-                            Séquences documents
-                        </a>
-                    @endcan
-
-                    @can('manage_users')
-                        <a class="collapse-item {{ $isActive(['users.*']) ? 'active' : '' }}"
-                            href="{{ route('users.index') }}">
-                            Utilisateurs
-                        </a>
-                    @endcan
-
-                    @can('manage_roles')
-                        <a class="collapse-item {{ $isActive(['roles.*']) ? 'active' : '' }}"
-                            href="{{ route('roles.index') }}">
-                            Rôles &amp; permissions
-                        </a>
-                    @endcan
-
-                    @can('view_subscriptions')
-                        <a class="collapse-item {{ $isActive(['tenant.subscriptions.*']) ? 'active' : '' }}"
-                            href="{{ route('tenant.subscriptions.index') }}">
-                            Mes souscriptions
-                        </a>
-                    @endcan
-
-                    @can('manage_employee')
-                        <a class="collapse-item {{ $isActive(['employes.*']) ? 'active' : '' }}"
-                            href="{{ route('employes.index') }}">
-                            Employés
-                        </a>
-                    @endcan
-                </div>
-            </div>
-        </li>
-    @endif
+        @endif
+    @endunless
 
     @if ($current_user && $current_user->is_platform_user())
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Administration Plateforme</div>
+
+        @can('view_platform_dashboard')
+            <li class="nav-item {{ $isActive(['admin.dashboard']) ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard Plateforme</span>
+                </a>
+            </li>
+        @endcan
 
         @can('manage_permissions')
             <li class="nav-item {{ $isActive(['admin.permissions.*']) ? 'active' : '' }}">
@@ -633,7 +673,16 @@
             <li class="nav-item {{ $isActive(['admin.plans.*']) ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.plans.index') }}">
                     <i class="fas fa-gem"></i>
-                    <span>Plans d'abonnement</span>
+                    <span>Plans SaaS</span>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage_plan_permissions')
+            <li class="nav-item {{ $isActive(['admin.plan-permissions.*']) ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.plan-permissions.index') }}">
+                    <i class="fas fa-list-check"></i>
+                    <span>Permissions par plan</span>
                 </a>
             </li>
         @endcan
@@ -651,7 +700,16 @@
             <li class="nav-item {{ $isActive(['admin.subscriptions.*']) ? 'active' : '' }}">
                 <a class="nav-link" href="{{ route('admin.subscriptions.index') }}">
                     <i class="fas fa-receipt"></i>
-                    <span>Souscriptions globales</span>
+                    <span>Abonnements</span>
+                </a>
+            </li>
+        @endcan
+
+        @can('manage_platform_settings')
+            <li class="nav-item {{ $isActive(['admin.settings.*']) ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('admin.settings.index') }}">
+                    <i class="fas fa-cogs"></i>
+                    <span>Paramètres plateforme</span>
                 </a>
             </li>
         @endcan

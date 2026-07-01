@@ -80,14 +80,25 @@ class SaleOrderService
 
     public function confirm(SaleOrder $saleOrder): SaleOrder
     {
+        $this->assertBelongsToCurrentTenant($saleOrder);
         $saleOrder->update(['status' => SaleOrder::STATUS_CONFIRMED]);
         return $saleOrder;
     }
 
     public function cancel(SaleOrder $saleOrder): SaleOrder
     {
+        $this->assertBelongsToCurrentTenant($saleOrder);
         $saleOrder->update(['status' => SaleOrder::STATUS_CANCELLED]);
         return $saleOrder;
+    }
+
+    private function assertBelongsToCurrentTenant(SaleOrder $saleOrder): void
+    {
+        if ($saleOrder->tenant_id !== auth()->user()?->tenant_id) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'sale_order' => 'Cette commande appartient à un autre tenant.',
+            ]);
+        }
     }
 
     private function resolveContact(string $tenantId, string $contactId): Contact

@@ -305,6 +305,14 @@
                         <strong>Imprimer</strong>
                     </button>
 
+                    @if ($invoice->balance > 0)
+                        <button type="button" class="btn btn-warning m-1" data-toggle="modal"
+                            data-target="#applyCreditNoteModal{{ $invoice->id }}">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <strong>Appliquer un avoir</strong>
+                        </button>
+                    @endif
+
 
                     <a href="{{ route('invoices.index', $invoice->type . 's') }}" class="btn btn-light m-1">
                         <i class="fas fa-arrow-left mr-1"></i>
@@ -417,8 +425,19 @@
                                         'draft' => ['color' => 'secondary', 'icon' => 'fa-file'],
                                         'validated' => ['color' => 'info', 'icon' => 'fa-check-circle'],
                                         'partial' => ['color' => 'warning', 'icon' => 'fa-clock'],
+                                        'credited' => ['color' => 'success', 'icon' => 'fa-file-invoice-dollar'],
+                                        'partially_credited' => ['color' => 'warning', 'icon' => 'fa-file-invoice-dollar'],
                                         'paid' => ['color' => 'success', 'icon' => 'fa-check-double'],
                                         'cancelled' => ['color' => 'danger', 'icon' => 'fa-times-circle'],
+                                    ];
+                                    $statusLabel = [
+                                        'draft' => 'Brouillon',
+                                        'validated' => 'Validée',
+                                        'partial' => 'Partiellement payée',
+                                        'credited' => 'Créditée',
+                                        'partially_credited' => 'Partiellement payée',
+                                        'paid' => 'Payée',
+                                        'cancelled' => 'Annulée',
                                     ];
                                     $config = $statusConfig[$invoice->status] ?? [
                                         'color' => 'secondary',
@@ -427,7 +446,7 @@
                                 @endphp
                                 <span class="badge badge-{{ $config['color'] }}">
                                     <i class="fas {{ $config['icon'] }} mr-1"></i>
-                                    {{ ucfirst($invoice->status) }}
+                                    {{ $statusLabel[$invoice->status] ?? ucfirst($invoice->status) }}
                                 </span>
                             </dd>
 
@@ -785,6 +804,81 @@
             </div>
         </div>
     @endforeach
+
+    @if ($invoice->balance > 0)
+        <div class="modal fade" id="applyCreditNoteModal{{ $invoice->id }}" tabindex="-1" role="dialog"
+            aria-labelledby="applyCreditNoteModalLabel{{ $invoice->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <form action="{{ route('invoices.applyCreditNote', [$type, $invoice->id]) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title" id="applyCreditNoteModalLabel{{ $invoice->id }}">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i> Appliquer un avoir
+                            </h5>
+                            <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                Solde facture restant: <strong>{{ number_format($invoice->balance, 0, ',', ' ') }} FCFA</strong>
+                            </div>
+
+                            @if (($availableCreditNotes ?? collect())->count() > 0)
+                                <div class="form-group">
+                                    <label for="credit_note_id{{ $invoice->id }}" class="font-weight-bold">Avoir disponible</label>
+                                    <select name="credit_note_id" id="credit_note_id{{ $invoice->id }}" class="form-control" required>
+                                        @foreach ($availableCreditNotes as $creditNote)
+                                            <option value="{{ $creditNote->id }}">
+                                                {{ $creditNote->credit_note_number }} -
+                                                {{ number_format($creditNote->remaining_amount, 0, ',', ' ') }} FCFA restant
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="amount-credit{{ $invoice->id }}" class="font-weight-bold">Montant à appliquer</label>
+                                    <input type="number" name="amount" id="amount-credit{{ $invoice->id }}"
+                                        class="form-control" min="1" max="{{ $invoice->balance }}"
+                                        value="{{ min($invoice->balance, optional($availableCreditNotes->first())->remaining_amount ?? $invoice->balance) }}" required>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label for="note-credit{{ $invoice->id }}" class="font-weight-bold">Note</label>
+                                    <input type="text" name="note" id="note-credit{{ $invoice->id }}"
+                                        class="form-control" placeholder="Application d’avoir sur facture {{ $invoice->invoice_number }}">
+                                </div>
+                            @else
+                                <div class="alert alert-warning mb-0">
+                                    Aucun avoir disponible pour ce client / fournisseur.
+                                    <div class="mt-2">
+                                        <a href="{{ route($invoice->type === 'client' ? 'customer-credit-notes.index' : 'supplier-credit-notes.index') }}" class="alert-link">
+                                            Ouvrir la liste des avoirs
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                <i class="fas fa-times mr-1"></i> Annuler
+                            </button>
+                            @if (($availableCreditNotes ?? collect())->count() > 0)
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-check mr-1"></i> Appliquer l’avoir
+                                </button>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 
 
     @include('back.invoices._model_invoice')

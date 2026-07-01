@@ -117,13 +117,17 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage_units', 'description' => 'Gérer les unités'],
 
             // Subscriptions & Plans & Tenants
+            ['name' => 'view_platform_dashboard', 'description' => 'Voir le dashboard plateforme'],
+            ['name' => 'view_saas_metrics', 'description' => 'Voir les métriques SaaS de la plateforme'],
             ['name' => 'manage_subscriptions', 'description' => 'Gérer les abonnements'],
             ['name' => 'view_subscriptions', 'description' => 'Voir ses abonnements'],
             ['name' => 'manage_plans', 'description' => 'Gérer les plans'],
+            ['name' => 'manage_plan_permissions', 'description' => 'Gérer les permissions par plan'],
             ['name' => 'manage_tenants', 'description' => 'Gérer les entreprises (tenants)'],
 
             // Settings
             ['name' => 'manage_settings', 'description' => 'Gérer les paramètres'],
+            ['name' => 'manage_platform_settings', 'description' => 'Gérer les paramètres de la plateforme'],
 
             // Notifications
             ['name' => 'manage_notifications', 'description' => 'Gérer les notifications'],

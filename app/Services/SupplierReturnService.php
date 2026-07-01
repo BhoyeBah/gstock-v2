@@ -19,7 +19,9 @@ use Illuminate\Validation\ValidationException;
 class SupplierReturnService
 {
     public function __construct(
-        private readonly DocumentNumberService $documentNumberService
+        private readonly DocumentNumberService $documentNumberService,
+        private readonly SupplierCreditNoteService $supplierCreditNoteService,
+        private readonly InvoicePaymentStatusService $invoicePaymentStatusService
     ) {
     }
 
@@ -166,9 +168,20 @@ class SupplierReturnService
                     'updated_at' => now(),
                 ]);
 
+            $creditNote = $this->supplierCreditNoteService->createFromReturn($return->fresh(['items.product', 'supplierInvoice']), $user);
+
             $return->refresh();
 
-            return $return->fresh(['items.product', 'contact', 'supplierInvoice', 'goodsReceipt', 'warehouse', 'movements.batch']);
+            return $return->fresh([
+                'items.product',
+                'contact',
+                'supplierInvoice',
+                'goodsReceipt',
+                'warehouse',
+                'movements.batch',
+                'creditNote.items.product',
+                'creditNote.invoice',
+            ]);
         });
     }
 
@@ -187,7 +200,7 @@ class SupplierReturnService
             }
 
             if ($return->status === 'validated') {
-                $return->load('movements.batch');
+                $return->load('movements.batch', 'creditNote.invoice');
                 foreach ($return->movements as $movement) {
                     if (! $movement->batch) {
                         continue;
@@ -196,6 +209,23 @@ class SupplierReturnService
                     $movement->batch->remaining += $movement->quantity;
                     $movement->batch->quantity += $movement->quantity;
                     $movement->batch->save();
+                }
+
+                if ($return->creditNote) {
+                    $creditNote = $return->creditNote;
+                    $creditedInvoice = $creditNote->invoice;
+
+                    $creditNote->forceFill([
+                        'status' => 'cancelled',
+                        'applied_amount' => 0,
+                        'remaining_amount' => 0,
+                        'cancelled_at' => now(),
+                        'cancelled_by' => $user->id,
+                    ])->save();
+
+                    if ($creditedInvoice) {
+                        $this->invoicePaymentStatusService->recalculate($creditedInvoice->fresh());
+                    }
                 }
             }
 
@@ -210,7 +240,7 @@ class SupplierReturnService
 
             $return->refresh();
 
-            return $return->fresh(['items', 'contact', 'supplierInvoice', 'goodsReceipt', 'warehouse']);
+            return $return->fresh(['items', 'contact', 'supplierInvoice', 'goodsReceipt', 'warehouse', 'creditNote']);
         });
     }
 
