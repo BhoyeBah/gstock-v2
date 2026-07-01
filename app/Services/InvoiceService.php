@@ -48,6 +48,8 @@ class InvoiceService
     {
         return [
             'contact_id' => $data['contact_id'],
+            'quote_id' => $data['quote_id'] ?? null,
+            'sale_order_id' => $data['sale_order_id'] ?? null,
             'invoice_number' => $data['invoice_number'],
             'due_date' => $data['due_date'],
             'invoice_date' => $data['invoice_date'],

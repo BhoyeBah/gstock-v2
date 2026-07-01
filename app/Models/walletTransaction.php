@@ -24,10 +24,16 @@ class walletTransaction extends Model
         'source_id',
         'description',
         'note',
+        'description',
     ];
 
     public function wallet()
     {
         return $this->belongsTo(Wallet::class);
+    }
+
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class);
     }
 }

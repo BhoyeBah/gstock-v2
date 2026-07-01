@@ -5,6 +5,7 @@
 namespace Database\Seeders;
 
 use App\Models\Plan;
+use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
 class PlanSeeder extends Seeder
@@ -15,7 +16,7 @@ class PlanSeeder extends Seeder
     public function run(): void
     {
         // Plan Gratuit
-        Plan::updateOrCreate(
+        $free = Plan::updateOrCreate(
             ['slug' => 'gratuit'],
             [
                 'name' => 'Gratuit',
@@ -29,7 +30,7 @@ class PlanSeeder extends Seeder
         );
 
         // Plan Standard
-        Plan::updateOrCreate(
+        $standard = Plan::updateOrCreate(
             ['slug' => 'standard'],
             [
                 'name' => 'Standard',
@@ -43,7 +44,7 @@ class PlanSeeder extends Seeder
         );
 
         // Plan Premium
-        Plan::updateOrCreate(
+        $premium = Plan::updateOrCreate(
             ['slug' => 'premium'],
             [
                 'name' => 'Premium',
@@ -57,7 +58,7 @@ class PlanSeeder extends Seeder
         );
 
         // Plan Admin (non visible pour les autres)
-        Plan::updateOrCreate(
+        $admin = Plan::updateOrCreate(
             ['slug' => 'admin'],
             [
                 'name' => 'Admin',
@@ -69,5 +70,65 @@ class PlanSeeder extends Seeder
                 'description' => 'Plan réservé au propriétaire du SaaS.',
             ]
         );
+
+        $workflowPermissions = [
+            'read_quotes',
+            'create_quotes',
+            'update_quotes',
+            'delete_quotes',
+            'convert_quotes',
+            'read_sale_orders',
+            'create_sale_orders',
+            'update_sale_orders',
+            'confirm_sale_orders',
+            'cancel_sale_orders',
+            'read_deliveries',
+            'create_deliveries',
+            'validate_deliveries',
+            'cancel_deliveries',
+            'read_purchase_orders',
+            'create_purchase_orders',
+            'update_purchase_orders',
+            'confirm_purchase_orders',
+            'cancel_purchase_orders',
+            'read_receipts',
+            'create_receipts',
+            'validate_receipts',
+            'cancel_receipts',
+            'manage_reports',
+            'read_products',
+            'read_clients',
+            'read_suppliers',
+            'manage_client_invoices',
+            'manage_supplier_invoices',
+            'read_client_payments',
+            'read_supplier_payments',
+        ];
+
+        $this->syncPlanPermissions($free, $workflowPermissions);
+
+        $this->syncPlanPermissions($standard, array_merge($workflowPermissions, [
+            'manage_warehouses',
+            'manage_inventories',
+        ]));
+
+        $this->syncPlanPermissions($premium, array_merge($workflowPermissions, [
+            'manage_warehouses',
+            'manage_inventories',
+            'manage_wallets',
+            'manage_expenses',
+        ]));
+
+        $this->syncPlanPermissions($admin, Permission::query()->pluck('name')->all());
+    }
+
+    private function syncPlanPermissions(Plan $plan, array $permissions): void
+    {
+        $permissionIds = Permission::query()
+            ->whereIn('name', $permissions)
+            ->pluck('id')
+            ->all();
+
+        $plan->permissions()->sync($permissionIds);
     }
 }

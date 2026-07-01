@@ -1,12 +1,17 @@
 @extends('back.layouts.admin')
 
-@php use Carbon\Carbon; @endphp
+@php
+    use Carbon\Carbon;
+
+    $firstInvoiceId = optional($invoices->first())->id;
+    $walletSelectId = $firstInvoiceId ? 'wallet_id_'.$firstInvoiceId : 'wallet_id';
+@endphp
 
 @section('content')
     <style>
         /* En-tête de page */
         .page-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -83,8 +88,8 @@
         }
 
         .stats-card.border-left-primary .stats-icon {
-            background: rgba(79, 70, 229, 0.1);
-            color: #4f46e5;
+            background: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
         }
 
         /* Section recherche */
@@ -97,7 +102,7 @@
         }
 
         .search-section .card-header {
-            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -109,8 +114,8 @@
         }
 
         .search-section .form-control:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
         }
 
         .search-section label {
@@ -128,7 +133,7 @@
         }
 
         .invoice-list-section .card-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -227,17 +232,17 @@
             border-radius: 6px;
             margin: 0 0.125rem;
             border: none;
-            color: #4f46e5;
+            color: #4e73df;
         }
 
         .page-link:hover {
-            background: #4f46e5;
+            background: #4e73df;
             color: #fff;
         }
 
         .page-item.active .page-link {
-            background: #4f46e5;
-            border-color: #4f46e5;
+            background: #4e73df;
+            border-color: #4e73df;
         }
 
         /* Animations */
@@ -285,7 +290,7 @@
 
         /* Contact link */
         .contact-link {
-            color: #4f46e5;
+            color: #4e73df;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s ease;
@@ -492,6 +497,7 @@
                             <thead>
                                 <tr>
                                     <th width="50">#</th>
+                                    <th>N° paiement</th>
                                     <th>Facture</th>
                                     <th>Nom</th>
                                     <th>Type</th>
@@ -500,6 +506,7 @@
                                     <th>Date Paiement</th>
                                     <th>Date Création</th>
                                     <th>Méthode</th>
+                                    <th>Statut</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -508,6 +515,11 @@
                                     <tr>
                                         <td class="font-weight-bold text-muted">
                                             {{ $loop->iteration + ($payments->currentPage() - 1) * $payments->perPage() }}
+                                        </td>
+                                        <td>
+                                            <span class="font-weight-bold text-primary">
+                                                {{ $payment->payment_number ?? '-' }}
+                                            </span>
                                         </td>
                                         <td>
                                             <a href="{{ route('invoices.show', [$type, $payment->invoice_id]) }}"
@@ -554,21 +566,27 @@
                                             <i class="fas fa-credit-card text-muted mr-1"></i>
                                             {{ ucfirst($payment->payment_type) }}
                                         </td>
+                                        <td>
+                                            @if (($payment->status ?? 'completed') === 'cancelled')
+                                                <span class="badge badge-danger">Annulé</span>
+                                            @else
+                                                <span class="badge badge-success">Validé</span>
+                                            @endif
+                                        </td>
                                         <td class="text-center action-buttons">
-                                            {{-- Remplacement du formulaire onsubmit par une modale --}}
-
-                                            @can('delete_payment')
+                                            @can('cancel_payments')
                                                 <button type="button" class="btn btn-sm btn-danger confirm-action-btn"
-                                                    title="Supprimer" data-toggle="modal" data-target="#confirmModal"
+                                                    title="Annuler" data-toggle="modal" data-target="#confirmModal"
                                                     data-action="{{ route('payments.destroy', [$type, $payment->id]) }}"
                                                     data-method="DELETE"
-                                                    data-message="Confirmez-vous la suppression de ce paiement ? Cette action est irréversible et réajustera le solde de la facture."
+                                                    data-requires-reason="true"
+                                                    data-message="Confirmez-vous l’annulation de ce paiement ? Une transaction inverse sera créée dans le wallet."
                                                     data-btn-class="btn-danger"
-                                                    data-title="<i class='fas fa-exclamation-triangle'></i> Supprimer le paiement"
-                                                    @if ($payment->amount_paid == 0)
+                                                    data-title="<i class='fas fa-exclamation-triangle'></i> Annuler le paiement"
+                                                    @if (($payment->status ?? 'completed') === 'cancelled')
                                                     disabled
                                     @endif>
-                                    <i class="fas fa-trash-alt"></i>
+                                    <i class="fas fa-ban"></i>
                                     </button>
                                 @endcan
                                 </td>
@@ -605,26 +623,31 @@
         </div>
     </section>
 
-    <!-- Modale de confirmation générique (POUR SUPPRIMER) -->
+    <!-- Modale de confirmation générique -->
     <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
+            <div class="modal-content rounded-2xl overflow-hidden">
                 <div class="modal-header" id="confirmModalHeader"> {{-- Couleur définie par JS --}}
                     <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="confirmModalBody">
+                <div class="modal-body modern-body" id="confirmModalBody">
                     Êtes-vous sûr de vouloir continuer ?
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <div class="modal-footer modern-footer">
+                    <button type="button" class="btn-modern btn-secondary" data-dismiss="modal">Annuler</button>
                     <form id="confirmForm" method="POST" action="" class="d-inline">
                         @csrf
                         <input type="hidden" name="_method" id="confirmMethod" value="POST">
-                        <button type="submit" class="btn" id="confirmButton">Confirmer</button>
+                        <div class="form-group text-left d-none" id="cancellationReasonGroup">
+                            <label for="cancellationReason" class="modern-label">Raison d’annulation</label>
+                            <textarea name="cancellation_reason" id="cancellationReason" class="form-control" rows="2"
+                                placeholder="Ex: erreur de saisie, doublon, mauvais wallet"></textarea>
+                        </div>
+                        <button type="submit" class="btn-modern btn-primary" id="confirmButton">Confirmer</button>
                     </form>
                 </div>
             </div>
@@ -634,15 +657,13 @@
     <!-- Modal Ajouter un paiement -->
     <div class="modal fade" id="addPaymentModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content border-0 shadow-lg"
-                style="border-radius: 15px; overflow:hidden; box-shadow:0 10px 30px rgba(102,126,234,0.3);">
+            <div class="modal-content rounded-2xl overflow-hidden shadow-lg">
 
                 <form action="{{ route('payments.store', $type) }}" method="POST">
                     @csrf
 
                     <!-- HEADER -->
-                    <div class="modal-header text-white"
-                        style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-bottom: none;">
+                    <div class="modal-header modern-header">
                         <h5 class="modal-title font-weight-bold">
                             <i class="fas fa-money-bill-wave mr-2"></i>Nouveau paiement
                         </h5>
@@ -652,16 +673,15 @@
                     </div>
 
                     <!-- BODY -->
-                    <div class="modal-body p-4">
+                    <div class="modal-body modern-body">
 
                         <!-- Facture -->
-                        <div class="form-group">
-                            <label for="invoice_id" class="font-weight-semibold" style="color:#4a5568;">
+                        <div class="modern-input-group">
+                            <label for="invoice_id" class="modern-label">
                                 <i class="fas fa-file-invoice mr-1"></i>Facture
                             </label>
 
-                            <select name="invoice_id" id="invoice_id" class="form-control form-control-lg shadow-sm"
-                                style="border-radius:10px;" required>
+                            <select name="invoice_id" id="invoice_id" class="form-control" required>
                                 <option value="">Sélectionnez une facture</option>
 
                                 @foreach ($invoices as $invoice)
@@ -677,41 +697,36 @@
                         </div>
 
                         <!-- Montant payé -->
-                        <div class="form-group">
-                            <label for="amount_paid" class="font-weight-semibold" style="color:#4a5568;">
+                        <div class="modern-input-group">
+                            <label for="amount_paid" class="modern-label">
                                 <i class="fas fa-coins mr-1"></i>Montant payé
                             </label>
 
                             <input type="number" name="amount_paid" id="amount_paid"
-                                class="form-control form-control-lg shadow-sm" style="border-radius:10px;" min="1"
-                                step="0.01" placeholder="Ex: 50000" required>
+                                class="form-control" min="1" step="0.01" placeholder="Ex: 50000" required>
 
                             <small class="form-text text-muted">Montant en FCFA</small>
                         </div>
 
                         <!-- Date du paiement -->
-                        <div class="form-group">
-                            <label for="payment_date" class="font-weight-semibold" style="color:#4a5568;">
+                        <div class="modern-input-group">
+                            <label for="payment_date" class="modern-label">
                                 <i class="fas fa-calendar-alt mr-1"></i>Date de paiement
                             </label>
 
                             <input type="date" name="payment_date" id="payment_date"
-                                class="form-control form-control-lg shadow-sm" style="border-radius:10px;"
-                                value="{{ date('Y-m-d') }}" required>
+                                class="form-control" value="{{ date('Y-m-d') }}" required>
 
                             <small class="form-text text-muted">Date d'encaissement</small>
                         </div>
 
                         <!-- Méthode de paiement -->
-                        <div class="form-group">
-                            <label for="payment_type" class="font-weight-semibold" style="color:#4a5568;">
+                        <div class="modern-input-group mb-0">
+                            <label for="payment_type" class="modern-label">
                                 <i class="fas fa-credit-card mr-1"></i>Méthode de paiement
                             </label>
 
-                            {{-- <select class="form-control" id="wallet_id_{{ $invoice->id }}" name="wallet_id" required> --}}
-
-                            <select class="form-control" id="{{ $invoice->id ? 'wallet_id_' . $invoice->id : '' }}"
-                                name="wallet_id" required>
+                            <select class="form-control" id="{{ $walletSelectId }}" name="wallet_id" required>
                                 <option value="">-- Sélectionnez un wallet --</option>
 
 
@@ -741,15 +756,12 @@
                     </div>
 
                     <!-- FOOTER -->
-                    <div class="modal-footer" style="background:#f7f9fc; border-top:none;">
-                        <button type="button" class="btn btn-light px-4" data-dismiss="modal"
-                            style="border-radius:10px; font-weight:600;">
+                    <div class="modal-footer modern-footer">
+                        <button type="button" class="btn-modern btn-secondary" data-dismiss="modal">
                             <i class="fas fa-times mr-1"></i>Annuler
                         </button>
 
-                        <button type="submit" class="btn text-white px-4"
-                            style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-                                   border-radius:10px; box-shadow:0 5px 15px rgba(102,126,234,0.4); font-weight:600;">
+                        <button type="submit" class="btn-modern btn-primary">
                             <i class="fas fa-check mr-1"></i>Enregistrer
                         </button>
                     </div>
@@ -776,6 +788,7 @@
                 var message = $button.data('message');
                 var title = $button.data('title');
                 var btnClass = $button.data('btn-class'); // ex: 'btn-danger'
+                var requiresReason = $button.data('requires-reason') === true || $button.data('requires-reason') === 'true';
 
                 // Références de la modale
                 var $modal = $('#confirmModal');
@@ -788,6 +801,8 @@
                 $modal.find('#confirmMethod').val(method);
                 $modal.find('#confirmModalBody').text(message);
                 $modal.find('#confirmModalLabel').html(title || 'Confirmation'); // Titre avec icône
+                $modal.find('#cancellationReasonGroup').toggleClass('d-none', !requiresReason);
+                $modal.find('#cancellationReason').val('').prop('disabled', !requiresReason);
 
                 // Appliquer la bonne couleur au bouton et à l'en-tête
                 $confirmBtn.removeClass('btn-primary btn-success btn-danger btn-warning').addClass(

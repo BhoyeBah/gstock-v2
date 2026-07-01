@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\InventoryItem;
-use App\Models\InventoryMovement;
-use App\Models\Product;
 use App\Models\Warehouse;
+use App\Services\InventoryReconciliationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
 {
-    //
+    public function __construct(
+        private readonly InventoryReconciliationService $inventoryReconciliationService
+    ) {}
+
     public function index()
     {
 
@@ -34,25 +38,16 @@ class InventoryController extends Controller
     public function store(Request $request)
     {
         $tenantId = auth()->user()->tenant_id;
+        $request->validate([
+            'warehouse_id' => [
+                'required',
+                Rule::exists('warehouses', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
+            ],
+        ]);
+
         $warehouse_id = $request->warehouse_id;
-
-        // Sécurité : vérifier que l'entrepôt appartient au tenant
-        $warehouseExists = Warehouse::where('id', $warehouse_id)
-            ->where('tenant_id', $tenantId)
-            ->exists();
-
-        if (!$warehouseExists) {
-            abort(403, "Action non autorisée.");
-        }
-
-        $existingInventory = Inventory::where('status', '=', 'pending')
-            ->where('warehouse_id', '=', $warehouse_id)
-            ->first();
-
-        $batches = Batch::where('warehouse_id', '=', $warehouse_id)
-            ->where('tenant_id', $tenantId)
-            ->where('remaining', '>', 0)
-            ->get();
+        $existingInventory = Inventory::where('status', '=', 'pending')->where('warehouse_id', '=', $warehouse_id)->first();
+        $batches = Batch::where('warehouse_id', '=', $warehouse_id)->where('remaining', '>', 0)->get();
 
         if ($existingInventory) {
             return back()->with('error', 'Cet entrepot a deja un inventaire non cloturé.');
@@ -115,145 +110,46 @@ class InventoryController extends Controller
 
     public function show(string $id)
     {
-        $inventory = Inventory::where('tenant_id', auth()->user()->tenant_id)
-            ->with('items.product')->findOrFail($id);
-        $items = $inventory->items()->get();
+        $inventory = Inventory::with([
+            'warehouse',
+            'items.product',
+            'items.movements.batch',
+            'items.validatedBy',
+            'items.reconciledBy',
+        ])
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->findOrFail($id);
+
+        $items = $inventory->items;
 
         return view('back.inventories.show', compact('inventory', 'items'));
     }
 
     public function validateItem(Request $request, string $id)
     {
+        $validated = $request->validate([
+            'real_qty' => ['required', 'integer', 'min:0'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
         try {
-            DB::beginTransaction();
-
-            $inventoryItem = InventoryItem::with('product', 'inventory.warehouse')
-                ->whereHas('inventory', fn ($query) => $query->where('tenant_id', auth()->user()->tenant_id))
-                ->findOrFail($id);
-            $inventory = $inventoryItem->inventory;
-
-            if (!$inventory || $inventory->tenant_id !== auth()->user()->tenant_id) {
-                abort(403, "Action non autorisée.");
-            }
-
-            $productName = $inventoryItem->product->name;
-            $warehouseId = $inventory->warehouse_id;
-            $productId = $inventoryItem->product_id;
-
-            $theoreticalQty = (int) $inventoryItem->theoretical_qty;
-            $realQty = (int) $request->input('real_qty');
-
-            if ($realQty < 0) {
-                throw new \Exception("La quantité réelle ne peut pas être négative.");
-            }
-
-            $variance = $realQty - $theoreticalQty;
-
-            $inventoryItem->real_qty = $realQty;
-            $inventoryItem->variance = $variance;
-            $inventoryItem->validated = true;
-            $inventoryItem->save();
-
-            if ($realQty < $theoreticalQty) {
-                $quantityToRemove = $theoreticalQty - $realQty;
-                $remainingToRemove = $quantityToRemove;
-
-                $batches = Batch::where('product_id', $productId)
-                    ->where('warehouse_id', $warehouseId)
-                    ->where('remaining', '>', 0)
-                    ->orderBy('created_at', 'asc')
-                    ->lockForUpdate()
-                    ->get();
-
-                foreach ($batches as $batch) {
-                    if ($remainingToRemove <= 0) {
-                        break;
-                    }
-                    if ($batch->remaining <= 0) {
-                        continue;
-                    }
-                    $deduct = min($batch->remaining, $remainingToRemove);
-                    $batch->remaining -= $deduct;
-                    $batch->save();
-
-                    $remainingToRemove -= $deduct;
-                }
-
-                InventoryMovement::create([
-                    'tenant_id' => auth()->user()->tenant_id,
-                    'inventory_id' => $inventory->id,
-                    'inventory_item_id' => $inventoryItem->id,
-                    'batch_id' => $batches->first()?->id,
-                    'product_id' => $productId,
-                    'warehouse_id' => $warehouseId,
-                    'quantity_before' => $theoreticalQty,
-                    'quantity_after' => $realQty,
-                    'variance' => $variance,
-                    'quantity' => $quantityToRemove,
-                    'user_id' => auth()->user()->id,
-                    'reason' => $request->input('reason') ?? 'Ajustement inventaire (réel < théorique)',
-                    'movement_type' => 'inventory_adjustment_out',
-                ]);
-
-            } elseif ($realQty > $theoreticalQty) {
-                $quantityToAdd = $realQty - $theoreticalQty;
-
-                $batch = Batch::where('product_id', $productId)
-                    ->where('warehouse_id', $warehouseId)
-                    ->orderBy('created_at', 'desc')
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($batch) {
-                    $batch->quantity += $quantityToAdd;
-                    $batch->remaining += $quantityToAdd;
-                    $batch->save();
-                } else {
-                    $product = Product::where('tenant_id', auth()->user()->tenant_id)->findOrFail($productId);
-                    $batch = Batch::create([
-                        'tenant_id' => auth()->user()->tenant_id,
-                        'warehouse_id' => $warehouseId,
-                        'product_id' => $productId,
-                        'unit_price' => $product->price ?? 0,
-                        'quantity' => $quantityToAdd,
-                        'remaining' => $quantityToAdd,
-                    ]);
-                }
-
-                InventoryMovement::create([
-                    'tenant_id' => auth()->user()->tenant_id,
-                    'inventory_id' => $inventory->id,
-                    'inventory_item_id' => $inventoryItem->id,
-                    'batch_id' => $batch->id,
-                    'product_id' => $productId,
-                    'warehouse_id' => $warehouseId,
-                    'quantity_before' => $theoreticalQty,
-                    'quantity_after' => $realQty,
-                    'variance' => $variance,
-                    'quantity' => $quantityToAdd,
-                    'user_id' => auth()->user()->id,
-                    'reason' => $request->input('reason') ?? 'Ajustement inventaire (réel > théorique)',
-                    'movement_type' => 'inventory_adjustment_in',
-                ]);
-            }
-
-            $invalidatedItems = InventoryItem::where('validated', '=', false)->where('inventory_id', $inventoryItem->inventory_id)->first();
-            if (!$invalidatedItems) {
-                $inventory->closed_at = now();
-                $inventory->status = 'completed';
-                $inventory->save();
-
-                DB::commit();
-                return back()->with('success', 'Inventaire validé avec succès.');
-            }
-
-            DB::commit();
-            return back()->with('success', "Inventaire du produit ($productName) validé avec succès.");
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', "Erreur lors de la validation : " . $e->getMessage());
+            $inventoryItem = $this->inventoryReconciliationService->reconcileItem(
+                inventoryItemId: $id,
+                user: auth()->user(),
+                realQuantity: (int) $validated['real_qty'],
+                reason: $validated['reason'] ?? null
+            );
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors())->withInput();
         }
+
+        $productName = $inventoryItem->product->name;
+
+        if ($inventoryItem->inventory->status === 'completed') {
+            return back()->with('success', 'Inventaire validé avec succès.');
+        }
+
+        return back()->with('success', "Inventaire du produit ($productName) ajusté avec succès.");
     }
 
     public function print(Inventory $inventory)

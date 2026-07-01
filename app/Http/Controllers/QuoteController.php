@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreQuoteRequest;
+use App\Http\Requests\QuoteRequest;
 use App\Models\Contact;
-use App\Models\Product;
 use App\Models\Quote;
-use App\Models\TaxRate;
+use App\Models\Product;
 use App\Models\Warehouse;
 use App\Services\QuoteConversionService;
 use App\Services\QuoteService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class QuoteController extends Controller
@@ -23,134 +21,153 @@ class QuoteController extends Controller
 
     public function index(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
+        $tenantId = $request->user()->tenant_id;
+        $status = $request->input('status');
 
-        $quotes = Quote::where('tenant_id', $tenantId)
-            ->with(['contact', 'items.product'])
+        $quotes = Quote::query()
+            ->where('tenant_id', $tenantId)
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->with('contact')
             ->latest()
             ->paginate(10);
 
-        return view('back.quotes.index', compact('quotes'));
+        return view('back.documents.index', [
+            'title' => 'Devis / Proforma',
+            'subtitle' => 'Gérer les devis et les conversions commerciales.',
+            'records' => $quotes,
+            'status' => $status,
+            'documentKind' => 'quote',
+            'showRoute' => 'quotes.show',
+            'createRoute' => 'quotes.create',
+            'emptyMessage' => 'Aucun devis créé pour le moment.',
+        ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $tenantId = auth()->user()->tenant_id;
-
-        $contacts = Contact::where('tenant_id', $tenantId)
-            ->where('type', 'client')
-            ->orderBy('fullname')
-            ->get();
-        $products = Product::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        $warehouses = Warehouse::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        $taxRates = TaxRate::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        return view('back.quotes.create', compact('contacts', 'products', 'warehouses', 'taxRates'));
+        return view('back.documents.form', [
+            'title' => 'Créer un devis',
+            'record' => new Quote(['quote_date' => now()->toDateString()]),
+            'storeRoute' => 'quotes.store',
+            'updateRoute' => null,
+            'contacts' => Contact::query()->where('tenant_id', $request->user()->tenant_id)->where('type', 'client')->orderBy('fullname')->get(),
+            'products' => Product::query()->where('tenant_id', $request->user()->tenant_id)->orderBy('name')->get(),
+            'warehouses' => Warehouse::query()->where('tenant_id', $request->user()->tenant_id)->orderBy('name')->get(),
+            'mode' => 'quote',
+        ]);
     }
 
-    public function store(StoreQuoteRequest $request)
+    public function store(QuoteRequest $request)
     {
-        $quote = $this->quoteService->createQuote($request->validated());
-
-        return redirect()->route('quotes.show', $quote)->with('success', 'Devis enregistré avec succès.');
+        $quote = $this->quoteService->create($request->validated(), $request->user());
+        return redirect()->route('quotes.show', $quote)->with('success', 'Devis créé avec succès.');
     }
 
-    public function show(Quote $quote)
+    public function show(Request $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
+        $quote = $this->resolveQuote($request, $quote);
+        $quote->load(['items.product', 'contact', 'invoice', 'saleOrder']);
 
-        $quote->load(['contact', 'items.product', 'items.taxRate', 'items.warehouse', 'convertedInvoice']);
-
-        return view('back.quotes.show', compact('quote'));
+        return view('back.documents.show', [
+            'title' => 'Devis / Proforma',
+            'record' => $quote,
+            'items' => $quote->items,
+            'type' => 'quote',
+            'documentKind' => 'quote',
+        ]);
     }
 
-    public function edit(Quote $quote)
+    public function edit(Request $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
+        $quote = $this->resolveQuote($request, $quote);
 
-        $tenantId = auth()->user()->tenant_id;
-        $quote->load('items');
-
-        $contacts = Contact::where('tenant_id', $tenantId)
-            ->where('type', 'client')
-            ->orderBy('fullname')
-            ->get();
-        $products = Product::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        $warehouses = Warehouse::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        $taxRates = TaxRate::where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        return view('back.quotes.edit', compact('quote', 'contacts', 'products', 'warehouses', 'taxRates'));
+        return view('back.documents.form', [
+            'title' => 'Modifier le devis',
+            'record' => $quote->load('items'),
+            'storeRoute' => null,
+            'updateRoute' => 'quotes.update',
+            'contacts' => Contact::query()->where('tenant_id', $request->user()->tenant_id)->where('type', 'client')->orderBy('fullname')->get(),
+            'products' => Product::query()->where('tenant_id', $request->user()->tenant_id)->orderBy('name')->get(),
+            'warehouses' => Warehouse::query()->where('tenant_id', $request->user()->tenant_id)->orderBy('name')->get(),
+            'mode' => 'quote',
+        ]);
     }
 
-    public function update(StoreQuoteRequest $request, Quote $quote)
+    public function update(QuoteRequest $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
-
-        $quote = $this->quoteService->updateQuote($quote, $request->validated());
-
+        $quote = $this->resolveQuote($request, $quote);
+        $quote = $this->quoteService->update($quote, $request->validated(), $request->user());
         return redirect()->route('quotes.show', $quote)->with('success', 'Devis mis à jour avec succès.');
     }
 
-    public function destroy(Quote $quote)
+    public function destroy(Request $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
-
-        if ($quote->status === Quote::STATUS_CONVERTED || $quote->converted_invoice_id) {
-            return back()->with('error', 'Impossible de supprimer un devis déjà converti.');
-        }
-
+        $quote = $this->resolveQuote($request, $quote);
         $quote->delete();
-
-        return back()->with('success', 'Devis supprimé avec succès.');
+        return redirect()->route('quotes.index')->with('success', 'Devis supprimé.');
     }
 
-    public function convert(Quote $quote)
+    public function send(Request $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
-
-        try {
-            $invoice = $this->quoteConversionService->convert($quote->fresh());
-
-            return redirect()
-                ->route('invoices.show', ['type' => 'clients', 'invoice' => $invoice->id])
-                ->with('success', 'Devis converti en facture avec succès.');
-        } catch (\Throwable $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        $quote = $this->resolveQuote($request, $quote);
+        $this->quoteService->send($quote);
+        return back()->with('success', 'Devis envoyé.');
     }
 
-    public function pdf(Quote $quote)
+    public function accept(Request $request, Quote $quote)
     {
-        $this->ensureTenantOwnership($quote);
-
-        $quote->load(['contact', 'items.product', 'items.taxRate', 'items.warehouse']);
-        $pdf = Pdf::loadView('back.quotes.pdf', compact('quote'));
-
-        return $pdf->download('devis-' . ($quote->quote_number ?? $quote->id) . '.pdf');
+        $quote = $this->resolveQuote($request, $quote);
+        $this->quoteService->accept($quote);
+        return back()->with('success', 'Devis accepté.');
     }
 
-    private function ensureTenantOwnership(Quote $quote): void
+    public function reject(Request $request, Quote $quote)
     {
-        if ($quote->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, 'Action non autorisée.');
-        }
+        $quote = $this->resolveQuote($request, $quote);
+        $this->quoteService->reject($quote);
+        return back()->with('success', 'Devis rejeté.');
+    }
+
+    public function cancel(Request $request, Quote $quote)
+    {
+        $quote = $this->resolveQuote($request, $quote);
+        $this->quoteService->cancel($quote);
+        return back()->with('success', 'Devis annulé.');
+    }
+
+    public function convertToOrder(Request $request, Quote $quote)
+    {
+        $quote = $this->resolveQuote($request, $quote);
+        $saleOrder = $this->quoteConversionService->toSaleOrder($quote);
+
+        return redirect()->route('sale-orders.show', $saleOrder)->with('success', 'Devis converti en commande client.');
+    }
+
+    public function convertToInvoice(Request $request, Quote $quote)
+    {
+        $quote = $this->resolveQuote($request, $quote);
+        $invoice = $this->quoteConversionService->toInvoice($quote);
+
+        return redirect()->route('invoices.show', ['type' => 'clients', 'invoice' => $invoice])->with('success', 'Devis converti en facture.');
+    }
+
+    public function print(Request $request, Quote $quote)
+    {
+        $quote = $this->resolveQuote($request, $quote);
+        $quote->load(['items.product', 'contact', 'invoice', 'saleOrder']);
+
+        return view('back.documents.print', [
+            'title' => 'Devis / Proforma',
+            'record' => $quote,
+            'items' => $quote->items,
+        ]);
+    }
+
+    private function resolveQuote(Request $request, Quote $quote): Quote
+    {
+        return Quote::query()
+            ->where('tenant_id', $request->user()->tenant_id)
+            ->whereKey($quote->id)
+            ->firstOrFail();
     }
 }

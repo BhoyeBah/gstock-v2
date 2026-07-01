@@ -52,6 +52,12 @@
                             <option value="partial" {{ request('status') === 'partial' ? 'selected' : '' }}>
                                 Partielle
                             </option>
+                            <option value="credited" {{ request('status') === 'credited' ? 'selected' : '' }}>
+                                Créditée
+                            </option>
+                            <option value="partially_credited" {{ request('status') === 'partially_credited' ? 'selected' : '' }}>
+                                Partiellement payée
+                            </option>
                             <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Payée
                             </option>
                             <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>
@@ -123,6 +129,8 @@
                                             'draft' => ['color' => 'secondary', 'icon' => 'fa-file'],
                                             'validated' => ['color' => 'info', 'icon' => 'fa-check-circle'],
                                             'partial' => ['color' => 'warning', 'icon' => 'fa-clock'],
+                                            'credited' => ['color' => 'success', 'icon' => 'fa-file-invoice-dollar'],
+                                            'partially_credited' => ['color' => 'warning', 'icon' => 'fa-file-invoice-dollar'],
                                             'paid' => ['color' => 'success', 'icon' => 'fa-check-double'],
                                             'cancelled' => ['color' => 'danger', 'icon' => 'fa-times-circle'],
                                         ];
@@ -133,7 +141,15 @@
                                     @endphp
                                     <span class="badge badge-{{ $config['color'] }}">
                                         <i class="fas {{ $config['icon'] }} mr-1"></i>
-                                        {{ ucfirst($invoice->status) }}
+                                        {{ [
+                                            'draft' => 'Brouillon',
+                                            'validated' => 'Validée',
+                                            'partial' => 'Partiellement payée',
+                                            'credited' => 'Créditée',
+                                            'partially_credited' => 'Partiellement payée',
+                                            'paid' => 'Payée',
+                                            'cancelled' => 'Annulée',
+                                        ][$invoice->status] ?? ucfirst($invoice->status) }}
                                     </span>
                                 </td>
                                 <td class="text-right font-weight-bold">
@@ -146,7 +162,7 @@
                                 </td>
                                 <td class="text-center action-buttons">
                                     <!-- ✅ Bouton Payer (affiché uniquement si la facture est validée ou partiellement payée) -->
-                                    @if (in_array($invoice->status, ['validated', 'partial']))
+                                    @if (in_array($invoice->status, ['validated', 'partial', 'partially_credited']))
                                         <button type="button" class="btn btn-sm btn-primary" title="Payer"
                                             data-toggle="modal" data-target="#paymentModal{{ $invoice->id }}">
                                             <i class="fas fa-money-bill-wave"></i>

@@ -8,11 +8,16 @@ use App\Models\Batch;
 use App\Models\InventoryMovement;
 use App\Models\StockTransfert;
 use App\Models\Warehouse;
+use App\Services\DocumentNumberService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class WarehouseController extends Controller
 {
+    public function __construct(
+        private readonly DocumentNumberService $documentNumberService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -54,10 +59,6 @@ class WarehouseController extends Controller
      */
     public function show(Warehouse $warehouse)
     {
-        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, "Action non autorisée.");
-        }
-
         // Récupérer les lots de cet entrepôt avec le produit et la facture associée
         $batches = $warehouse->batches()
             ->with(['product', 'invoice'])  // Charger relations
@@ -79,10 +80,7 @@ class WarehouseController extends Controller
      */
     public function edit(Warehouse $warehouse)
     {
-        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, "Action non autorisée.");
-        }
-
+        //
         return view('back.warehouses.edit', compact('warehouse'));
     }
 
@@ -92,9 +90,6 @@ class WarehouseController extends Controller
     public function update(WarehouseRequest $request, Warehouse $warehouse)
     {
         //
-        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, "Action non autorisée.");
-        }
         $warehouse->update($request->validated());
 
         return redirect()->route('warehouses.index')
@@ -107,14 +102,11 @@ class WarehouseController extends Controller
      */
     public function destroy(Warehouse $warehouse)
     {
-        if ($warehouse->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, "Action non autorisée.");
-        }
-
         if ($warehouse->is_active) {
             return back()->with('error', 'Impossible de supprimer un entrêpot actif. Veuillez le désactiver d\'abord.');
         }
 
+        //
         $warehouse->delete();
 
         return back()->with('success', 'Entrêpot supprimé avec succés');
@@ -127,13 +119,14 @@ class WarehouseController extends Controller
             ->where('tenant_id', $tenantId)
             ->findOrFail($id);
 
-        // Récupérer tous les entrepôts du tenant sauf l'entrepôt source
+        // Récupérer tous les entrepôts sauf l'entrepôt source
         $warehouses = Warehouse::with('batches')
             ->where('tenant_id', $tenantId)
             ->where('id', '!=', $warehouse->id)
             ->get();
 
         return view('back.warehouses.exchange', compact('warehouse', 'warehouses'));
+
     }
 
     public function exchange(ExchangeRequest $request, string $id)
@@ -153,8 +146,8 @@ class WarehouseController extends Controller
             foreach ($batches as $index => $batchId) {
                 $quantity = $quantities[$index];
 
-                // Récupérer le batch source (scoped au tenant)
-                $batch = Batch::where('tenant_id', $tenantId)->lockForUpdate()->findOrFail($batchId);
+                // Récupérer le batch source
+                $batch = Batch::where('tenant_id', $tenantId)->findOrFail($batchId);
 
                 if ($batch->remaining < $quantity) {
                     throw new \Exception("La quantité demandée pour le lot {$batch->code} est supérieure au stock disponible.");
@@ -180,6 +173,7 @@ class WarehouseController extends Controller
 
                 // Enregistrer le transfert
                 StockTransfert::create([
+                    'transfer_number' => $this->documentNumberService->generate('transfer', auth()->user()->tenant),
                     'tenant_id' => $batch->tenant_id,
                     'product_id' => $batch->product_id,
                     'source_warehouse_id' => $warehouseOut->id,
@@ -203,7 +197,7 @@ class WarehouseController extends Controller
 
     public function toggleActive(string $id)
     {
-        $warehouse = Warehouse::where('tenant_id', auth()->user()->tenant_id)->findOrFail($id);
+        $warehouse = Warehouse::findOrFail($id);
         $warehouse->is_active = ! $warehouse->is_active;
         $warehouse->save();
 

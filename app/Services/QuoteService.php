@@ -2,96 +2,170 @@
 
 namespace App\Services;
 
+use App\Models\Contact;
+use App\Models\Product;
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class QuoteService
 {
-    public function __construct(
-        private readonly TaxCalculatorService $taxCalculatorService
-    ) {
+    public function __construct(private readonly DocumentNumberService $documentNumberService)
+    {
     }
 
-    public function createQuote(array $data): Quote
+    public function create(array $data, $user): Quote
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $user) {
+            $tenantId = $user->tenant_id;
+            $contact = $this->resolveContact($tenantId, $data['contact_id']);
+            $taxRate = (float) (Setting::query()->where('tenant_id', $tenantId)->value('tva') ?? 0);
+            $items = $this->normalizeItems($data['items'], $tenantId, $taxRate);
+
             $quote = Quote::create([
-                'contact_id' => $data['contact_id'],
-                'quote_number' => $data['quote_number'] ?? null,
+                'contact_id' => $contact->id,
+                'quote_number' => $this->documentNumberService->generate('quote', $user->tenant),
                 'quote_date' => $data['quote_date'],
-                'expiry_date' => $data['expiry_date'] ?? null,
-                'status' => $data['status'] ?? Quote::STATUS_DRAFT,
+                'valid_until' => $data['valid_until'] ?? null,
+                'status' => Quote::STATUS_DRAFT,
+                'total_ht' => collect($items)->sum('subtotal_ht'),
+                'total_discount' => collect($items)->sum('discount_amount'),
+                'tax_amount' => collect($items)->sum('tax_amount'),
+                'total_ttc' => collect($items)->sum('total_ttc'),
+                'created_by' => $user->id,
                 'notes' => $data['notes'] ?? null,
-                'created_by' => auth()->id(),
-                'subtotal_ht' => 0,
-                'tax_total' => 0,
-                'total_ttc' => 0,
             ]);
 
-            $quote->generateQuoteNumber();
-            $quote->save();
+            foreach ($items as $item) {
+                $item['quote_id'] = $quote->id;
+                QuoteItem::create($item);
+            }
 
-            $this->syncItems($quote, $data['items']);
-
-            return $quote->load(['items.product', 'items.taxRate', 'contact', 'creator']);
+            return $quote->fresh(['items.product', 'contact']);
         });
     }
 
-    public function updateQuote(Quote $quote, array $data): Quote
+    public function update(Quote $quote, array $data, $user): Quote
     {
-        return DB::transaction(function () use ($quote, $data) {
-            if ($quote->status === Quote::STATUS_CONVERTED || $quote->converted_invoice_id) {
-                throw new \RuntimeException('Le devis a déjà été converti.');
+        return DB::transaction(function () use ($quote, $data, $user) {
+            if ($quote->status === Quote::STATUS_CONVERTED) {
+                throw ValidationException::withMessages([
+                    'quote' => 'Un devis converti ne peut plus être modifié.',
+                ]);
             }
+
+            $taxRate = (float) (Setting::query()->where('tenant_id', $user->tenant_id)->value('tva') ?? 0);
+            $items = $this->normalizeItems($data['items'], $user->tenant_id, $taxRate);
 
             $quote->update([
                 'contact_id' => $data['contact_id'],
                 'quote_date' => $data['quote_date'],
-                'expiry_date' => $data['expiry_date'] ?? null,
-                'status' => $data['status'] ?? $quote->status,
+                'valid_until' => $data['valid_until'] ?? null,
+                'total_ht' => collect($items)->sum('subtotal_ht'),
+                'total_discount' => collect($items)->sum('discount_amount'),
+                'tax_amount' => collect($items)->sum('tax_amount'),
+                'total_ttc' => collect($items)->sum('total_ttc'),
                 'notes' => $data['notes'] ?? null,
             ]);
 
             $quote->items()->delete();
-            $this->syncItems($quote, $data['items']);
 
-            return $quote->load(['items.product', 'items.taxRate', 'contact', 'creator']);
+            foreach ($items as $item) {
+                $quote->items()->create($item);
+            }
+
+            return $quote->fresh(['items.product', 'contact']);
         });
     }
 
-    public function syncItems(Quote $quote, array $items): array
+    public function send(Quote $quote): Quote
     {
-        $totals = [
-            'subtotal_ht' => 0,
-            'tax_total' => 0,
-            'total_ttc' => 0,
-        ];
+        $this->ensureCanTransition($quote, ['draft']);
+        $quote->update(['status' => Quote::STATUS_SENT]);
+        return $quote;
+    }
 
-        foreach ($items as $item) {
-            $calculated = $this->taxCalculatorService->calculateLine($item, $quote->tenant_id);
+    public function accept(Quote $quote): Quote
+    {
+        $this->ensureCanTransition($quote, ['draft', 'sent']);
+        $quote->update(['status' => Quote::STATUS_ACCEPTED]);
+        return $quote;
+    }
 
-            QuoteItem::create([
-                'tenant_id' => $quote->tenant_id,
-                'quote_id' => $quote->id,
-                'warehouse_id' => $item['warehouse_id'],
-                'product_id' => $item['product_id'],
-                'quantity' => (int) $item['quantity'],
-                'unit_price' => (int) $item['unit_price'],
-                'discount' => (int) ($item['discount'] ?? 0),
-                'tax_rate_id' => $item['tax_rate_id'] ?? null,
-                'subtotal_ht' => $calculated['subtotal_ht'],
-                'tax_amount' => $calculated['tax_amount'],
-                'total_ttc' => $calculated['total_ttc'],
+    public function reject(Quote $quote): Quote
+    {
+        $this->ensureCanTransition($quote, ['draft', 'sent', 'accepted']);
+        $quote->update(['status' => Quote::STATUS_REJECTED]);
+        return $quote;
+    }
+
+    public function cancel(Quote $quote): Quote
+    {
+        $this->ensureCanTransition($quote, ['draft', 'sent', 'accepted']);
+        $quote->update(['status' => Quote::STATUS_CANCELLED]);
+        return $quote;
+    }
+
+    private function ensureCanTransition(Quote $quote, array $allowedStatuses): void
+    {
+        if ($quote->tenant_id !== auth()->user()?->tenant_id) {
+            throw ValidationException::withMessages([
+                'quote' => 'Ce devis appartient à un autre tenant.',
             ]);
-
-            $totals['subtotal_ht'] += $calculated['subtotal_ht'];
-            $totals['tax_total'] += $calculated['tax_amount'];
-            $totals['total_ttc'] += $calculated['total_ttc'];
         }
 
-        $quote->update($totals);
+        if (! in_array($quote->status, $allowedStatuses, true)) {
+            throw ValidationException::withMessages([
+                'quote' => 'Cette action n’est pas autorisée dans l’état actuel du devis.',
+            ]);
+        }
+    }
 
-        return $totals;
+    private function resolveContact(string $tenantId, string $contactId): Contact
+    {
+        return Contact::query()
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'client')
+            ->whereKey($contactId)
+            ->firstOrFail();
+    }
+
+    private function normalizeItems(array $items, string $tenantId, float $taxRate): array
+    {
+        $rows = [];
+
+        foreach ($items as $item) {
+            $product = Product::query()
+                ->where('tenant_id', $tenantId)
+                ->whereKey($item['product_id'])
+                ->firstOrFail();
+
+            $quantity = (int) $item['quantity'];
+            $unitPrice = (int) $item['unit_price_ht'];
+            $discount = max(0, (int) ($item['discount_amount'] ?? 0));
+            $subtotal = max(($unitPrice * $quantity) - $discount, 0);
+            $taxAmount = (int) round($subtotal * $taxRate / 100);
+
+            $rows[] = [
+                'product_id' => $product->id,
+                'warehouse_id' => $item['warehouse_id'] ?? null,
+                'quantity' => $quantity,
+                'unit_price_ht' => $unitPrice,
+                'discount_amount' => $discount,
+                'subtotal_ht' => $subtotal,
+                'tax_id' => $item['tax_id'] ?? null,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total_ttc' => $subtotal + $taxAmount,
+            ];
+        }
+
+        if (empty($rows)) {
+            throw ValidationException::withMessages(['items' => 'Ajoute au moins une ligne.']);
+        }
+
+        return $rows;
     }
 }

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         PermissionSeeder::class,
         PlanSeeder::class,
         SuperAdminSeeder::class,
+        DemoTenantSeeder::class,
         UnitSeeder::class,
         EmployeSeeder::class
         ]);

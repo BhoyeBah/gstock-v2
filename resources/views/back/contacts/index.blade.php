@@ -12,180 +12,16 @@
         $inactiveContacts = $totalContacts - $activeContacts;
     @endphp
 
-    <style>
-        /* Styles copiés de votre exemple pour une cohérence parfaite */
-        .page-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border-radius: 15px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-
-        .page-header h1 {
-            color: #fff;
-            font-weight: 700;
-            margin: 0;
-            font-size: 1.75rem;
-        }
-
-        .page-header .btn {
-            transition: all 0.3s ease;
-        }
-
-        .page-header .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .stats-card {
-            border: none;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .stats-card .card-body {
-            padding: 1.5rem;
-        }
-
-        .stats-card .stats-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .stats-card.border-left-primary .stats-icon { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
-        .stats-card.border-left-success .stats-icon { background: rgba(40, 167, 69, 0.1); color: #28a745; }
-        .stats-card.border-left-warning .stats-icon { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
-        .stats-card.border-left-danger .stats-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
-
-        .search-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem;
-            overflow: hidden;
-        }
-
-        .search-section .card-header {
-            background: linear-gradient(135deg, #475569 0%, #334155 100%);
-            border: none;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .search-section .form-control,
-        .search-section .form-control:focus {
-            border-radius: 8px;
-            border: 1px solid #e3e6f0;
-        }
-
-        .search-section .form-control:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
-        }
-
-        .search-section label {
-            font-weight: 600;
-            color: #5a5c69;
-            margin-bottom: 0.5rem;
-        }
-
-        .list-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-
-        .list-section .card-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
-            border: none;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .custom-table {
-            margin-bottom: 0;
-        }
-
-        .custom-table thead th {
-            background: #f8f9fc;
-            color: #5a5c69;
-            font-weight: 700;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            border: none;
-            padding: 1rem 0.75rem;
-            white-space: nowrap;
-        }
-
-        .custom-table tbody tr {
-            transition: all 0.2s ease;
-            border-bottom: 1px solid #e3e6f0;
-        }
-        .custom-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .custom-table tbody tr:hover {
-            background: #f8f9fc;
-        }
-
-        .custom-table tbody td {
-            padding: 1rem 0.75rem;
-            vertical-align: middle;
-            font-size: 0.875rem;
-        }
-
-        .badge {
-            padding: 0.5rem 0.875rem;
-            font-weight: 600;
-            font-size: 0.75rem;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .action-buttons .btn {
-            margin: 0 0.125rem;
-            transition: all 0.2s ease;
-            border-radius: 6px;
-        }
-
-        .action-buttons .btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .pagination { margin-bottom: 0; }
-        .page-link { border-radius: 6px; margin: 0 0.125rem; border: none; color: #4f46e5; }
-        .page-link:hover { background: #4f46e5; color: #fff; }
-        .page-item.active .page-link { background: #4f46e5; border-color: #4f46e5; }
-        
-        .modal-content { border-radius: 15px; border: none; }
-        .modal-header { border-radius: 15px 15px 0 0; border: none; padding: 1.5rem; }
-        .modal-body { padding: 2rem; }
-        .modal-footer { border: none; padding: 1.5rem; background: #f8f9fc; }
-    </style>
-
-    <!-- En-tête de page -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <h1>
-                <i class="fas fa-users mr-2"></i> {{ $contactType }}
-            </h1>
-            <button type="button" class="btn btn-primary m-1" data-toggle="modal" data-target="#addContactModal">
+    <div class="page-hero page-hero--accent">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="page-hero__eyebrow mb-2">Contacts</div>
+                <h1 class="page-hero__title"><i class="fas fa-users mr-2"></i> {{ $contactType }}</h1>
+                <p class="page-hero__subtitle">Clients et fournisseurs tenant-safe, avec suivi rapide des statuts.</p>
+            </div>
+            <button type="button" class="btn btn-light" data-toggle="modal" data-target="#addContactModal">
                 <i class="fas fa-plus-circle mr-1"></i>
-                <strong>Nouveau {{ $type === 'clients' ? 'client' : 'fournisseur' }}</strong>
+                Nouveau {{ $type === 'clients' ? 'client' : 'fournisseur' }}
             </button>
         </div>
     </div>
@@ -193,7 +29,7 @@
     <!-- Cartes statistiques -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-left-primary shadow h-100">
+            <div class="metric-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col">
@@ -206,7 +42,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-left-success shadow h-100">
+            <div class="metric-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col">
@@ -219,7 +55,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stats-card border-left-warning shadow h-100">
+            <div class="metric-card">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col">
@@ -264,14 +100,14 @@
     </div>
 
     <!-- Liste des contacts -->
-    <div class="list-section">
+    <div class="table-card">
         <div class="card-header text-white">
             <h6 class="m-0 font-weight-bold"><i class="fas fa-list-ul mr-2"></i> Liste des {{ $contactType }}</h6>
         </div>
         <div class="card-body p-0">
             @if ($contacts->count() > 0)
                 <div class="table-responsive">
-                    <table class="table custom-table">
+                    <table class="table data-table">
                         <thead>
                             <tr>
                                 <th>#</th>

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
+    <head>
 
     @include('back.partials.head')
+    @include('back.partials.ui')
 
 
     @stack('styles')

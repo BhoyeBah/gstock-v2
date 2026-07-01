@@ -276,7 +276,7 @@
     </style>
 
     <!-- En-tête de page -->
-    <div class="page-header">
+    <div class="page-hero page-hero--accent">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <h1>
                 <i class="fas fa-tags mr-2"></i> Catégories de produits
@@ -351,7 +351,7 @@
     </div>
 
     <!-- Liste des catégories -->
-    <div class="invoice-list-section">
+    <div class="table-card">
         <div class="card-header text-white">
             <h6 class="m-0 font-weight-bold">
                 <i class="fas fa-list-ul mr-2"></i> Liste des catégories

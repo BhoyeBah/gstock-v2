@@ -22,6 +22,9 @@ class Batch extends Model
         'benefit',
         'remaining',
         'expiration_date',
+        'source_type',
+        'source_id',
+        'origin',
     ];
 
     protected $casts = [

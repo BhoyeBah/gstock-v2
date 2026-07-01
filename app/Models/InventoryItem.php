@@ -18,11 +18,20 @@ class InventoryItem extends Model
         'real_qty',
         'variance',
         'validated',
+        'status',
+        'validated_at',
+        'validated_by',
+        'reconciled_at',
+        'reconciled_by',
+        'reason',
         'created_at',
         'updated_at',
     ];
 
     protected $casts = [
+        'validated' => 'boolean',
+        'validated_at' => 'datetime',
+        'reconciled_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -39,4 +48,18 @@ class InventoryItem extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function movements()
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
+    public function validatedBy()
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function reconciledBy()
+    {
+        return $this->belongsTo(User::class, 'reconciled_by');
+    }
 }

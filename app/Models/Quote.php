@@ -12,34 +12,34 @@ class Quote extends Model
     use HasFactory, HasTenant, HasUuid;
 
     protected $fillable = [
-        'tenant_id',
         'contact_id',
         'quote_number',
         'quote_date',
-        'expiry_date',
+        'valid_until',
         'status',
-        'subtotal_ht',
-        'tax_total',
+        'total_ht',
+        'total_discount',
+        'tax_amount',
         'total_ttc',
-        'converted_invoice_id',
-        'notes',
+        'converted_to_sale_order_id',
+        'converted_to_invoice_id',
+        'converted_at',
         'created_by',
+        'notes',
     ];
 
     protected $casts = [
         'quote_date' => 'date',
-        'expiry_date' => 'date',
-        'subtotal_ht' => 'integer',
-        'tax_total' => 'integer',
-        'total_ttc' => 'integer',
+        'valid_until' => 'date',
+        'converted_at' => 'datetime',
     ];
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_SENT = 'sent';
     public const STATUS_ACCEPTED = 'accepted';
     public const STATUS_REJECTED = 'rejected';
-    public const STATUS_EXPIRED = 'expired';
     public const STATUS_CONVERTED = 'converted';
+    public const STATUS_CANCELLED = 'cancelled';
 
     public function contact()
     {
@@ -51,43 +51,18 @@ class Quote extends Model
         return $this->hasMany(QuoteItem::class);
     }
 
-    public function convertedInvoice()
-    {
-        return $this->belongsTo(Invoice::class, 'converted_invoice_id');
-    }
-
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function generateQuoteNumber(): string
+    public function invoice()
     {
-        if ($this->quote_number) {
-            return $this->quote_number;
-        }
+        return $this->belongsTo(Invoice::class, 'converted_to_invoice_id');
+    }
 
-        if (! $this->tenant_id) {
-            throw new \RuntimeException('tenant_id requis pour générer quote_number');
-        }
-
-        $this->quote_date = $this->quote_date ?? now();
-        $year = \Carbon\Carbon::parse($this->quote_date)->format('Y');
-        $base = "DEV-{$year}-";
-
-        $lastQuote = self::where('tenant_id', $this->tenant_id)
-            ->whereYear('quote_date', $year)
-            ->where('quote_number', 'LIKE', $base.'%')
-            ->orderByDesc('quote_number')
-            ->first();
-
-        $lastNumber = 0;
-        if ($lastQuote && preg_match('/DEV-' . $year . '-(\d+)/', $lastQuote->quote_number, $matches)) {
-            $lastNumber = (int) $matches[1];
-        }
-
-        $this->quote_number = sprintf('%s%06d', $base, $lastNumber + 1);
-
-        return $this->quote_number;
+    public function saleOrder()
+    {
+        return $this->belongsTo(SaleOrder::class, 'converted_to_sale_order_id');
     }
 }

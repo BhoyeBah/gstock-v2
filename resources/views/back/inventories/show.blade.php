@@ -106,8 +106,14 @@
                                 <td class="text-center status-label">
                                     @if ($item->validated)
                                         <span class="status-badge validated">
-                                            <i class="fas fa-check-circle"></i> Validé
+                                            <i class="fas fa-check-circle"></i> Ajusté
                                         </span>
+                                        <div class="small text-muted mt-1">
+                                            {{ $item->reconciledBy->name ?? 'Utilisateur' }}
+                                            @if ($item->reconciled_at)
+                                                · {{ $item->reconciled_at->format('d/m/Y H:i') }}
+                                            @endif
+                                        </div>
                                     @else
                                         <span class="status-badge neutral">
                                             Équivalent
@@ -124,9 +130,11 @@
 
                                             <input type="hidden" name="real_qty" class="hidden-real-qty"
                                                 value="{{ $item->real_qty ?? $item->theoretical_qty }}">
+                                            <input type="text" name="reason" class="reason-input"
+                                                placeholder="Motif de l'ajustement">
 
                                             <button type="submit" class="btn-validate">
-                                                <i class="fas fa-check"></i> Valider
+                                                <i class="fas fa-check"></i> Valider ajustement
                                             </button>
                                         </form>
                                     @else
@@ -137,6 +145,55 @@
                                 </td>
                             </tr>
                         @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="main-card mt-4">
+            <div class="card-header-clean">
+                <h5 class="mb-0">
+                    <i class="fas fa-exchange-alt me-2"></i>
+                    Mouvements d'ajustement générés
+                </h5>
+            </div>
+            <div class="table-container">
+                <table class="clean-table">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Lot</th>
+                            <th>Type</th>
+                            <th class="text-center">Avant</th>
+                            <th class="text-center">Après</th>
+                            <th class="text-center">Écart</th>
+                            <th>Motif</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($items->flatMap->movements as $movement)
+                            <tr>
+                                <td>{{ $movement->product->name ?? 'N/A' }}</td>
+                                <td>{{ $movement->batch_id ? \Illuminate\Support\Str::limit($movement->batch_id, 8, '') : 'N/A' }}</td>
+                                <td>
+                                    <span class="status-badge {{ $movement->variance >= 0 ? 'validated' : 'missing' }}">
+                                        {{ $movement->movement_type }}
+                                    </span>
+                                </td>
+                                <td class="text-center">{{ $movement->quantity_before }}</td>
+                                <td class="text-center">{{ $movement->quantity_after }}</td>
+                                <td class="text-center">
+                                    {{ $movement->variance > 0 ? '+' : '' }}{{ $movement->variance }}
+                                </td>
+                                <td>{{ $movement->reason }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Aucun mouvement d'ajustement généré pour le moment.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -414,6 +471,16 @@
 
         .btn-validate:active {
             transform: translateY(0);
+        }
+
+        .reason-input {
+            display: block;
+            width: 160px;
+            margin: 0 auto 0.5rem;
+            padding: 0.35rem 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.75rem;
         }
 
         /* Icône validé */

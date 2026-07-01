@@ -59,6 +59,11 @@ class Tenant extends Model
 
     public function settings()
     {
-        return $this->belongsTo(Setting::class);
+        return $this->hasOne(Setting::class);
+    }
+
+    public function documentSequences()
+    {
+        return $this->hasMany(DocumentSequence::class);
     }
 }

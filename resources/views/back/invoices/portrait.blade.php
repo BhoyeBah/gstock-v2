@@ -50,6 +50,8 @@
         .status-paid { background-color: #28a745; color: white; }
         .status-unpaid { background-color: #007bff; color: white; }
         .status-partial { background-color: #ffc107; color: #000; }
+        .status-credited { background-color: #28a745; color: white; }
+        .status-partially_credited { background-color: #ffc107; color: #000; }
         .status-pending { background-color: #6c757d; color: white; }
         .status-cancelled { background-color: #dc3545; color: white; }
         .info-section { display: flex; justify-content: space-between; margin-bottom: 6mm; gap: 5mm; }
@@ -122,6 +124,8 @@
                             'paid' => 'status-paid',
                             'validated' => 'status-unpaid',
                             'partial' => 'status-partial',
+                            'credited' => 'status-credited',
+                            'partially_credited' => 'status-partially_credited',
                             'cancelled' => 'status-cancelled',
                             default => 'status-pending',
                         };
@@ -129,6 +133,8 @@
                             'paid' => 'Payée',
                             'validated' => 'Validée(non payée)',
                             'partial' => 'Paiement partiel',
+                            'credited' => 'Créditée',
+                            'partially_credited' => 'Partiellement payée',
                             'cancelled' => 'Annulée',
                             default => 'Brouillon',
                         };

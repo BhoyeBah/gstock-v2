@@ -199,10 +199,11 @@
     </style>
 </head>
 <body>
-    <div class="header-section">
+    <div class="page-hero page-hero--accent">
         <div class="container">
-            <h1 class="mb-2"><i class="fas fa-book"></i> Journal Comptable</h1>
-            <h5>Magasin ABC - Année 2024</h5>
+            <div class="page-hero__eyebrow mb-2">Rapports</div>
+            <h1 class="page-hero__title mb-2"><i class="fas fa-book mr-2"></i> Journal Comptable</h1>
+            <p class="page-hero__subtitle">Vue d’ensemble des écritures et opérations comptables.</p>
         </div>
     </div>
 
@@ -210,7 +211,7 @@
         <!-- Résumé financier -->
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card summary-card">
+                <div class="metric-card">
                     <div class="card-body">
                         <h6 class="text-muted">Total Débits</h6>
                         <h3 class="text-danger" id="totalDebit">125 500 €</h3>
@@ -218,7 +219,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card summary-card">
+                <div class="metric-card">
                     <div class="card-body">
                         <h6 class="text-muted">Total Crédits</h6>
                         <h3 class="text-success" id="totalCredit">125 500 €</h3>
@@ -226,7 +227,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card summary-card">
+                <div class="metric-card">
                     <div class="card-body">
                         <h6 class="text-muted">Solde</h6>
                         <h3 class="text-info" id="solde">0 €</h3>
@@ -234,7 +235,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card summary-card">
+                <div class="metric-card">
                     <div class="card-body">
                         <h6 class="text-muted">Nb Opérations</h6>
                         <h3 class="text-primary" id="nbOps">15</h3>
@@ -244,7 +245,7 @@
         </div>
 
         <!-- Filtres -->
-        <div class="filter-section">
+        <div class="panel-card p-4 mb-4">
             <div class="row">
                 <div class="col-md-3">
                     <label>Date début</label>
@@ -273,7 +274,7 @@
         </div>
 
         <!-- Tableau du journal -->
-        <div class="table-wrapper">
+        <div class="table-card">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
@@ -600,8 +601,8 @@
 
         // Animation au chargement
         $(document).ready(function() {
-            $('.summary-card').hide().fadeIn(1000);
-            $('.table-wrapper').hide().slideDown(800);
+            $('.metric-card').hide().fadeIn(1000);
+            $('.table-card').hide().slideDown(800);
         });
     </script>
 </body>

@@ -7,33 +7,39 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Wallet;
 use App\Models\walletTransaction;
+use App\Services\DocumentNumberService;
+use App\Services\InvoicePaymentStatusService;
+use App\Services\PaymentCancellationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PaymentController extends Controller
 {
+    public function __construct(
+        private readonly DocumentNumberService $documentNumberService,
+        private readonly InvoicePaymentStatusService $invoicePaymentStatusService,
+        private readonly PaymentCancellationService $paymentCancellationService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(string $type)
     {
-        //
-
         $this->validateType($type);
 
         $payments = Payment::with(['invoice', 'contact'])
             ->where('payment_source', rtrim($type, 's'))
-            ->where('tenant_id', auth()->user()->tenant_id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         // Charger les factures du même type (client ou supplier)
-        $invoices = Invoice::where('tenant_id', auth()->user()->tenant_id)
-            ->where('type', rtrim($type, 's'))
+        $invoices = Invoice::where('type', rtrim($type, 's'))
             ->orderBy('invoice_number', 'desc')
             ->where('balance', '>', 0)
             ->get();
-        $wallets = Wallet::where('tenant_id', auth()->user()->tenant_id)->orderBy('name')->get();
+        $wallets = Wallet::orderBy('name')->get();
 
         return view('back.payments.index', compact('payments', 'wallets', 'type', 'invoices'));
     }
@@ -51,80 +57,96 @@ class PaymentController extends Controller
      */
     public function store(PaymentRequest $request)
     {
+        $this->validateType($request->route('type'));
 
-        $invoice = Invoice::where('tenant_id', auth()->user()->tenant_id)
-            ->findOrFail($request->invoice_id);
+        $tenantId = $request->user()->tenant_id;
+        $invoiceType = rtrim($request->route('type'), 's');
         $amountPaid = (int) $request->input('amount_paid');
-        $payment_date = $request->input('payment_date');
-
-        if ($amountPaid > $invoice->balance) {
-            return back()->with('error', "Montant trop élevé. Solde restant : {$invoice->balance} FCFA");
-        }
 
         try {
-            DB::beginTransaction();
+            $invoice = null;
+            $payment = null;
 
-            $wallet = Wallet::where('tenant_id', auth()->user()->tenant_id)
-                ->where('id', $request->wallet_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            DB::transaction(function () use ($request, $tenantId, $invoiceType, $amountPaid, &$invoice, &$payment) {
+                $invoice = Invoice::where('tenant_id', $tenantId)
+                    ->where('type', $invoiceType)
+                    ->whereKey($request->invoice_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            if ($invoice->type !== 'client' && $wallet->current_balance < $amountPaid) {
-                return back()->with('error', 'Solde insuffisant dans le wallet '.$wallet->name);
-            }
-            $beforeBalance = $wallet->current_balance;
+                if ($amountPaid > $invoice->balance) {
+                    throw ValidationException::withMessages([
+                        'amount_paid' => "Montant trop élevé. Solde restant : {$invoice->balance} FCFA",
+                    ]);
+                }
 
-            if ($invoice->type === 'client') {
-                $wallet->increment('current_balance', $amountPaid);
-            } else {
-                $wallet->decrement('current_balance', $amountPaid);
-            }
+                $wallet = Wallet::where('tenant_id', $tenantId)
+                    ->whereKey($request->wallet_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $invoice->balance -= $amountPaid;
-            if ($invoice->balance > 0) {
-                $invoice->status = 'partial';
+                if ($invoice->type !== Invoice::TYPE_CLIENT && $wallet->current_balance < $amountPaid) {
+                    throw ValidationException::withMessages([
+                        'wallet_id' => 'Solde insuffisant dans le wallet '.$wallet->name,
+                    ]);
+                }
 
-            } elseif ($invoice->balance == 0) {
-                $invoice->status = 'paid';
-            }
+                $beforeBalance = (int) $wallet->current_balance;
 
-            $invoice->save();
-            $payment = Payment::create([
-                'wallet_id' => $wallet->id,
-                'invoice_id' => $invoice->id,
-                'tenant_id' => $invoice->tenant_id,
-                'contact_id' => $invoice->contact_id,
-                'amount_paid' => $amountPaid,
-                'remaining_amount' => $invoice->balance,
-                'payment_date' => $payment_date,
-                'payment_type' => $wallet->name,
-                'payment_source' => $invoice->type,
-            ]);
+                if ($invoice->type === Invoice::TYPE_CLIENT) {
+                    $wallet->current_balance = $beforeBalance + $amountPaid;
+                    $legacyType = 'in';
+                    $transactionType = 'payment_in';
+                } else {
+                    $wallet->current_balance = $beforeBalance - $amountPaid;
+                    $legacyType = 'out';
+                    $transactionType = 'payment_out';
+                }
 
-            // Enregistrement transaction wallet (IN ou OUT)
-            walletTransaction::create([
-                'tenant_id' => $invoice->tenant_id,
-                'wallet_id' => $wallet->id,
-                'payment_id' => $payment->id,
-                'user_id' => auth()->user()->id,
-                'type' => $invoice->type === 'client' ? 'in' : 'out',
-                'transaction_type' => 'payment',
-                'amount' => $amountPaid,
-                'balance_before' => $beforeBalance,
-                'balance_after' => $wallet->current_balance,
-                'source_type' => $wallet->name,
-                'source_id' => $invoice->id,
-                'description' => 'Paiement '.$invoice->invoice_number,
-                'note' => 'Paiement '.($invoice->type === 'client' ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
-            ]);
-            DB::commit();
+                $wallet->save();
+
+                $payment = Payment::create([
+                    'payment_number' => $this->documentNumberService->generate('payment', $invoice->tenant),
+                    'wallet_id' => $wallet->id,
+                    'invoice_id' => $invoice->id,
+                    'tenant_id' => $invoice->tenant_id,
+                    'contact_id' => $invoice->contact_id,
+                    'amount_paid' => $amountPaid,
+                    'remaining_amount' => max($invoice->balance - $amountPaid, 0),
+                    'payment_date' => $request->input('payment_date'),
+                    'payment_type' => $wallet->name,
+                    'payment_source' => $invoice->type,
+                    'status' => 'completed',
+                ]);
+
+                walletTransaction::create([
+                    'tenant_id' => $tenantId,
+                    'wallet_id' => $wallet->id,
+                    'payment_id' => $payment->id,
+                    'user_id' => $request->user()->id,
+                    'type' => $legacyType,
+                    'transaction_type' => $transactionType,
+                    'amount' => $amountPaid,
+                    'balance_before' => $beforeBalance,
+                    'balance_after' => $wallet->current_balance,
+                    'source_type' => Payment::class,
+                    'source_id' => $payment->id,
+                    'note' => 'Paiement '.($invoice->type === Invoice::TYPE_CLIENT ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
+                    'description' => 'Paiement '.($invoice->type === Invoice::TYPE_CLIENT ? 'client' : 'fournisseur').' sur facture '.$invoice->invoice_number,
+                ]);
+
+                $this->invoicePaymentStatusService->recalculate($invoice);
+                $payment->remaining_amount = $invoice->fresh()->balance;
+                $payment->save();
+            });
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
 
             return back()->with('error', 'Erreur lors du paiement : '.$e->getMessage());
         }
 
-        return back()->with('success', "Paiement de $amountPaid FCFA de la facture numéro $invoice->invoice_number enregistré avec succès !");
+        return back()->with('success', "Paiement {$payment->payment_number} de $amountPaid FCFA sur la facture $invoice->invoice_number enregistre avec succes !");
     }
 
     /**
@@ -154,74 +176,24 @@ class PaymentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $type, Payment $payment)
+    public function destroy(Request $request, string $type, Payment $payment)
     {
         $this->validateType($type);
 
-        if ($payment->tenant_id !== auth()->user()->tenant_id) {
-            abort(403, "Action non autorisée.");
-        }
-
-        if ($payment->amount_paid <= 0) {
-            return back()->with('error', 'Vous ne pouvez pas supprimer le paiement initial.');
-        }
-
         try {
-            DB::transaction(function () use ($payment) {
-                $invoice = Invoice::where('tenant_id', auth()->user()->tenant_id)
-                    ->whereKey($payment->invoice_id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
+            $this->paymentCancellationService->cancel(
+                $payment,
+                $request->user(),
+                $request->input('cancellation_reason')
+            );
 
-                $wallet = Wallet::where('tenant_id', auth()->user()->tenant_id)
-                    ->whereKey($payment->wallet_id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                $beforeBalance = $wallet->current_balance;
-
-                if ($invoice->type === 'client') {
-                    $wallet->decrement('current_balance', $payment->amount_paid);
-                    $transactionType = 'out';
-                } else {
-                    $wallet->increment('current_balance', $payment->amount_paid);
-                    $transactionType = 'in';
-                }
-
-                walletTransaction::create([
-                    'tenant_id' => $payment->tenant_id,
-                    'wallet_id' => $wallet->id,
-                    'payment_id' => $payment->id,
-                    'user_id' => auth()->user()->id,
-                    'type' => $transactionType,
-                    'transaction_type' => 'payment_reversal',
-                    'amount' => $payment->amount_paid,
-                    'balance_before' => $beforeBalance,
-                    'balance_after' => $wallet->current_balance,
-                    'source_type' => $wallet->name,
-                    'source_id' => $invoice->id,
-                    'description' => 'Annulation du paiement '.$payment->id,
-                    'note' => 'Annulation du paiement #' . $payment->id . ' sur facture ' . $invoice->invoice_number,
-                ]);
-
-                $invoice->balance += $payment->amount_paid;
-
-                if ($invoice->balance >= $invoice->total_invoice) {
-                    $invoice->status = 'validated';
-                } elseif ($invoice->balance > 0) {
-                    $invoice->status = 'partial';
-                } else {
-                    $invoice->status = 'paid';
-                }
-
-                $invoice->save();
-                $payment->delete();
-            });
-
-            return back()->with('success', 'Paiement supprimé et solde/wallet réajustés avec succès.');
+            return back()->with('success', 'Paiement annulé et wallet réajusté avec succès.');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            return back()->with('error', 'Erreur lors de la suppression du paiement : '.$e->getMessage());
+            return back()->with('error', 'Erreur lors de l’annulation du paiement : '.$e->getMessage());
         }
+
     }
 
     protected function validateType(string $type): void

@@ -15,6 +15,7 @@ class StockOut extends Model
 
     // Colonnes mass assignables
     protected $fillable = [
+        'stock_out_number',
         'tenant_id',
         'batch_id',
         'quantity',

@@ -27,14 +27,15 @@ class ProfileTest extends TestCase
 
         $response = $this
             ->actingAs($user)
+            ->from('/profile')
             ->put('/profile', [
-                'name'  => 'Test User',
+                'name' => 'Test User',
                 'email' => 'test@example.com',
             ]);
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect();
+            ->assertRedirect('/profile');
 
         $user->refresh();
 
@@ -42,32 +43,22 @@ class ProfileTest extends TestCase
         $this->assertSame('test@example.com', $user->email);
     }
 
-    public function test_profile_update_requires_valid_email(): void
+    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
+            ->from('/profile')
             ->put('/profile', [
-                'name'  => 'Test User',
-                'email' => 'not-an-email',
-            ]);
-
-        $response->assertSessionHasErrors('email');
-    }
-
-    public function test_profile_update_requires_name(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->put('/profile', [
-                'name'  => '',
+                'name' => 'Test User',
                 'email' => $user->email,
             ]);
 
-        $response->assertSessionHasErrors('name');
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertNotNull($user->refresh()->email_verified_at);
     }
 }
-

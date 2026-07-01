@@ -416,13 +416,13 @@
 
     <div class="container-fluid">
         <!-- Header -->
-        <div class="product-show-header">
+        <div class="page-hero page-hero--accent">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <h1>
+                <h1 class="page-hero__title mb-0">
                     <i class="fas fa-box-open"></i>
                     Détails du produit {{ $product->name }}
                 </h1>
-                <a href="{{ route('products.index') }}" class="btn mt-2 mt-md-0">
+                <a href="{{ route('products.index') }}" class="btn btn-light mt-2 mt-md-0">
                     <i class="fas fa-arrow-left"></i> Retour à la liste
                 </a>
             </div>
@@ -431,7 +431,7 @@
 
         <div class="row mb-4">
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-info">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-shopping-cart stat-icon text-info"></i>
@@ -445,7 +445,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-primary">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-boxes stat-icon text-primary"></i>
@@ -459,7 +459,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-dark">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-dollar-sign stat-icon text-dark"></i>
@@ -473,7 +473,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-success">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-credit-card stat-icon text-success"></i>
@@ -487,7 +487,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-secondary">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-file-invoice stat-icon text-secondary"></i>
@@ -501,7 +501,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-info">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-tag stat-icon text-info"></i>
@@ -515,7 +515,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-success">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-tag stat-icon text-success"></i>
@@ -529,7 +529,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-danger">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-exclamation-triangle stat-icon text-danger"></i>
@@ -543,7 +543,7 @@
             </div>
 
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="stat-card border-warning">
+                <div class="metric-card">
                     <div class="d-flex align-items-center">
                         <div class="mr-3">
                             <i class="fas fa-percent stat-icon text-warning"></i>
@@ -558,7 +558,7 @@
         </div>
 
         <!-- Card Produit -->
-        <div class="section-card">
+        <div class="panel-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6>
                     <i class="fas fa-info-circle"></i>
@@ -648,7 +648,7 @@
         </div>
 
         <!-- Section Lots -->
-        <div class="section-card">
+        <div class="panel-card">
             <div class="card-header bg-info">
                 <div>
                     <h6>
@@ -834,7 +834,7 @@
 
 
         <!-- Section Factures -->
-        <div class="section-card">
+        <div class="panel-card">
             <div class="card-header bg-secondary">
                 <div>
                     <h6>
@@ -901,7 +901,7 @@
         </div>
 
         <!-- Section Mouvements d'Inventaire -->
-        <div class="section-card">
+        <div class="panel-card">
             <div class="card-header bg-success">
                 <div>
                     <h6>
