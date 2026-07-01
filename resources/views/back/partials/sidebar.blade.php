@@ -256,6 +256,17 @@
             <div id="collapseVentes" class="collapse {{ $isVentesOpen }}" aria-labelledby="headingVentes"
                 data-parent="#accordionSidebar">
                 <div class="bg-white py-2 collapse-inner rounded">
+                    @can('manage_invoices')
+                        <a class="collapse-item font-weight-bold {{ request()->routeIs('pos.index') ? 'active' : '' }}"
+                            href="{{ route('pos.index') }}">
+                            <i class="fas fa-cash-register mr-1"></i> Point de vente
+                        </a>
+                        <a class="collapse-item {{ request()->routeIs('cash-sessions.*') ? 'active' : '' }}"
+                            href="{{ route('cash-sessions.index') }}">
+                            Clôture de caisse
+                        </a>
+                    @endcan
+
                     @can('manage_client_invoices')
                         <a class="collapse-item {{ request()->routeIs('invoices.index') && request('type') === 'clients' && !request()->has('status') ? 'active' : '' }}"
                             href="{{ route('invoices.index', ['type' => 'clients']) }}">
@@ -331,6 +342,13 @@
                 data-parent="#accordionSidebar">
 
                 <div class="bg-white py-2 collapse-inner rounded">
+
+                    <!-- Rapport journalier des ventes -->
+                    <a class="collapse-item {{ request()->routeIs('reports.daily-sales') ? 'active' : '' }}"
+                        href="{{ route('reports.daily-sales') }}">
+                        <i class="fas fa-calendar-day mr-1"></i>
+                        Ventes du jour
+                    </a>
 
                     <!-- Rapport produit -->
                     <a class="collapse-item {{ request()->routeIs('rapport.produit') ? 'active' : '' }}"
