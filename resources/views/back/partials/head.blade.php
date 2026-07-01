@@ -4,18 +4,21 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>@yield('title', 'DYMO-STOCK')</title>
+    <title>@yield('title', 'GStock')</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{asset('assets/vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="{{ asset('assets/css/sb-admin-2.min.css')}}" rel="stylesheet">
     <link href="{{ asset('assets/css/footer.css')}}" rel="stylesheet">
-    <!-- Tailwind Play CDN (v4) -->
+    <!-- GStock theme (design system) : posé APRÈS sb-admin-2 pour surcharger -->
+    <link href="{{ asset('assets/css/theme.css')}}?v=1" rel="stylesheet">
 
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset("assets/img/logo/favicon.png") }}">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset("assets/img/logo/favicon.png") }}">

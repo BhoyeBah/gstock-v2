@@ -9,7 +9,7 @@
             }
 
             .page-header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                 padding: 40px 0;
                 margin-bottom: 30px;
                 box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
@@ -70,7 +70,7 @@
 
             .card-header {
                 background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border-bottom: 3px solid #667eea;
+                border-bottom: 3px solid #4f46e5;
                 font-weight: 600;
                 color: #2c3e50;
                 padding: 20px 24px;
@@ -78,12 +78,12 @@
             }
 
             .card-header i {
-                color: #667eea;
+                color: #4f46e5;
                 margin-right: 8px;
             }
 
             .btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                 border: none;
                 border-radius: 12px;
                 padding: 12px 28px;
@@ -112,7 +112,7 @@
             }
 
             .btn-info {
-                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
                 border: none;
                 border-radius: 10px;
                 padding: 8px 16px;
@@ -201,7 +201,7 @@
             }
 
             .stat-card:hover {
-                border-color: #667eea;
+                border-color: #4f46e5;
                 transform: translateY(-4px);
                 box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
             }
@@ -254,7 +254,7 @@
             }
 
             .progress-bar {
-                background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
                 transition: width 0.6s ease;
             }
 
@@ -271,7 +271,7 @@
                 top: 50%;
                 transform: translateY(-50%);
                 pointer-events: none;
-                color: #667eea;
+                color: #4f46e5;
             }
 
 
@@ -418,7 +418,7 @@
                             @foreach ($inventories as $inventory)
                                 <tr>
                                     <td>
-                                        <strong style="color: #667eea; font-size: 1.05rem;">
+                                        <strong style="color: #4f46e5; font-size: 1.05rem;">
                                             #{{ $inventory->inventory_number }}
                                         </strong>
                                     </td>

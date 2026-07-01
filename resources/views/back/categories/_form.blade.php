@@ -5,7 +5,7 @@
     @endif
 
     @if ($method == 'POST')
-        <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+        <div class="modal-header text-white" style="background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);">
             <h5 class="modal-title">
                 <i class="fas {{ $method === 'POST' ? 'fa-plus-circle' : 'fa-edit' }} mr-1"></i>
                 {{ $method === 'POST' ? 'Ajouter une catégorie' : 'Modifier la catégorie' }}

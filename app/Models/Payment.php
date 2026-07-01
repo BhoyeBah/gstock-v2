@@ -15,7 +15,8 @@ class Payment extends Model
      * Les attributs qui peuvent être remplis en masse.
      */
     protected $fillable = [
-        'wallet_id', 
+        'wallet_id',
+        'cash_session_id',
         'invoice_id',
         'tenant_id',
         'contact_id',

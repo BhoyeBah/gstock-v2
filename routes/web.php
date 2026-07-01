@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UnitsController;
+use App\Http\Controllers\CashSessionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EmployeController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\FrontController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuoteController;
@@ -180,10 +182,45 @@ Route::middleware(['auth', 'subscription.permission:manage_wallets'])->group(fun
     Route::post('/wallets', [WalletController::class, 'store'])->name('wallet.store');
     Route::post('/wallets/transfert', [WalletController::class, 'transfert'])->name('wallet.transfert');
 });
-Route::middleware(['auth'])->group(function() {
-     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
-    //  Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
-});
+/*
+| Sprint 2 - Point de vente (POS) / vente rapide
+*/
+Route::middleware(['auth', 'subscription.permission:manage_invoices'])
+    ->controller(PosController::class)
+    ->name('pos.')
+    ->group(function () {
+        Route::get('/pos', 'index')->name('index');
+        Route::get('/pos/products', 'products')->name('products');
+        Route::post('/pos/sales', 'store')->name('store');
+        Route::get('/pos/receipt/{invoice}', 'receipt')
+            ->where('invoice', '[0-9a-fA-F\-]{36}')->name('receipt');
+    });
+
+// Ancien lien "Ventes" : on redirige vers l'écran POS.
+Route::middleware(['auth'])->get('/sales', fn () => redirect()->route('pos.index'))->name('sales.index');
+
+/*
+| Sprint 2 - Clôture journalière de caisse
+*/
+Route::prefix('/cash-sessions')
+    ->name('cash-sessions.')
+    ->controller(CashSessionController::class)
+    ->middleware(['auth', 'subscription.permission:manage_payments'])
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/open', 'open')->name('open');
+        Route::post('/{cashSession}/close', 'close')
+            ->where('cashSession', '[0-9a-fA-F\-]{36}')->name('close');
+        Route::get('/{cashSession}', 'show')
+            ->where('cashSession', '[0-9a-fA-F\-]{36}')->name('show');
+    });
+
+/*
+| Sprint 2 - Rapport journalier des ventes
+*/
+Route::middleware(['auth', 'subscription.permission:manage_reports'])
+    ->get('/reports/daily-sales', [ReportController::class, 'dailySales'])
+    ->name('reports.daily-sales');
 
 Route::prefix("/employes")->name("employes.")->controller(EmployeController::class)->middleware(['auth'])->group(function() {
     Route::get("/", "index")->name("index");

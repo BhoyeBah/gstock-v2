@@ -274,8 +274,8 @@
             transform: translateX(1.5rem);
         }
         .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
         }
         .card {
             transition: all 0.3s ease;
