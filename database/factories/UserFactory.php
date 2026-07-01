@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Permission;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -11,10 +13,40 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
+    private const DEFAULT_PERMISSION_NAMES = [
+        'read_quotes',
+        'create_quotes',
+        'convert_quotes',
+        'manage_taxes',
+    ];
+
     /**
      * The current password being used by the factory.
      */
     protected static ?string $password;
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function ($user) {
+            if (! $user->tenant_id) {
+                return;
+            }
+
+            $tenant = Tenant::query()->find($user->tenant_id);
+            if (! $tenant) {
+                return;
+            }
+
+            $permissions = collect(self::DEFAULT_PERMISSION_NAMES)
+                ->map(fn (string $name) => Permission::firstOrCreate([
+                    'name' => $name,
+                    'guard_name' => 'web',
+                ]))
+                ->filter();
+
+            $user->syncPermissions($permissions->pluck('id')->all());
+        });
+    }
 
     /**
      * Define the model's default state.
@@ -49,6 +81,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function forTenant(Tenant $tenant): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'tenant_id' => $tenant->id,
         ]);
     }
 }

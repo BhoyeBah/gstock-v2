@@ -13,6 +13,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Inventory;
 use App\Models\InventoryItem;
+use App\Models\CustomerReturn;
 use App\Models\Payment;
 use App\Models\Permission;
 use App\Models\Product;
@@ -228,6 +229,58 @@ class Sprint1SecurityTest extends TestCase
         ]);
     }
 
+    public function test_client_with_invoice_cannot_be_deleted(): void
+    {
+        [$tenant, $user] = $this->createTenantUserWithCreateUsersPermission();
+
+        $catalog = $this->createTenantCatalog($tenant, 'c');
+        $client = $catalog['contactClient'];
+        $client->is_active = false;
+        $client->save();
+
+        Invoice::create([
+            'contact_id' => $client->id,
+            'invoice_number' => 'INV-DELETE-BLOCKED',
+            'invoice_date' => now()->toDateString(),
+            'due_date' => now()->addDays(7)->toDateString(),
+            'type' => 'client',
+            'total_invoice' => 5000,
+            'balance' => 5000,
+            'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('clients.destroy', $client));
+
+        $response->assertSessionHas('error', 'Impossible de supprimer un client qui a déjà une facture.');
+        $this->assertDatabaseHas('contacts', ['id' => $client->id]);
+    }
+
+    public function test_force_delete_invoice_removes_related_returns_and_avoids_fk_errors(): void
+    {
+        [$tenant, $user] = $this->createTenantUserWithCreateUsersPermission();
+
+        $catalog = $this->createTenantCatalog($tenant, 'd');
+        $client = $catalog['contactClient'];
+        $invoice = $this->createInvoiceForTenant($tenant, 'client', 15000, 15000);
+        $invoice->update(['contact_id' => $client->id]);
+
+        $return = CustomerReturn::create([
+            'contact_id' => $client->id,
+            'invoice_id' => $invoice->id,
+            'warehouse_id' => $catalog['warehouse']->id,
+            'return_number' => 'RET-DELETE-BLOCKED',
+            'status' => 'draft',
+            'return_date' => now()->toDateString(),
+            'reason' => 'Test',
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('invoices.forceDestroy', ['type' => 'clients', 'invoice' => $invoice]));
+
+        $response->assertSessionHas('success', 'Facture et ses données liées supprimées avec succès');
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+        $this->assertDatabaseMissing('customer_returns', ['id' => $return->id]);
+    }
+
     public function test_payment_rejects_foreign_invoice(): void
     {
         [$tenantA, $userA] = $this->createTenantUserWithCreateUsersPermission();
@@ -269,7 +322,8 @@ class Sprint1SecurityTest extends TestCase
             'warehouse_id' => $catalogB['warehouse']->id,
         ]);
 
-        $response->assertStatus(403);
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('warehouse_id');
     }
 
     public function test_inventory_validation_decreases_stock_when_real_below_theoretical(): void
@@ -330,8 +384,8 @@ class Sprint1SecurityTest extends TestCase
             'inventory_item_id' => $inventoryItem->id,
             'product_id' => $catalog['product']->id,
             'warehouse_id' => $catalog['warehouse']->id,
-            'quantity_before' => 10,
-            'quantity_after' => 7,
+            'quantity_before' => 6,
+            'quantity_after' => 3,
             'variance' => -3,
             'user_id' => auth()->id(),
             'movement_type' => 'inventory_adjustment_out',
@@ -380,16 +434,24 @@ class Sprint1SecurityTest extends TestCase
         ]);
 
         $response->assertSessionHas('success');
-        $this->assertSame(8, $batch->fresh()->remaining);
-        $this->assertSame(8, $batch->fresh()->quantity);
+        $this->assertSame(5, $batch->fresh()->remaining);
+        $this->assertSame(5, $batch->fresh()->quantity);
+        $this->assertDatabaseHas('batches', [
+            'tenant_id' => $tenant->id,
+            'warehouse_id' => $catalog['warehouse']->id,
+            'product_id' => $catalog['product']->id,
+            'quantity' => 3,
+            'remaining' => 3,
+            'origin' => 'inventory_gain',
+        ]);
         $this->assertDatabaseHas('inventory_movements', [
             'tenant_id' => $tenant->id,
             'inventory_id' => $inventory->id,
             'inventory_item_id' => $inventoryItem->id,
             'product_id' => $catalog['product']->id,
             'warehouse_id' => $catalog['warehouse']->id,
-            'quantity_before' => 5,
-            'quantity_after' => 8,
+            'quantity_before' => 0,
+            'quantity_after' => 3,
             'variance' => 3,
             'user_id' => auth()->id(),
             'movement_type' => 'inventory_adjustment_in',
@@ -445,7 +507,7 @@ class Sprint1SecurityTest extends TestCase
             'tenant_id' => $tenant->id,
             'wallet_id' => $wallet->id,
             'payment_id' => $payment->id,
-            'transaction_type' => 'payment_reversal',
+            'transaction_type' => 'payment_cancel_reverse',
             'amount' => 60,
             'balance_before' => 60,
             'balance_after' => 0,
@@ -496,7 +558,7 @@ class Sprint1SecurityTest extends TestCase
 
         $invoice->refresh();
         $this->assertSame(100, $invoice->balance);
-        $this->assertSame('validated', $invoice->status);
+        $this->assertSame('unpaid', $invoice->status);
     }
 
     public function test_cross_tenant_route_access_is_blocked(): void

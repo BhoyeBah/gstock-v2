@@ -12,6 +12,26 @@ class QuoteRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $items = collect($this->input('items', []))->map(function (array $item) {
+            if (! isset($item['unit_price_ht']) && isset($item['unit_price'])) {
+                $item['unit_price_ht'] = $item['unit_price'];
+            }
+
+            if (! isset($item['discount_amount']) && isset($item['discount'])) {
+                $item['discount_amount'] = $item['discount'];
+            }
+
+            return $item;
+        })->all();
+
+        $this->merge([
+            'valid_until' => $this->input('valid_until', $this->input('expiry_date')),
+            'items' => $items,
+        ]);
+    }
+
     public function rules(): array
     {
         $tenantId = $this->user()?->tenant_id;
@@ -24,6 +44,15 @@ class QuoteRequest extends FormRequest
             ],
             'quote_date' => ['required', 'date'],
             'valid_until' => ['nullable', 'date', 'after_or_equal:quote_date'],
+            'status' => ['nullable', Rule::in([
+                'draft',
+                'sent',
+                'accepted',
+                'rejected',
+                'expired',
+                'converted',
+                'cancelled',
+            ])],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => [
@@ -43,6 +72,11 @@ class QuoteRequest extends FormRequest
                 'nullable',
                 'uuid',
                 Rule::exists('taxes', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)->whereNull('deleted_at')),
+            ],
+            'items.*.tax_rate_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('tax_rates', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)),
             ],
         ];
     }

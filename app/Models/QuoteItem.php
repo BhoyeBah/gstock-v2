@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class QuoteItem extends Model
 {
-    use HasFactory, HasUuid;
+    use HasFactory, HasTenant, HasUuid;
 
     protected $fillable = [
         'quote_id',
@@ -16,9 +17,12 @@ class QuoteItem extends Model
         'warehouse_id',
         'quantity',
         'unit_price_ht',
+        'unit_price',
         'discount_amount',
+        'discount',
         'subtotal_ht',
         'tax_id',
+        'tax_rate_id',
         'tax_rate',
         'tax_amount',
         'total_ttc',
@@ -41,5 +45,15 @@ class QuoteItem extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function taxRate()
+    {
+        return $this->belongsTo(TaxRate::class, 'tax_rate_id');
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class);
     }
 }

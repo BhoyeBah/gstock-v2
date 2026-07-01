@@ -10,6 +10,7 @@ use App\Models\Warehouse;
 use App\Services\QuoteConversionService;
 use App\Services\QuoteService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class QuoteController extends Controller
 {
@@ -137,16 +138,24 @@ class QuoteController extends Controller
 
     public function convertToOrder(Request $request, Quote $quote)
     {
-        $quote = $this->resolveQuote($request, $quote);
-        $saleOrder = $this->quoteConversionService->toSaleOrder($quote);
+        try {
+            $quote = $this->resolveQuote($request, $quote);
+            $saleOrder = $this->quoteConversionService->toSaleOrder($quote);
+        } catch (ValidationException $e) {
+            return back()->with('error', $e->errors()['quote'][0] ?? 'Conversion impossible.')->withErrors($e->errors());
+        }
 
         return redirect()->route('sale-orders.show', $saleOrder)->with('success', 'Devis converti en commande client.');
     }
 
     public function convertToInvoice(Request $request, Quote $quote)
     {
-        $quote = $this->resolveQuote($request, $quote);
-        $invoice = $this->quoteConversionService->toInvoice($quote);
+        try {
+            $quote = $this->resolveQuote($request, $quote);
+            $invoice = $this->quoteConversionService->toInvoice($quote);
+        } catch (ValidationException $e) {
+            return back()->with('error', $e->errors()['quote'][0] ?? 'Conversion impossible.')->withErrors($e->errors());
+        }
 
         return redirect()->route('invoices.show', ['type' => 'clients', 'invoice' => $invoice])->with('success', 'Devis converti en facture.');
     }

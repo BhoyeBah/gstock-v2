@@ -29,10 +29,13 @@ class QuoteService
                 'quote_number' => $this->documentNumberService->generate('quote', $user->tenant),
                 'quote_date' => $data['quote_date'],
                 'valid_until' => $data['valid_until'] ?? null,
-                'status' => Quote::STATUS_DRAFT,
+                'expiry_date' => $data['valid_until'] ?? null,
+                'status' => $data['status'] ?? Quote::STATUS_DRAFT,
                 'total_ht' => collect($items)->sum('subtotal_ht'),
+                'subtotal_ht' => collect($items)->sum('subtotal_ht'),
                 'total_discount' => collect($items)->sum('discount_amount'),
                 'tax_amount' => collect($items)->sum('tax_amount'),
+                'tax_total' => collect($items)->sum('tax_amount'),
                 'total_ttc' => collect($items)->sum('total_ttc'),
                 'created_by' => $user->id,
                 'notes' => $data['notes'] ?? null,
@@ -63,9 +66,13 @@ class QuoteService
                 'contact_id' => $data['contact_id'],
                 'quote_date' => $data['quote_date'],
                 'valid_until' => $data['valid_until'] ?? null,
+                'expiry_date' => $data['valid_until'] ?? null,
+                'status' => $data['status'] ?? $quote->status,
                 'total_ht' => collect($items)->sum('subtotal_ht'),
+                'subtotal_ht' => collect($items)->sum('subtotal_ht'),
                 'total_discount' => collect($items)->sum('discount_amount'),
                 'tax_amount' => collect($items)->sum('tax_amount'),
+                'tax_total' => collect($items)->sum('tax_amount'),
                 'total_ttc' => collect($items)->sum('total_ttc'),
                 'notes' => $data['notes'] ?? null,
             ]);
@@ -143,8 +150,8 @@ class QuoteService
                 ->firstOrFail();
 
             $quantity = (int) $item['quantity'];
-            $unitPrice = (int) $item['unit_price_ht'];
-            $discount = max(0, (int) ($item['discount_amount'] ?? 0));
+            $unitPrice = (int) ($item['unit_price_ht'] ?? $item['unit_price'] ?? 0);
+            $discount = max(0, (int) ($item['discount_amount'] ?? $item['discount'] ?? 0));
             $subtotal = max(($unitPrice * $quantity) - $discount, 0);
             $taxAmount = (int) round($subtotal * $taxRate / 100);
 
@@ -153,9 +160,12 @@ class QuoteService
                 'warehouse_id' => $item['warehouse_id'] ?? null,
                 'quantity' => $quantity,
                 'unit_price_ht' => $unitPrice,
+                'unit_price' => $unitPrice,
                 'discount_amount' => $discount,
+                'discount' => $discount,
                 'subtotal_ht' => $subtotal,
                 'tax_id' => $item['tax_id'] ?? null,
+                'tax_rate_id' => $item['tax_rate_id'] ?? null,
                 'tax_rate' => $taxRate,
                 'tax_amount' => $taxAmount,
                 'total_ttc' => $subtotal + $taxAmount,

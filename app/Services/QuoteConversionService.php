@@ -56,6 +56,7 @@ class QuoteConversionService
             $quote->update([
                 'status' => Quote::STATUS_CONVERTED,
                 'converted_to_invoice_id' => $invoice->id,
+                'converted_invoice_id' => $invoice->id,
                 'converted_at' => now(),
             ]);
 
@@ -103,6 +104,7 @@ class QuoteConversionService
             $quote->update([
                 'status' => Quote::STATUS_CONVERTED,
                 'converted_to_sale_order_id' => $saleOrder->id,
+                'converted_sale_order_id' => $saleOrder->id,
                 'converted_at' => now(),
             ]);
 

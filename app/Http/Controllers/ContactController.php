@@ -148,6 +148,11 @@ class ContactController extends Controller
         if ($contact->is_active) {
             return back()->with('error', 'Impossible de supprimer un contact actif. Veuillez le désactiver d’abord.');
         }
+
+        if ($contact->type === Contact::TYPE_CLIENT && $contact->invoices()->exists()) {
+            return back()->with('error', 'Impossible de supprimer un client qui a déjà une facture.');
+        }
+
         $contact->delete();
 
         return back()->with('success', 'Contact supprimé avec succès');

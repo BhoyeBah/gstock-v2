@@ -8,6 +8,7 @@ use App\Http\Requests\StoreInvoiceRequest;
 use App\Models\Batch;
 use App\Models\Contact;
 use App\Models\CustomerCreditNote;
+use App\Models\CustomerReturn;
 use App\Models\InventoryMovement;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -15,6 +16,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ReturnProduct;
 use App\Models\SupplierCreditNote;
+use App\Models\SupplierReturn;
 use App\Models\Wallet;
 use App\Models\walletTransaction;
 use App\Models\Warehouse;
@@ -591,6 +593,10 @@ class InvoiceController extends Controller
             // Supprime les items liés à la facture
             InvoiceItem::where('invoice_id', $invoice->id)->delete();
             Payment::where('invoice_id', $invoice->id)->delete();
+            CustomerCreditNote::where('customer_invoice_id', $invoice->id)->delete();
+            SupplierCreditNote::where('supplier_invoice_id', $invoice->id)->delete();
+            CustomerReturn::where('invoice_id', $invoice->id)->delete();
+            SupplierReturn::where('supplier_invoice_id', $invoice->id)->delete();
 
             // Supprime la facture elle-même
             $invoice->forceDelete();

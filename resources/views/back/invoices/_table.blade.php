@@ -114,10 +114,15 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route("$type.show", $invoice->contact->id) }}" class="contact-link">
-                                        <i class="fas fa-user-circle mr-1"></i>
-                                        {{ $invoice->contact->fullname ?? '-' }}
-                                    </a>
+                                    @php $contact = $invoice->contact; @endphp
+                                    @if ($contact)
+                                        <a href="{{ route("$type.show", $contact->id) }}" class="contact-link">
+                                            <i class="fas fa-user-circle mr-1"></i>
+                                            {{ $contact->fullname }}
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <i class="fas fa-calendar-alt text-muted mr-1"></i>

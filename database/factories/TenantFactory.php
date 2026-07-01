@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Permission;
+use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -10,6 +13,13 @@ use Illuminate\Support\Str;
  */
 class TenantFactory extends Factory
 {
+    private const DEFAULT_PERMISSION_NAMES = [
+        'read_quotes',
+        'create_quotes',
+        'convert_quotes',
+        'manage_taxes',
+    ];
+
     /**
      * Define the model's default state.
      *
@@ -27,6 +37,47 @@ class TenantFactory extends Factory
             'address'   => fake()->address(),
             'is_active' => true,
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function ($tenant) {
+            $permissions = collect(self::DEFAULT_PERMISSION_NAMES)
+                ->map(fn (string $name) => Permission::firstOrCreate([
+                    'name' => $name,
+                    'guard_name' => 'web',
+                ]))
+                ->filter();
+
+            $plan = Plan::firstOrCreate(
+                ['slug' => 'admin'],
+                [
+                    'name' => 'Admin',
+                    'price' => 0,
+                    'duration_days' => 365,
+                    'max_users' => 100,
+                    'max_storage_mb' => 10240,
+                    'is_active' => true,
+                    'description' => 'Plan de test créé automatiquement par la factory.',
+                ]
+            );
+
+            $plan->permissions()->sync($permissions->pluck('id')->all());
+
+            Subscription::updateOrCreate(
+                [
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $plan->id,
+                ],
+                [
+                    'amount_paid' => 0,
+                    'payment_method' => 'factory',
+                    'starts_at' => now()->subDay(),
+                    'ends_at' => now()->addYear(),
+                    'is_active' => true,
+                ]
+            );
+        });
     }
 
     /**

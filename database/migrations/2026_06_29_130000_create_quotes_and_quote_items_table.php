@@ -8,50 +8,56 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('quotes', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('tenant_id')->index();
-            $table->uuid('contact_id')->index();
-            $table->uuid('created_by')->nullable()->index();
-            $table->string('quote_number')->nullable();
-            $table->date('quote_date');
-            $table->date('valid_until')->nullable();
-            $table->string('status')->default('draft')->index();
-            $table->integer('total_ht')->default(0);
-            $table->integer('total_discount')->default(0);
-            $table->integer('tax_amount')->default(0);
-            $table->integer('total_ttc')->default(0);
-            $table->uuid('converted_to_sale_order_id')->nullable()->index();
-            $table->uuid('converted_to_invoice_id')->nullable()->index();
-            $table->timestamp('converted_at')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
+        Schema::table('quotes', function (Blueprint $table) {
+            if (! Schema::hasColumn('quotes', 'valid_until')) {
+                $table->date('valid_until')->nullable()->after('quote_date');
+            }
 
-            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
-            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('restrict');
-            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
-            $table->foreign('converted_to_invoice_id')->references('id')->on('invoices')->nullOnDelete();
-            $table->unique(['tenant_id', 'quote_number']);
+            if (! Schema::hasColumn('quotes', 'total_ht')) {
+                $table->integer('total_ht')->default(0)->after('status');
+            }
+
+            if (! Schema::hasColumn('quotes', 'total_discount')) {
+                $table->integer('total_discount')->default(0)->after('total_ht');
+            }
+
+            if (! Schema::hasColumn('quotes', 'tax_amount')) {
+                $table->integer('tax_amount')->default(0)->after('total_discount');
+            }
+
+            if (! Schema::hasColumn('quotes', 'converted_to_sale_order_id')) {
+                $table->uuid('converted_to_sale_order_id')->nullable()->index()->after('total_ttc');
+            }
+
+            if (! Schema::hasColumn('quotes', 'converted_to_invoice_id')) {
+                $table->uuid('converted_to_invoice_id')->nullable()->index()->after('converted_to_sale_order_id');
+            }
+
+            if (! Schema::hasColumn('quotes', 'converted_at')) {
+                $table->timestamp('converted_at')->nullable()->after('converted_to_invoice_id');
+            }
+
+            if (! Schema::hasColumn('quotes', 'notes')) {
+                $table->text('notes')->nullable()->after('converted_at');
+            }
         });
 
-        Schema::create('quote_items', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('quote_id')->index();
-            $table->uuid('product_id')->index();
-            $table->uuid('warehouse_id')->nullable()->index();
-            $table->integer('quantity');
-            $table->integer('unit_price_ht');
-            $table->integer('discount_amount')->default(0);
-            $table->integer('subtotal_ht')->default(0);
-            $table->uuid('tax_id')->nullable()->index();
-            $table->decimal('tax_rate', 5, 2)->default(0);
-            $table->integer('tax_amount')->default(0);
-            $table->integer('total_ttc')->default(0);
-            $table->timestamps();
+        Schema::table('quote_items', function (Blueprint $table) {
+            if (! Schema::hasColumn('quote_items', 'unit_price_ht')) {
+                $table->integer('unit_price_ht')->default(0)->after('quantity');
+            }
 
-            $table->foreign('quote_id')->references('id')->on('quotes')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('restrict');
-            $table->foreign('warehouse_id')->references('id')->on('warehouses')->nullOnDelete();
+            if (! Schema::hasColumn('quote_items', 'discount_amount')) {
+                $table->integer('discount_amount')->default(0)->after('unit_price_ht');
+            }
+
+            if (! Schema::hasColumn('quote_items', 'tax_id')) {
+                $table->uuid('tax_id')->nullable()->index()->after('subtotal_ht');
+            }
+
+            if (! Schema::hasColumn('quote_items', 'tax_rate')) {
+                $table->decimal('tax_rate', 5, 2)->default(0)->after('tax_id');
+            }
         });
     }
 

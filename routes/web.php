@@ -40,6 +40,7 @@ use App\Http\Controllers\StockTransfertController;
 use App\Http\Controllers\SupplierReturnController;
 use App\Http\Controllers\SupplierCreditNoteController;
 use App\Http\Controllers\TaxController;
+use App\Http\Controllers\TaxRateController;
 use App\Http\Controllers\PosSaleController;
 use App\Http\Controllers\Tenant\SubscriptionController as TenantSubscriptionController;
 use App\Http\Controllers\UserController;
@@ -101,6 +102,16 @@ Route::middleware(['auth', 'subscription.permission:manage_taxes'])->prefix('tax
     Route::put('/{tax}', 'update')->name('update');
     Route::delete('/{tax}', 'destroy')->name('destroy');
     Route::post('/{id}/restore', 'restore')->name('restore');
+});
+
+Route::middleware(['auth', 'subscription.permission:manage_taxes'])->prefix('tax-rates')->name('tax_rates.')->controller(TaxRateController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/', 'store')->name('store');
+    Route::put('/{taxRate}', 'update')->name('update');
+    Route::delete('/{taxRate}', 'destroy')->name('destroy');
+    Route::get('/create', 'create')->name('create');
+    Route::get('/{taxRate}/edit', 'edit')->name('edit');
+    Route::get('/{taxRate}', 'show')->name('show');
 });
 
 Route::patch('/products/{id}', [ProductController::class, 'toggleActive'])->middleware(['auth', 'subscription.permission:read_products'])->name('products.toggle');
@@ -203,6 +214,7 @@ Route::middleware(['auth', 'subscription.permission:read_quotes'])->prefix('quot
     Route::post('/{quote}/accept', 'accept')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:convert_quotes')->name('accept');
     Route::post('/{quote}/reject', 'reject')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:convert_quotes')->name('reject');
     Route::post('/{quote}/cancel', 'cancel')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:delete_quotes')->name('cancel');
+    Route::post('/{quote}/convert', 'convertToInvoice')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:convert_quotes')->name('convert');
     Route::post('/{quote}/convert-to-order', 'convertToOrder')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:convert_quotes')->name('convert-to-order');
     Route::post('/{quote}/convert-to-invoice', 'convertToInvoice')->where('quote', '[0-9a-fA-F\-]{36}')->middleware('subscription.permission:convert_quotes')->name('convert-to-invoice');
     Route::get('/{quote}/print', 'print')->where('quote', '[0-9a-fA-F\-]{36}')->name('print');
