@@ -5,7 +5,7 @@
         <style>
         /* Namespace product- pour éviter les collisions globales */
         .product-page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -36,7 +36,7 @@
 
         .product-page-header .btn:hover {
             background: #fff;
-            color: #764ba2;
+            color: #7c3aed;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border-color: #fff;
@@ -52,7 +52,7 @@
         }
 
         .product-info-card .card-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             color: #fff;
             border-bottom: none;
             padding: 1.5rem;
@@ -93,7 +93,7 @@
         }
 
         .product-detail-label i {
-            color: #4e73df;
+            color: #4f46e5;
             width: 20px;
         }
 
@@ -121,7 +121,7 @@
         }
 
         .badge-perishable {
-            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             color: #fff;
         }
 
@@ -162,12 +162,12 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             color: #fff;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #2e59d9 0%, #1a3a9e 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
             color: #fff;
         }
 

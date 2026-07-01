@@ -19,7 +19,7 @@
         .grand { font-weight:bold; font-size:15px; }
         .actions { width:320px; margin: 12px auto; display:flex; gap:8px; }
         .btn { flex:1; text-align:center; padding:8px; border-radius:6px; text-decoration:none; color:#fff; border:none; cursor:pointer; font-size:13px; }
-        .btn-print { background:#4e73df; }
+        .btn-print { background:#4f46e5; }
         .btn-back { background:#858796; }
         @media print {
             body { background:#fff; padding:0; }

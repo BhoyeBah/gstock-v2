@@ -5,7 +5,7 @@
         <div class="card border-0 shadow-sm rounded-lg">
             <!-- HEADER -->
             <div class="card-header bg-gradient-info text-white d-flex justify-content-between align-items-center py-3"
-                style="background: linear-gradient(45deg, #17a2b8, #117a8b);">
+                style="background: linear-gradient(45deg, #475569, #334155);">
                 <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> Transfert de Stock</h5>
                 <a href="{{ route('warehouses.index') }}" class="btn btn-light btn-sm shadow-sm">
                     <i class="fas fa-arrow-left"></i> Retour

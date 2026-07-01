@@ -7,7 +7,7 @@
 @section('content')
 <style>
     .page-header-vente {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         border-radius: 15px;
         padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
@@ -17,12 +17,12 @@
     .page-header-vente h1 { font-weight: 700; margin: 0; font-size: 1.6rem; }
     .vente-card { border: none; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); background:#fff; margin-bottom: 1.5rem; }
     .vente-card .card-header { background:#f8f9fc; border-bottom:1px solid #e3e6f0; padding: 1rem 1.25rem; }
-    .vente-card .card-header h6 { font-weight:700; color:#4e73df; margin:0; }
-    .border-left-primary { border-left:.25rem solid #4e73df !important; }
+    .vente-card .card-header h6 { font-weight:700; color:#4f46e5; margin:0; }
+    .border-left-primary { border-left:.25rem solid #4f46e5 !important; }
     .border-left-info { border-left:.25rem solid #36b9cc !important; }
     .header-select-entrepot { max-width:320px; border:2px solid #36b9cc; font-weight:600; color:#2e59d9; border-radius:20px; text-align:center; }
     .produit-item { padding:1rem; background:#f8f9fc; border-radius:10px; margin-bottom:1rem; border:1px solid #e3e6f0; }
-    .total-display { font-weight:700; color:#4e73df; padding:.6rem; background:rgba(78,115,223,.1); border-radius:8px; text-align:right; }
+    .total-display { font-weight:700; color:#4f46e5; padding:.6rem; background:rgba(79,70,229,.1); border-radius:8px; text-align:right; }
     .btn-icon-delete { background:#fff; border:1px solid #e74a3b; color:#e74a3b; width:38px; height:38px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
     .btn-icon-delete:hover { background:#e74a3b; color:#fff; }
     .sticky-top { top:20px; z-index:100; }

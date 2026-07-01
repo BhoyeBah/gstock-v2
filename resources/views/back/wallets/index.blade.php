@@ -39,13 +39,13 @@
 @section('content')
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             --wave-gradient: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
             --orange-gradient: linear-gradient(135deg, #FF7900 0%, #FF5500 100%);
             --bank-gradient: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
             --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --wallet-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --wallet-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
 
         body {
@@ -475,7 +475,7 @@
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #667eea;
+            border-color: #4f46e5;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
             outline: none;
         }

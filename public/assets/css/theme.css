@@ -251,6 +251,31 @@ hr { border-color: var(--border); }
 .border-left-danger::before  { background: var(--danger); }
 .text-primary { color: var(--brand) !important; }
 
+/* Icônes KPI — carrés tintés discrets au lieu de cercles saturés */
+.icon-circle {
+    width: 46px; height: 46px;
+    border-radius: 13px !important;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: none !important;
+}
+.icon-circle-sm {
+    width: 40px; height: 40px;
+    border-radius: 11px !important;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: none !important;
+}
+.icon-circle i, .icon-circle-sm i { font-size: 1.05rem; }
+.icon-circle.bg-gradient-primary, .icon-circle-sm.bg-gradient-primary { background: var(--brand-050) !important; }
+.icon-circle.bg-gradient-success, .icon-circle-sm.bg-gradient-success { background: var(--success-050) !important; }
+.icon-circle.bg-gradient-info,    .icon-circle-sm.bg-gradient-info    { background: var(--info-050) !important; }
+.icon-circle.bg-gradient-danger,  .icon-circle-sm.bg-gradient-danger  { background: var(--danger-050) !important; }
+.icon-circle.bg-gradient-warning, .icon-circle-sm.bg-gradient-warning { background: var(--warning-050) !important; }
+.icon-circle.bg-gradient-primary i, .icon-circle-sm.bg-gradient-primary i { color: var(--brand) !important; }
+.icon-circle.bg-gradient-success i, .icon-circle-sm.bg-gradient-success i { color: var(--success) !important; }
+.icon-circle.bg-gradient-info i,    .icon-circle-sm.bg-gradient-info i    { color: var(--info) !important; }
+.icon-circle.bg-gradient-danger i,  .icon-circle-sm.bg-gradient-danger i  { color: var(--danger) !important; }
+.icon-circle.bg-gradient-warning i, .icon-circle-sm.bg-gradient-warning i { color: var(--warning) !important; }
+
 /* ============================ Boutons ============================= */
 .btn {
     border-radius: var(--r-sm);

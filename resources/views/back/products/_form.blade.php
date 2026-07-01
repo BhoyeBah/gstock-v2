@@ -1,7 +1,7 @@
 <style>
     /* Style du modal header */
     .modal-header.modern-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         border-bottom: none;
         padding: 1.25rem 1.5rem;
         border-radius: 0;
@@ -93,7 +93,7 @@
 
     .modern-input-group .form-control:focus,
     .modern-input-group select.form-control:focus {
-        border-color: #667eea;
+        border-color: #4f46e5;
         box-shadow: 0 0 0 0.15rem rgba(102, 126, 234, 0.15);
         outline: none;
     }
@@ -131,7 +131,7 @@
     }
 
     .modern-checkbox:hover {
-        border-color: #667eea;
+        border-color: #4f46e5;
         background: #f8f9ff;
     }
 
@@ -143,7 +143,7 @@
         cursor: pointer;
         border: 2px solid #d1d3e2;
         border-radius: 5px;
-        accent-color: #667eea;
+        accent-color: #4f46e5;
     }
 
     .modern-checkbox label {
@@ -200,9 +200,9 @@
     }
 
     .modern-file-input:hover .file-label {
-        border-color: #667eea;
+        border-color: #4f46e5;
         background: #f8f9ff;
-        color: #667eea;
+        color: #4f46e5;
     }
 
     /* Modal footer moderne */
@@ -240,7 +240,7 @@
     }
 
     .btn-modern.btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         color: #fff;
     }
 
@@ -276,7 +276,7 @@
     .section-title {
         font-size: 0.875rem;
         font-weight: 700;
-        color: #4e73df;
+        color: #4f46e5;
         display: flex;
         align-items: center;
         gap: 0.5rem;

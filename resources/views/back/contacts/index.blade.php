@@ -15,7 +15,7 @@
     <style>
         /* Styles copiés de votre exemple pour une cohérence parfaite */
         .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -65,7 +65,7 @@
             font-size: 1.5rem;
         }
 
-        .stats-card.border-left-primary .stats-icon { background: rgba(78, 115, 223, 0.1); color: #4e73df; }
+        .stats-card.border-left-primary .stats-icon { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
         .stats-card.border-left-success .stats-icon { background: rgba(40, 167, 69, 0.1); color: #28a745; }
         .stats-card.border-left-warning .stats-icon { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
         .stats-card.border-left-danger .stats-icon { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
@@ -79,7 +79,7 @@
         }
 
         .search-section .card-header {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -91,8 +91,8 @@
         }
 
         .search-section .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
         }
 
         .search-section label {
@@ -109,7 +109,7 @@
         }
 
         .list-section .card-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
             border: none;
             padding: 1.25rem 1.5rem;
         }
@@ -167,9 +167,9 @@
         }
         
         .pagination { margin-bottom: 0; }
-        .page-link { border-radius: 6px; margin: 0 0.125rem; border: none; color: #4e73df; }
-        .page-link:hover { background: #4e73df; color: #fff; }
-        .page-item.active .page-link { background: #4e73df; border-color: #4e73df; }
+        .page-link { border-radius: 6px; margin: 0 0.125rem; border: none; color: #4f46e5; }
+        .page-link:hover { background: #4f46e5; color: #fff; }
+        .page-item.active .page-link { background: #4f46e5; border-color: #4f46e5; }
         
         .modal-content { border-radius: 15px; border: none; }
         .modal-header { border-radius: 15px 15px 0 0; border: none; padding: 1.5rem; }

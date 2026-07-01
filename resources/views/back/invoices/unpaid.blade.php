@@ -7,7 +7,7 @@
 @section('content')
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
@@ -64,7 +64,7 @@
 
         .btn-print {
             background: white;
-            color: #667eea;
+            color: #4f46e5;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 12px;
@@ -105,7 +105,7 @@
         }
 
         .search-card .form-control:focus {
-            border-color: #667eea;
+            border-color: #4f46e5;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
         }
 
@@ -201,7 +201,7 @@
         }
 
         .table-title {
-            color: #667eea;
+            color: #4f46e5;
             font-weight: 700;
             font-size: 1.4rem;
             margin-bottom: 1.5rem;
@@ -254,11 +254,11 @@
         }
 
         .invoice-number {
-            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            background: linear-gradient(135deg, #4f46e520 0%, #7c3aed20 100%);
             padding: 0.4rem 0.8rem;
             border-radius: 8px;
             font-weight: 700;
-            color: #667eea;
+            color: #4f46e5;
             display: inline-block;
         }
 
@@ -318,7 +318,7 @@
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #667eea;
+            accent-color: #4f46e5;
         }
 
         /* Masquer la colonne Recouvré à l'écran */

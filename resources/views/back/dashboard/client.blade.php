@@ -13,8 +13,8 @@
 
         .custom-select:focus,
         .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
         }
 
         .input-group .input-group-text {
@@ -690,15 +690,15 @@
         }
 
         .bg-gradient-success {
-            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
         }
 
         .bg-gradient-primary {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #224abe 100%);
         }
 
         .bg-gradient-info {
-            background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
         }
 
         .bg-gradient-danger {
@@ -714,14 +714,14 @@
         }
 
         .nav-tabs .nav-link:hover {
-            color: #4e73df;
+            color: #4f46e5;
             background: #f8f9fc;
         }
 
         .nav-tabs .nav-link.active {
-            color: #4e73df;
+            color: #4f46e5;
             background: #f8f9fc;
-            border-bottom: 3px solid #4e73df;
+            border-bottom: 3px solid #4f46e5;
         }
 
         .table tbody tr {
@@ -773,12 +773,12 @@
                 ],
                 backgroundColor: [
                     'rgba(28, 200, 138, 0.8)',
-                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(79, 70, 229, 0.8)',
                     'rgba(231, 74, 59, 0.8)'
                 ],
                 borderColor: [
                     'rgba(28, 200, 138, 1)',
-                    'rgba(78, 115, 223, 1)',
+                    'rgba(79, 70, 229, 1)',
                     'rgba(231, 74, 59, 1)'
                 ],
                 borderWidth: 2
