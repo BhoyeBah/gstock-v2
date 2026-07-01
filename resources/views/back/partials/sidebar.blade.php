@@ -23,6 +23,7 @@
 
     // Détermine si un menu parent doit être ouvert/actif
     $isVentesActive =
+        $isActive(['pos.*', 'cash-sessions.*']) ||
         ($isActive(['invoices.*']) && request('type') == 'clients') ||
         ($isActive(['payments.*']) && request('type') == 'clients');
     $isAchatsActive =
@@ -35,106 +36,6 @@
     $isGestionOpen = $isGestionActive ? 'show' : '';
 @endphp
 
-<style>
-    .sidebar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: #ffffff;
-    }
-
-    .sidebar .nav-item .nav-link {
-        padding: 0.9rem 1rem;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.85);
-    }
-
-    .sidebar .nav-item .nav-link:hover {
-        color: #ffffff;
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .sidebar .nav-item .nav-link i {
-        font-size: 1.1rem;
-        margin-right: 0.75rem;
-        color: #ffffff;
-    }
-
-    .sidebar .nav-item.active .nav-link {
-        font-weight: 700;
-        color: #ffffff;
-        background-color: rgba(0, 0, 0, 0.2);
-        border-left: 4px solid #f9f7a7;
-    }
-
-    .sidebar .nav-item.active .nav-link i {
-        color: #f9f7a7;
-    }
-
-    .sidebar .sidebar-heading {
-        padding: 0.8rem 1rem 0.5rem;
-        font-size: 0.75rem;
-        color: #e0e0e0;
-    }
-
-    .sidebar .sidebar-brand-text {
-        color: #ffffff;
-    }
-
-    .sidebar .collapse .collapse-inner {
-        padding: 0;
-        background-color: #ffffff;
-        color: #333333;
-    }
-
-    .sidebar .collapse .collapse-inner a.collapse-item {
-        padding: 0.4rem 1.5rem;
-        font-size: 0.85rem;
-        color: #333333;
-    }
-
-    .sidebar .collapse .collapse-inner a.collapse-item:hover {
-        background-color: #f0f0f0;
-    }
-
-    .sidebar .collapse .collapse-inner a.collapse-item.active {
-        color: #764ba2;
-        background-color: #f0f0f0;
-        font-weight: 600;
-    }
-
-    /* ===== BRAND SIDEBAR PERSONNALISÉ ===== */
-    .sidebar-brand-custom {
-        background: #ffffff !important;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    /* Logo */
-    .sidebar-logo {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-    }
-
-
-    .sidebar-brand-custom .sidebar-brand-text {
-        color: #667eea !important;
-        /* bleu */
-        font-weight: 800;
-        font-size: 1.05rem;
-        letter-spacing: 0.5px;
-    }
-
-
-    /* Sidebar réduite */
-    .sidebar.toggled .sidebar-brand-custom .sidebar-brand-text {
-        display: none;
-    }
-
-    .sidebar.toggled .sidebar-logo {
-        width: 32px;
-        height: 32px;
-    }
-</style>
 
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
@@ -143,11 +44,11 @@
         href="{{ url('/dashboard') }}">
 
         <div class="sidebar-brand-icon">
-            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="DYMO STOCK" class="sidebar-logo">
+            <img src="{{ asset('assets/img/logo/favicon.png') }}" alt="GStock" class="sidebar-logo">
         </div>
 
         <div class="sidebar-brand-text mx-2">
-            DYMO-STOCK
+            G<span class="accent">Stock</span>
         </div>
     </a>
 

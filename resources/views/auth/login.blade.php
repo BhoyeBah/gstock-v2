@@ -4,498 +4,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset("assets/img/logo/favicon.png") }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/{{ asset("assets/img/logo/favicon.png") }}">
-    <title>Connexion - StockPro</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/logo/favicon.png') }}">
+    <title>Connexion — GStock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #64748b;
-            --success: #10b981;
-            --error: #ef4444;
-            --text-dark: #1e293b;
-            --text-light: #64748b;
-            --bg-light: #f8fafc;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --brand: #4f46e5;
+            --brand-600: #4338ca;
+            --brand-700: #3730a3;
+            --ink: #0f172a;
+            --soft: #475569;
+            --muted: #94a3b8;
+            --border: #e6e9f0;
+            --ring: 0 0 0 4px rgba(79, 70, 229, .15);
         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--ink);
+            background: #f6f8fb;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: var(--text-dark);
         }
+        .shell { display: grid; grid-template-columns: 1.05fr .95fr; min-height: 100vh; }
 
-        .login-container {
-            width: 100%;
-            max-width: 440px;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .logo-section {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .logo {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-lg);
-            margin-bottom: 16px;
-        }
-
-        .logo svg {
-            width: 32px;
-            height: 32px;
-            fill: var(--primary);
-        }
-
-        .brand-name {
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 8px;
-        }
-
-        .brand-tagline {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 48px 40px;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .login-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-        }
-
-        .login-subtitle {
-            color: var(--text-light);
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-        }
-
-        .input-wrapper {
+        /* ---------- Panneau de marque ---------- */
+        .brandside {
             position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            fill: var(--text-light);
-            pointer-events: none;
-            transition: fill 0.2s;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.2s;
-            outline: none;
-            background: white;
-        }
-
-        .form-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-input:focus+.input-icon {
-            fill: var(--primary);
-        }
-
-        .form-input.error {
-            border-color: var(--error);
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            color: var(--text-light);
-            transition: color 0.2s;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary);
-        }
-
-        .error-message {
-            color: var(--error);
-            font-size: 13px;
-            margin-top: 6px;
+            overflow: hidden;
+            background:
+                radial-gradient(1200px 500px at -10% -20%, rgba(124,58,237,.55), transparent 55%),
+                radial-gradient(900px 600px at 120% 120%, rgba(56,189,248,.25), transparent 50%),
+                linear-gradient(160deg, #111a30 0%, #0f172a 60%, #0b1020 100%);
+            color: #fff;
+            padding: 56px 60px;
             display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .form-options {
-            display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
         }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
+        .brandside::after {
+            content: ""; position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+            background-size: 22px 22px; opacity: .5; pointer-events: none;
         }
+        .brand-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+        .brand-logo { width: 44px; height: 44px; border-radius: 12px; background: #fff; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+        .brand-logo img { width: 30px; height: 30px; object-fit: contain; }
+        .brand-name { font-size: 22px; font-weight: 800; letter-spacing: .3px; }
+        .brand-name span { color: #a5b4fc; }
 
-        .checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--primary);
+        .brand-hero { position: relative; z-index: 1; max-width: 460px; }
+        .brand-hero h1 { font-size: 40px; line-height: 1.12; font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+        .brand-hero p { color: #cbd5e1; font-size: 16px; line-height: 1.6; }
+        .features { position: relative; z-index: 1; display: grid; gap: 14px; margin-top: 6px; }
+        .feature { display: flex; align-items: center; gap: 12px; color: #e2e8f0; font-size: 15px; }
+        .feature .tick { width: 26px; height: 26px; border-radius: 8px; background: rgba(165,180,252,.16); border: 1px solid rgba(165,180,252,.3); display: grid; place-items: center; color: #c7d2fe; font-size: 13px; flex: none; }
+        .brand-foot { position: relative; z-index: 1; color: #64748b; font-size: 13px; }
+
+        /* ---------- Formulaire ---------- */
+        .formside { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+        .card { width: 100%; max-width: 400px; }
+        .card h2 { font-size: 26px; font-weight: 800; letter-spacing: -.01em; margin-bottom: 6px; }
+        .card .sub { color: var(--soft); font-size: 14.5px; margin-bottom: 30px; }
+
+        .group { margin-bottom: 20px; }
+        .lbl { display: block; font-size: 13.5px; font-weight: 600; color: var(--soft); margin-bottom: 8px; }
+        .field { position: relative; }
+        .field .ic { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; fill: var(--muted); pointer-events: none; transition: fill .2s; }
+        .input {
+            width: 100%; padding: 13px 44px 13px 42px;
+            border: 1.5px solid var(--border); border-radius: 12px;
+            font-family: inherit; font-size: 15px; color: var(--ink);
+            background: #fff; outline: none; transition: border-color .18s, box-shadow .18s;
         }
+        .input::placeholder { color: #aab3c4; }
+        .input:focus { border-color: var(--brand); box-shadow: var(--ring); }
+        .input:focus + .ic { fill: var(--brand); }
+        .input.error { border-color: #ef4444; }
+        .toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; display: grid; place-items: center; }
+        .toggle:hover { color: var(--brand); }
+        .err { color: #dc2626; font-size: 12.5px; margin-top: 7px; display: flex; align-items: center; gap: 5px; }
 
-        .remember-label {
-            font-size: 14px;
-            color: var(--text-dark);
-            cursor: pointer;
+        .options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .remember { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 14px; color: var(--soft); }
+        .remember input { width: 17px; height: 17px; accent-color: var(--brand); cursor: pointer; }
+        .link { color: var(--brand); font-weight: 600; font-size: 14px; text-decoration: none; }
+        .link:hover { color: var(--brand-700); }
+
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer;
+            font-family: inherit; font-size: 15.5px; font-weight: 700; color: #fff;
+            background: var(--brand); box-shadow: 0 8px 20px rgba(79,70,229,.28);
+            transition: transform .15s, background .15s, box-shadow .15s;
         }
+        .btn:hover { background: var(--brand-600); transform: translateY(-1px); box-shadow: 0 12px 26px rgba(79,70,229,.34); }
+        .btn:active { transform: translateY(0); }
 
-        .forgot-password {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
+        .alert { padding: 12px 15px; border-radius: 12px; margin-bottom: 22px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .alert.info { background: #eef2ff; color: var(--brand-700); border: 1px solid #e0e7ff; }
+        .mobile-brand { display: none; }
 
-        .forgot-password:hover {
-            color: var(--primary-dark);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow);
-        }
-
-        .btn-login:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .alert.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .alert.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .alert.info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 32px 0;
-            color: var(--text-light);
-            font-size: 14px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .divider span {
-            padding: 0 16px;
-        }
-
-        .social-login {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .btn-social {
-            padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            background: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-dark);
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-social:hover {
-            border-color: var(--primary);
-            background: var(--bg-light);
-        }
-
-        .btn-social svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .signup-link {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 14px;
-            margin-top: 24px;
-        }
-
-        .signup-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-
-        .signup-link a:hover {
-            color: var(--primary-dark);
-        }
-
-        .logo img {
-            width: 100%;
-            /* occupe tout le conteneur */
-            height: 100%;
-            object-fit: contain;
-            /* garde les proportions */
-        }
-
-
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 32px 24px;
-            }
-
-            .social-login {
-                grid-template-columns: 1fr;
-            }
-
-            .form-options {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
+        @media (max-width: 900px) {
+            .shell { grid-template-columns: 1fr; }
+            .brandside { display: none; }
+            .formside { padding: 32px 20px; }
+            .mobile-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 26px; }
+            .mobile-brand .brand-logo { width: 40px; height: 40px; }
+            .mobile-brand .brand-name { color: var(--ink); font-size: 20px; }
+            .mobile-brand .brand-name span { color: var(--brand); }
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="logo-section">
-            <div class="logo">
-                <img src="{{ asset('assets/img/logo/logo.png') }}" alt="">
+    <div class="shell">
+        <!-- Panneau marque -->
+        <aside class="brandside">
+            <div class="brand-top">
+                <div class="brand-logo"><img src="{{ asset('assets/img/logo/logo.png') }}" alt="GStock"></div>
+                <div class="brand-name">G<span>Stock</span></div>
             </div>
-            <div class="brand-tagline">Gestion de stock intelligente</div>
-        </div>
 
-        <div class="login-card">
+            <div class="brand-hero">
+                <h1>Pilotez votre stock, vos ventes et votre trésorerie.</h1>
+                <p>Une plateforme de gestion claire et rapide : point de vente, factures, inventaire et rapports — au même endroit.</p>
+            </div>
 
-            <!-- Session Status -->
-            @if (session('status'))
-                <div class="alert info">
-                    <span>ℹ️</span>
-                    <span>{{ session('status') }}</span>
+            <div class="features">
+                <div class="feature"><span class="tick">✓</span> Vente rapide au comptoir en moins de 30 secondes</div>
+                <div class="feature"><span class="tick">✓</span> Suivi de stock FIFO et alertes en temps réel</div>
+                <div class="feature"><span class="tick">✓</span> Rapports de caisse & tableaux de bord clairs</div>
+            </div>
+
+            <div class="brand-foot">© {{ date('Y') }} GStock — Gestion de stock intelligente.</div>
+        </aside>
+
+        <!-- Formulaire -->
+        <main class="formside">
+            <div class="card">
+                <div class="mobile-brand">
+                    <div class="brand-logo"><img src="{{ asset('assets/img/logo/logo.png') }}" alt="GStock"></div>
+                    <div class="brand-name">G<span>Stock</span></div>
                 </div>
-            @endif
 
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
+                <h2>Bon retour 👋</h2>
+                <p class="sub">Connectez-vous pour accéder à votre espace de gestion.</p>
 
-                <!-- Email Address -->
-                <div class="form-group">
-                    <label for="email" class="form-label">{{ __('Email') }}</label>
-                    <div class="input-wrapper">
-                        <input type="email" id="email" name="email"
-                            class="form-input @error('email') error @enderror" placeholder="votre@email.com"
-                            value="{{ old('email') }}" required autofocus autocomplete="username">
-                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"
-                                fill="currentColor" />
-                        </svg>
-                    </div>
-                    @error('email')
-                        <div class="error-message">
-                            <span>⚠</span>
-                            <span>{{ $message }}</span>
+                @if (session('status'))
+                    <div class="alert info"><span>ℹ️</span><span>{{ session('status') }}</span></div>
+                @endif
+
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    <div class="group">
+                        <label for="email" class="lbl">{{ __('Email') }}</label>
+                        <div class="field">
+                            <input type="email" id="email" name="email"
+                                class="input @error('email') error @enderror" placeholder="votre@email.com"
+                                value="{{ old('email') }}" required autofocus autocomplete="username">
+                            <svg class="ic" viewBox="0 0 24 24"><path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"/></svg>
                         </div>
-                    @enderror
-                </div>
-
-                <!-- Password -->
-                <div class="form-group">
-                    <label for="password" class="form-label">{{ __('Password') }}</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="password" name="password"
-                            class="form-input @error('password') error @enderror" placeholder="••••••••" required
-                            autocomplete="current-password">
-                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15.1 8H8.9V6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8Z"
-                                fill="currentColor" />
-                        </svg>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 6C15.79 6 19.17 8.13 20.82 11.5C19.17 14.87 15.79 17 12 17C8.21 17 4.83 14.87 3.18 11.5C4.83 8.13 8.21 6 12 6ZM12 4C7 4 2.73 7.11 1 11.5C2.73 15.89 7 19 12 19C17 19 21.27 15.89 23 11.5C21.27 7.11 17 4 12 4ZM12 9C13.38 9 14.5 10.12 14.5 11.5C14.5 12.88 13.38 14 12 14C10.62 14 9.5 12.88 9.5 11.5C9.5 10.12 10.62 9 12 9ZM12 7C9.52 7 7.5 9.02 7.5 11.5C7.5 13.98 9.52 16 12 16C14.48 16 16.5 13.98 16.5 11.5C16.5 9.02 14.48 7 12 7Z"
-                                    fill="currentColor" />
-                            </svg>
-                        </button>
+                        @error('email')<div class="err"><span>⚠</span><span>{{ $message }}</span></div>@enderror
                     </div>
-                    @error('password')
-                        <div class="error-message">
-                            <span>⚠</span>
-                            <span>{{ $message }}</span>
+
+                    <div class="group">
+                        <label for="password" class="lbl">{{ __('Mot de passe') }}</label>
+                        <div class="field">
+                            <input type="password" id="password" name="password"
+                                class="input @error('password') error @enderror" placeholder="••••••••" required
+                                autocomplete="current-password">
+                            <svg class="ic" viewBox="0 0 24 24"><path d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15.1 8H8.9V6C8.9 4.29 10.29 2.9 12 2.9C13.71 2.9 15.1 4.29 15.1 6V8Z"/></svg>
+                            <button type="button" class="toggle" id="togglePassword" aria-label="Afficher le mot de passe">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 6C15.79 6 19.17 8.13 20.82 11.5C19.17 14.87 15.79 17 12 17C8.21 17 4.83 14.87 3.18 11.5C4.83 8.13 8.21 6 12 6Z" fill="currentColor"/><circle cx="12" cy="11.5" r="2.5" fill="#fff"/></svg>
+                            </button>
                         </div>
-                    @enderror
-                </div>
+                        @error('password')<div class="err"><span>⚠</span><span>{{ $message }}</span></div>@enderror
+                    </div>
 
-                <!-- Remember Me -->
-                <div class="form-options">
-                    <label for="remember_me" class="remember-me">
-                        <input type="checkbox" id="remember_me" name="remember" class="checkbox">
-                        <span class="remember-label">{{ __('Se souvenir de moi') }}</span>
-                    </label>
+                    <div class="options">
+                        <label for="remember_me" class="remember">
+                            <input type="checkbox" id="remember_me" name="remember">
+                            <span>{{ __('Se souvenir de moi') }}</span>
+                        </label>
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="link">Mot de passe oublié ?</a>
+                        @endif
+                    </div>
 
-
-                </div>
-
-                <button type="submit" class="btn-login">
-                    {{ __('Connexion') }}
-                </button>
-            </form>
-
-        </div>
+                    <button type="submit" class="btn">{{ __('Se connecter') }}</button>
+                </form>
+            </div>
+        </main>
     </div>
 
     <script>
-        // Toggle password visibility
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
-
         if (togglePassword) {
             togglePassword.addEventListener('click', () => {
-                const type = passwordInput.type === 'password' ? 'text' : 'password';
-                passwordInput.type = type;
-
-                togglePassword.innerHTML = type === 'password' ?
-                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6C15.79 6 19.17 8.13 20.82 11.5C19.17 14.87 15.79 17 12 17C8.21 17 4.83 14.87 3.18 11.5C4.83 8.13 8.21 6 12 6ZM12 4C7 4 2.73 7.11 1 11.5C2.73 15.89 7 19 12 19C17 19 21.27 15.89 23 11.5C21.27 7.11 17 4 12 4ZM12 9C13.38 9 14.5 10.12 14.5 11.5C14.5 12.88 13.38 14 12 14C10.62 14 9.5 12.88 9.5 11.5C9.5 10.12 10.62 9 12 9ZM12 7C9.52 7 7.5 9.02 7.5 11.5C7.5 13.98 9.52 16 12 16C14.48 16 16.5 13.98 16.5 11.5C16.5 9.02 14.48 7 12 7Z" fill="currentColor"/></svg>' :
-                    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6C15.79 6 19.17 8.13 20.82 11.5C19.17 14.87 15.79 17 12 17C8.21 17 4.83 14.87 3.18 11.5C4.83 8.13 8.21 6 12 6ZM12 4C7 4 2.73 7.11 1 11.5C2.73 15.89 7 19 12 19C17 19 21.27 15.89 23 11.5C21.27 7.11 17 4 12 4ZM12 9C13.38 9 14.5 10.12 14.5 11.5C14.5 12.88 13.38 14 12 14C10.62 14 9.5 12.88 9.5 11.5C9.5 10.12 10.62 9 12 9Z" fill="currentColor"/><path d="M2 2L22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+                passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
             });
         }
-
-        // Auto-dismiss alerts after 5 seconds
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                alert.style.transition = 'opacity 0.5s';
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 500);
-            }, 5000);
+        document.querySelectorAll('.alert').forEach(a => {
+            setTimeout(() => { a.style.transition = 'opacity .5s'; a.style.opacity = '0'; setTimeout(() => a.remove(), 500); }, 6000);
         });
     </script>
 </body>
