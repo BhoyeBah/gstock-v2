@@ -342,7 +342,7 @@ Route::middleware(['auth', 'subscription.permission:create_pos_sales'])->prefix(
     Route::get('/{invoice}/receipt', 'receipt')->where('invoice', '[0-9a-fA-F\-]{36}')->name('receipt');
 });
 
-Route::prefix("/employes")->name("employes.")->controller(EmployeController::class)->middleware(['auth'])->group(function() {
+Route::prefix("/employes")->name("employes.")->controller(EmployeController::class)->middleware(['auth', 'subscription.permission:manage_employee'])->group(function() {
     Route::get("/", "index")->name("index");
     Route::post("/store", "store")->name("store");
     Route::get("/{employe}/show", "show")->name("show");

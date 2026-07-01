@@ -64,6 +64,9 @@ class PermissionSeeder extends Seeder
             ['name' => 'delete_quotes', 'description' => 'Supprimer des devis / proformas'],
             ['name' => 'convert_quotes', 'description' => 'Convertir un devis en facture'],
 
+            // Point de vente
+            ['name' => 'create_pos_sales', 'description' => 'Accéder au point de vente et créer des ventes rapides'],
+
             // Sale orders
             ['name' => 'read_sale_orders', 'description' => 'Voir les commandes clients'],
             ['name' => 'create_sale_orders', 'description' => 'Créer des commandes clients'],

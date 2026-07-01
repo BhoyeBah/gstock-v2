@@ -49,6 +49,7 @@
     $isReturnsDashboardRoute = request()->routeIs('returns.*');
 
     $isSalesActive = request()->routeIs('quotes.*')
+        || request()->routeIs('sales.*')
         || request()->routeIs('sale-orders.*')
         || request()->routeIs('delivery-notes.*')
         || $isCustomerReturnRoute
@@ -324,7 +325,7 @@
             @endcan
         @endif
 
-        @if ($hasAnyPermission(['read_quotes', 'read_sale_orders', 'read_deliveries', 'read_customer_returns', 'read_client_payments', 'manage_client_invoices']))
+        @if ($hasAnyPermission(['create_pos_sales', 'read_quotes', 'read_sale_orders', 'read_deliveries', 'read_customer_returns', 'read_client_payments', 'manage_client_invoices']))
             <hr class="sidebar-divider">
             <div class="sidebar-heading">Commercial / Ventes</div>
 
@@ -338,6 +339,13 @@
 
                 <div id="collapseSales" class="collapse {{ $isSalesActive ? 'show' : '' }}" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
+                        @can('create_pos_sales')
+                            <a class="collapse-item {{ request()->routeIs('sales.*') ? 'active' : '' }}"
+                                href="{{ route('sales.index') }}">
+                                POS / Vente rapide
+                            </a>
+                        @endcan
+
                         @if ($hasAnyPermission(['read_quotes', 'manage_client_invoices']))
                             <a class="collapse-item {{ request()->routeIs('quotes.*') ? 'active' : '' }}"
                                 href="{{ route('quotes.index') }}">
@@ -585,7 +593,7 @@
             </li>
         @endcan
 
-        @if ($hasAnyPermission(['manage_settings', 'read_document_sequences', 'manage_users', 'manage_roles', 'view_subscriptions']))
+        @if ($hasAnyPermission(['manage_settings', 'read_document_sequences', 'manage_users', 'manage_roles', 'view_subscriptions', 'manage_employee']))
             <hr class="sidebar-divider">
             <div class="sidebar-heading">Paramètres</div>
 

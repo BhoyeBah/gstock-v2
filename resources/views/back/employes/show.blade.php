@@ -19,7 +19,7 @@
             <a href="{{ route('employes.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Retour
             </a>
-            <button class="btn btn-primary ml-2" data-toggle="modal" data-target="#paymentModal">
+            <button type="button" class="btn btn-primary ml-2" data-toggle="modal" data-target="#paymentModal">
                 <i class="fas fa-money-check-alt"></i> Nouveau paiement
             </button>
         </div>
@@ -625,6 +625,125 @@
 
 </div>
 
+<!-- Modal Paiement -->
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-gradient-primary text-white border-0">
+                <h5 class="modal-title font-weight-bold" id="paymentModalLabel">
+                    <i class="fas fa-money-check-alt mr-2"></i>Nouveau paiement
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form action="{{ route('employes.pay', $employe) }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Enregistre une avance, un remboursement, une prime, une déduction ou un paiement de salaire.
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_type" class="font-weight-bold">
+                            <i class="fas fa-exchange-alt text-primary mr-1"></i>Type de transaction
+                        </label>
+                        <select name="type" id="payment_type" class="form-control @error('type') is-invalid @enderror" required>
+                            <option value="salary_payment" {{ old('type', 'salary_payment') === 'salary_payment' ? 'selected' : '' }}>
+                                Paiement de salaire
+                            </option>
+                            <option value="advance" {{ old('type') === 'advance' ? 'selected' : '' }}>
+                                Avance
+                            </option>
+                            <option value="advance_repayment" {{ old('type') === 'advance_repayment' ? 'selected' : '' }}>
+                                Remboursement d'avance
+                            </option>
+                            <option value="bonus" {{ old('type') === 'bonus' ? 'selected' : '' }}>
+                                Prime / Bonus
+                            </option>
+                            <option value="deduction" {{ old('type') === 'deduction' ? 'selected' : '' }}>
+                                Déduction
+                            </option>
+                        </select>
+                        @error('type')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_amount" class="font-weight-bold">
+                            <i class="fas fa-coins text-success mr-1"></i>Montant (FCFA)
+                        </label>
+                        <input type="number" name="amount" id="payment_amount"
+                            class="form-control @error('amount') is-invalid @enderror"
+                            value="{{ old('amount') }}" min="1" step="1" placeholder="Ex : 25000" required>
+                        @error('amount')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_wallet" class="font-weight-bold">
+                            <i class="fas fa-wallet text-primary mr-1"></i>Wallet
+                        </label>
+                        <select name="wallet_id" id="payment_wallet"
+                            class="form-control @error('wallet_id') is-invalid @enderror">
+                            <option value="">-- Sélectionner un wallet --</option>
+                            @foreach ($wallets as $wallet)
+                                <option value="{{ $wallet->id }}" @selected(old('wallet_id') === $wallet->id)>
+                                    {{ $wallet->name }} ({{ number_format($wallet->current_balance, 0, ',', ' ') }} FCFA)
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">
+                            Obligatoire pour les paiements de salaire, avances, primes et remboursements.
+                        </small>
+                        @error('wallet_id')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_date" class="font-weight-bold">
+                            <i class="fas fa-calendar-alt text-primary mr-1"></i>Date
+                        </label>
+                        <input type="date" name="date" id="payment_date"
+                            class="form-control @error('date') is-invalid @enderror"
+                            value="{{ old('date', now()->format('Y-m-d')) }}">
+                        @error('date')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="payment_note" class="font-weight-bold">
+                            <i class="fas fa-sticky-note text-secondary mr-1"></i>Note
+                        </label>
+                        <textarea name="note" id="payment_note" rows="3"
+                            class="form-control @error('note') is-invalid @enderror"
+                            placeholder="Optionnel : ajouter un commentaire">{{ old('note') }}</textarea>
+                        @error('note')
+                            <small class="text-danger d-block mt-1">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-check mr-1"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Filtre -->
 <div class="modal fade" id="filterModal" tabindex="-1" role="dialog" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -758,4 +877,14 @@
         </div>
     </div>
 </div>
+
+@if ($errors->any() && (old('amount') !== null || old('type') !== null || old('wallet_id') !== null || old('date') !== null || old('note') !== null))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.jQuery) {
+                window.jQuery('#paymentModal').modal('show');
+            }
+        });
+    </script>
+@endif
 @endsection

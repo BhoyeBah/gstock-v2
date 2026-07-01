@@ -68,7 +68,7 @@ class TenantController extends Controller
                 'tenant_id' => $tenant->id,
             ]);
 
-            $adminRole->givePermissionTo(['manage_roles']);
+            $adminRole->givePermissionTo(['manage_roles', 'create_pos_sales', 'manage_employee']);
 
             $userData = $request->input('user');
 

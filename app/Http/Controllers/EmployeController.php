@@ -13,12 +13,16 @@ use Illuminate\Support\Str;
 
 class EmployeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'subscription.permission:manage_employee']);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        //
         $employes = Employe::query()
             ->when($request->filled('search_name'), function ($query) use ($request) {
                 $query->where('full_name', 'LIKE', '%'.$request->search_name.'%');
@@ -40,7 +44,7 @@ class EmployeController extends Controller
      */
     public function create()
     {
-        //
+        return redirect()->route('employes.index');
     }
 
     /**
@@ -48,10 +52,9 @@ class EmployeController extends Controller
      */
     public function store(EmployeCreateRequest $request)
     {
-        //
         Employe::create($request->validated());
 
-        return back()->with('success', 'Employé crée avec succés');
+        return back()->with('success', 'Employé créé avec succès.');
     }
 
     /**
@@ -126,7 +129,6 @@ class EmployeController extends Controller
      */
     public function edit(Employe $employe)
     {
-        //
         return view('back.employes.edit', compact('employe'));
     }
 
@@ -135,7 +137,6 @@ class EmployeController extends Controller
      */
     public function update(EmployeCreateRequest $request, Employe $employe)
     {
-        //
         $employe->update($request->validated());
 
         return redirect()
@@ -218,9 +219,8 @@ class EmployeController extends Controller
      */
     public function destroy(Employe $employe)
     {
-        //
         $employe->delete();
 
-        return back()->with('success', 'Employé supprimé avec succés');
+        return back()->with('success', 'Employé supprimé avec succès.');
     }
 }

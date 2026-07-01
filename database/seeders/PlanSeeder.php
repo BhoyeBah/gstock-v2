@@ -77,6 +77,7 @@ class PlanSeeder extends Seeder
             'update_quotes',
             'delete_quotes',
             'convert_quotes',
+            'create_pos_sales',
             'read_sale_orders',
             'create_sale_orders',
             'update_sale_orders',
@@ -103,6 +104,7 @@ class PlanSeeder extends Seeder
             'manage_supplier_invoices',
             'read_client_payments',
             'read_supplier_payments',
+            'manage_employee',
         ];
 
         $this->syncPlanPermissions($free, $workflowPermissions);
@@ -117,6 +119,7 @@ class PlanSeeder extends Seeder
             'manage_inventories',
             'manage_wallets',
             'manage_expenses',
+            'manage_employee',
         ]));
 
         $this->syncPlanPermissions($admin, Permission::query()->pluck('name')->all());
